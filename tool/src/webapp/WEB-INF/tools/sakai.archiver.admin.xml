@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<registration>
+	<tool id="sakai.archiver.admin" 
+		title="The Archiver" 
+		description="An archiving app for Sakai (admin version)">
+
+		<category name="sakai.admin" />
+      	
+		<!--  If the visibility/access of this tool should be dependent on a user permission, you can list that here -->
+		<!--  <configuration name="functions.require" value="some.permission"/> -->
+		
+    </tool>
+</registration>

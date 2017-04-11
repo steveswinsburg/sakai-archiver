@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>Sakai Archiver Impl</name>
+	<groupId>org.sakaiproject.archiver</groupId>
+	<artifactId>archiver-impl</artifactId>
+
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.sakaiproject.archiver</groupId>
+		<artifactId>archiver</artifactId>
+	    <version>0.1-SNAPSHOT</version>
+	</parent>
+
+  	<dependencies>
+    	<dependency>
+      		<groupId>org.sakaiproject.archiver</groupId>
+			<artifactId>archiver-api</artifactId>
+	    	<version>0.1-SNAPSHOT</version>
+   		</dependency>
+	</dependencies>
+	
+	<build />
+	 
+</project>
