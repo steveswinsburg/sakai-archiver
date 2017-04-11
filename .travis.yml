@@ -2,3 +2,11 @@ language: java
 jdk:
   - oraclejdk8
 sudo: false
+
+addons:
+  sonarqube:
+    organization: "steveswinsburg-github"
+    token:
+      secure: "kDxWrbellj0VzoDkGTY3JD1p/M6/RwP/OFHzEqqJflXnktErNw7a8TiXPmy3sqBsq8WeUyjBfokyGL7MRiNmMGTUjiNvS0xw2myMPkDvj3Sb/t920B49K3tRaRX4y1UOBYIpOamWXbjhsb2Y1ry1wunZWI3REAzHAfNGIJuBmOIKxZ/5dU1KIdTWU+mvX+Owsgqk+56tKu84O1zIVrZoD8nzQvD5izID3+JMUDGLpmZi9BrjRRUq6y/X0Q3HeGpkIXO5IglvtdvfwrSG9+8/H2g86zkHJf33YFvVj+MgE6IX3/HCUGS0cPBhS/oEtD2u8FpppwRJgpKp4mxyFxT8YTvqYWaNdupcb/3LzGYeS+WfzRBvtrZEdYjfgfp6xRR25XcCZZ6Nm1BZtzL6jx9Ujn4dpCcxviN+HIJrsxthFQpUnHFbMiixIv5vb+4G6XVgXAeAhYvXBLO2FufePhguczID4XOyOml0ADfH6bOm5uGU3ujKgGSCEAduY0A0wfi4XurXMsFunloVyV1BsBq91OCe8jPgqLh53mEA83O/UjpLbhtpFSXkCrFFXlbDXkotvH13TJATH6EQWmI7iBv7hYxln0rAWDZNSiwN2EaeGRO7EoBPqlej6gRRXe7KHX/qhGH3QA7E0YlIJFr+lG0nEz22GDWwo+NfRBTWFP171uc="
+script:
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
