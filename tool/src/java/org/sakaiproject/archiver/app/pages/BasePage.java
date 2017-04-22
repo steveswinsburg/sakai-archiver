@@ -35,7 +35,8 @@ public class BasePage extends WebPage {
 	@SpringBean(name = "org.sakaiproject.archiver.business.ArchiverBusinessService")
 	protected ArchiverBusinessService businessService;
 
-	Link<Void> archivePageLink;
+	Link<Void> createArchiveLink;
+	Link<Void> previousArchivesLink;
 
 	public final RichFeedbackPanel feedbackPanel;
 
@@ -56,18 +57,31 @@ public class BasePage extends WebPage {
 		// nav container
 		final WebMarkupContainer nav = new WebMarkupContainer("pageNav");
 
-		// archive page
-		this.archivePageLink = new Link<Void>("archivePageLink") {
+		// create archive
+		this.createArchiveLink = new Link<Void>("createArchiveLink") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick() {
-				setResponsePage(ArchivePage.class);
+				setResponsePage(CreateArchivePage.class);
 			}
 
 		};
-		this.archivePageLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
-		nav.add(this.archivePageLink);
+		this.createArchiveLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
+		nav.add(this.createArchiveLink);
+
+		// previous archives
+		this.previousArchivesLink = new Link<Void>("previousArchivesLink") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick() {
+				setResponsePage(PreviousArchivesPage.class);
+			}
+
+		};
+		this.previousArchivesLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
+		nav.add(this.previousArchivesLink);
 
 		// Add a FeedbackPanel for displaying our messages
 		this.feedbackPanel = new RichFeedbackPanel("feedback");

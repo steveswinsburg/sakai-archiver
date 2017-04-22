@@ -1,10 +1,15 @@
 package org.sakaiproject.archiver.business;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
+import org.sakaiproject.archiver.business.model.ArchiveableTool;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -66,6 +71,27 @@ public class ArchiverBusinessService {
 	public Locale getUserPreferredLocale() {
 		final ResourceLoader rl = new ResourceLoader();
 		return rl.getLocale();
+	}
+
+	/**
+	 * Gets a list of the tools that have been configured in sakai.properties
+	 *
+	 * @return list of {@link ArchiveableTool}s. May be empty.
+	 */
+	public List<ArchiveableTool> getConfiguredTools() {
+		final List<ArchiveableTool> tools = new ArrayList<>();
+
+		final String[] toolIds = this.serverConfigurationService.getStrings("archiver.tools");
+		if (toolIds != null) {
+			Arrays.asList(toolIds).forEach(toolId -> {
+				final Tool t = this.toolManager.getTool(toolId);
+
+				final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
+				tools.add(tool);
+			});
+		}
+
+		return tools;
 	}
 
 }

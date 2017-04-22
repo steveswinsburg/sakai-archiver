@@ -9,8 +9,16 @@
 		<ul class="navIntraTool actionToolbar" wicket:id="pageNav">
 			<li class="firstToolBarItem">
 				<span>
-					<a wicket:id="archivePageLink" wicket:message="title:link.archivepage.tooltip">
-						<wicket:message key="link.archive" />
+					<a wicket:id="createArchiveLink" wicket:message="title:link.create">
+						<wicket:message key="link.create.tooltip" />
+						<span wicket:id="screenreaderlabel" class="sr-only"></span>
+					</a>
+				</span>
+			</li>
+			<li>
+				<span>
+					<a wicket:id="previousArchivesLink" wicket:message="title:link.previous">
+						<wicket:message key="link.previous.tooltip" />
 						<span wicket:id="screenreaderlabel" class="sr-only"></span>
 					</a>
 				</span>

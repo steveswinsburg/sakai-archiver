@@ -3,7 +3,7 @@ package org.sakaiproject.archiver.app;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.settings.IExceptionSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.sakaiproject.archiver.app.pages.ArchivePage;
+import org.sakaiproject.archiver.app.pages.CreateArchivePage;
 
 public class ArchiverApplication extends WebApplication {
 
@@ -61,8 +61,8 @@ public class ArchiverApplication extends WebApplication {
 	 * @see org.apache.wicket.Application#getHomePage()
 	 */
 	@Override
-	public Class<ArchivePage> getHomePage() {
-		return ArchivePage.class;
+	public Class<CreateArchivePage> getHomePage() {
+		return CreateArchivePage.class;
 	}
 
 }
