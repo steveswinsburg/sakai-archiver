@@ -4,8 +4,8 @@
 <beans>
 
 	<bean
-		id="org.sakaiproject.archiver.business.ArchiverBusinessService"
-		class="org.sakaiproject.archiver.business.ArchiverBusinessService">
+		id="org.sakaiproject.archiver.app.business.ArchiverBusinessService"
+		class="org.sakaiproject.archiver.app.business.ArchiverBusinessService">
 		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
 		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
 		<property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager" />

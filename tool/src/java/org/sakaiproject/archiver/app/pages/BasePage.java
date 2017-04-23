@@ -16,8 +16,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.sakaiproject.archiver.app.business.ArchiverBusinessService;
 import org.sakaiproject.archiver.app.components.RichFeedbackPanel;
-import org.sakaiproject.archiver.business.ArchiverBusinessService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +32,7 @@ public class BasePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	@SpringBean(name = "org.sakaiproject.archiver.business.ArchiverBusinessService")
+	@SpringBean(name = "org.sakaiproject.archiver.app.business.ArchiverBusinessService")
 	protected ArchiverBusinessService businessService;
 
 	Link<Void> createArchiveLink;
@@ -82,6 +82,8 @@ public class BasePage extends WebPage {
 		};
 		this.previousArchivesLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
 		nav.add(this.previousArchivesLink);
+		
+		add(nav);
 
 		// Add a FeedbackPanel for displaying our messages
 		this.feedbackPanel = new RichFeedbackPanel("feedback");

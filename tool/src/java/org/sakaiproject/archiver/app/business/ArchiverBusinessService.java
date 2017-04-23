@@ -1,11 +1,11 @@
-package org.sakaiproject.archiver.business;
+package org.sakaiproject.archiver.app.business;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import org.sakaiproject.archiver.business.model.ArchiveableTool;
+import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.site.api.SiteService;

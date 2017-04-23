@@ -1,7 +1,6 @@
 package org.sakaiproject.archiver.app.model;
 
 import java.io.Serializable;
-import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -10,20 +9,29 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Backs the create archive form
+ * Wrapper for the set of tools that are configured as archiveable.
+ *
  */
-public class ArchiveSettings implements Serializable {
+public class ArchiveableTool implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	@Getter
-	@Setter
-	private boolean includeStudentData;
-	
+	private final String toolId;
+
 	@Getter
 	@Setter
-	private List<ArchiveableTool> archiveableTools;
+	private String name;
 
+	@Getter
+	@Setter
+	private boolean includeInArchive;
+
+	public ArchiveableTool(final String toolId, final String name) {
+		this.toolId = toolId;
+		this.name = name;
+	}
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);

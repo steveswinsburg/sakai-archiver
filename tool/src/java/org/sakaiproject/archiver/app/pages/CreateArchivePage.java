@@ -11,8 +11,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
-import org.sakaiproject.archiver.business.model.ArchiveableTool;
+import org.sakaiproject.archiver.app.model.ArchiveableTool;
 
 public class CreateArchivePage extends BasePage {
 
@@ -30,13 +31,22 @@ public class CreateArchivePage extends BasePage {
 		final ArchiveSettings settings = new ArchiveSettings();
 		final Model<ArchiveSettings> formModel = Model.of(settings);
 
-		// form
-		final Form<ArchiveSettings> form = new Form<ArchiveSettings>("create", formModel);
-
-		// get tools for form
+		// get tools configured for archiving 
 		final List<ArchiveableTool> configuredTools = this.businessService.getConfiguredTools();
+		settings.setArchiveableTools(configuredTools);
+		
+		// form
+		final Form<ArchiveSettings> form = new Form<ArchiveSettings>("create", formModel) {
+			private static final long serialVersionUID = 1L;
 
-		final ListView<ArchiveableTool> toolsView = new ListView<ArchiveableTool>("tools", configuredTools) {
+			@Override
+			public boolean isVisible() {
+				return !configuredTools.isEmpty();
+			}
+		};
+		
+		// tool list
+		final ListView<ArchiveableTool> includeToolsView = new ListView<ArchiveableTool>("includeToolsView", configuredTools) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -54,7 +64,7 @@ public class CreateArchivePage extends BasePage {
 				item.add(title);
 			}
 		};
-		form.add(toolsView);
+		form.add(includeToolsView);
 
 		// include student data
 		final CheckBox includeStudentData = new CheckBox("includeStudentData", new PropertyModel<Boolean>(settings, "includeStudentData"));
@@ -72,10 +82,22 @@ public class CreateArchivePage extends BasePage {
 			}
 
 		};
-
 		form.add(submit);
-
 		add(form);
+		
+		//error message if no tools
+		Label noToolsError = new Label("noToolsError", new ResourceModel("error.create.notools")) {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				return configuredTools.isEmpty();
+			}
+			
+		};
+		add(noToolsError);
+
+		
 	}
 
 }

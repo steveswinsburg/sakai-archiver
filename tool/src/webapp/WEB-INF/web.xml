@@ -11,7 +11,7 @@
 	    <servlet-class>org.apache.wicket.protocol.http.WicketServlet</servlet-class>
 	    <init-param>
 	      	<param-name>applicationClassName</param-name>
-	      	<param-value>org.sakaiproject.archiver.ArchiverApplication</param-value>
+	      	<param-value>org.sakaiproject.archiver.app.ArchiverApplication</param-value>
 	    </init-param>
 		<load-on-startup>1</load-on-startup>
   	</servlet>

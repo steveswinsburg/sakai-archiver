@@ -5,43 +5,43 @@
 <wicket:extend>
 	<h2><wicket:message key="heading.create">Create an archive</wicket:message></h2>
 
-	<form wicket:id="create" class="form-horizontal">
+	<div wicket:id="noToolsError" class="messageWarning">No tools selected</div>
+
+	<form wicket:id="create">
+	
+		<div class="messageInstruction"><wicket:message key="instructions.create" /></div>
+		
+		<h3><wicket:message key="heading.create.tools" /></h3>
 		
 		<div class="form-group">
-		
-			<!-- tools to select -->
-			<div wicket:id="tools" class="form-group form-group-sm">
-	  	 		<div class="col-xs-offset-3 col-xs-6">
-					<div class="checkbox">
-						<label>
-							<input wicket:id="include" type="checkbox" />
-							<span wicket:id="name">Tool Name</span>
-						</label>
-					</div>
+
+			<!-- render each tool to select -->
+  	 		<div wicket:id="includeToolsView" >
+				<div class="checkbox">
+					<label>
+						<input wicket:id="include" type="checkbox" />
+						<span wicket:id="name">Tool Name</span>
+					</label>
 				</div>
-			</div>
-		
-		<div wicket:id="persons" style="display: table-row;">
-				<div style="display: table-cell;"><b>Full name: </b></div>
-				<div wicket:id="fullName" style="display: table-cell;"></div>
-			</div>
-           
-           	<!-- include student data -->
-			<div class="form-group form-group-sm">
-	  	 		<div class="col-xs-offset-3 col-xs-6">
-					<div class="checkbox">
-						<label>
-							<input wicket:id="studentdata" type="checkbox" />
-							<span><wicket:message key="label.create.includestudentdata" /></span>
-						</label>
-					</div>
-				</div>
-			</div>
-		
-			<div class="col-xs-offset-3 col-xs-5">
-				<button wicket:id="submit" type="submit"><wicket:message key="button.create" /></button>
 			</div>
 		</div>
+			
+		<h3><wicket:message key="heading.create.extra" /></h3>
+        
+        <!-- include student data -->
+        <div class="form-group">  
+			<div class="checkbox">
+				<label>
+					<input wicket:id="includeStudentData" type="checkbox" />
+					<span><wicket:message key="label.create.includestudentdata" /></span>
+				</label>
+			</div>
+		</div>
+		
+		<div class="col-xs-offset-1 ">
+			<button wicket:id="submit" class="btn btn-default" type="submit"><wicket:message key="button.create" /></button>
+		</div>
+		
 	
 	
 	</form>
