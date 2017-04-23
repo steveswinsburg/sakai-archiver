@@ -10,4 +10,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 	public void init() {
 		log.info("ArchiverService started");
 	}
+
+	@Override
+	public boolean isArchiveInProgress(String siteId) {
+		return true;
+	}
 }

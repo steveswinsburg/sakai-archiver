@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -42,6 +43,9 @@ public class ArchiverBusinessService {
 
 	@Setter
 	private ServerConfigurationService serverConfigurationService;
+	
+	@Setter
+	private ArchiverService archiverService;
 
 	/**
 	 * Helper to get user
@@ -92,6 +96,29 @@ public class ArchiverBusinessService {
 		}
 
 		return tools;
+	}
+	
+	/**
+	 * Checks if an archive is running for the current site.
+	 * Wrapper for {@link ArchiverService#isArchiveInProgress(String)}
+	 * @return true/false
+	 */
+	public boolean isArchiveInProgress() {
+		final String siteId = getCurrentSiteId();
+		return archiverService.isArchiveInProgress(siteId);
+	}
+	
+	/**
+	 * Helper to get siteid. This will ONLY work in a portal site context, it will return null otherwise (ie via an entityprovider).
+	 *
+	 * @return
+	 */
+	private String getCurrentSiteId() {
+		try {
+			return this.toolManager.getCurrentPlacement().getContext();
+		} catch (final Exception e) {
+			return null;
+		}
 	}
 
 }
