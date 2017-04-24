@@ -11,7 +11,7 @@ archiver.tools = sakai.gradebookng, sakai.rwiki
 ````
 
 ## Developers
-See [![DEVELOPERS.md](DEVELOPERS.md)]
+See ![DEVELOPERS.md](DEVELOPERS.md)
 
 ## Status
 [![Build status](https://travis-ci.org/steveswinsburg/sakai-archiver.svg?branch=master)](https://travis-ci.org/steveswinsburg/sakai-archiver) 
