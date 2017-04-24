@@ -1,5 +1,11 @@
 package org.sakaiproject.archiver.api;
 
+/**
+ * Service for performing an archive. Provides methods that all implementers will need to use to get their content into the aggregated archive.
+ * 
+ * @since 12.0
+ * @author Steve Swinsburg
+ */
 public interface ArchiverService {
 
 	/**
