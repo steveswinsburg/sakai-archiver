@@ -28,6 +28,11 @@
             <artifactId>sakai-kernel-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+      		<groupId>org.hibernate</groupId>
+      		<artifactId>hibernate-core</artifactId>
+      		<scope>provided</scope>
+    	</dependency>
 	    
 	</dependencies>
 	

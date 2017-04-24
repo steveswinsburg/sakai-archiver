@@ -3,6 +3,35 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<!--  setup our annotated entities with hibernate -->
+ 	<bean id="org.sakaiproject.archiver.persistence.entities"
+        class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
+        <property name="annotatedClasses">
+            <list>
+                <value>org.sakaiproject.archiver.entity.ArchiveEntity</value>
+            </list>
+        </property>
+    </bean>
+    
+    <!--  wire up the persistence service with hibernate -->
+    <bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceService"
+        class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="target">
+			<bean class="org.sakaiproject.archiver.persistence.ArchiverPersistenceService"
+				  init-method="init"
+				  destroy-method="destroy">
+				<property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+			</bean>
+		</property>
+        <property name="transactionManager" ref="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager" />
+		<property name="transactionAttributes">
+            <props>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+    </bean>
+
+
  	<!-- 
 	<bean id="org.sakaiproject.archiver.api.ArchiverService"
     	class="org.sakaiproject.archiver.impl.ArchiverServiceImpl"
@@ -12,6 +41,9 @@
         <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
 		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+   	
+   		<property name="dao" ref="org.sakaiproject.archiver.persistence.ArchiverPersistenceService" />
+   		
    	
     </bean>
 		 -->
