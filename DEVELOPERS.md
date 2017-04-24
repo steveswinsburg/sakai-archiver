@@ -1,10 +1,11 @@
-# sakai-archiver for developers
+# sakai-archiver (for developers)
 
-## Registering a service
+## Adding a service
+
 
 Your service must implement `org.sakai.project.archiver.api.Archiveable`.
 
-To register your service, call `org.sakai.project.archiver.api.ArchiveRegistry.getInstance().register(yourservice);`.
+Then, to register your service, call `org.sakai.project.archiver.api.ArchiveRegistry.getInstance().register(yourservice);` when your service stats up (the init() block is a good place for this).
 
 When an archive is initiated, your service will be called.
 
