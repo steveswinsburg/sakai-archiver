@@ -1,5 +1,10 @@
 package org.sakaiproject.archiver.dto;
 
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * DTO for an archive
  * 
@@ -8,5 +13,20 @@ package org.sakaiproject.archiver.dto;
  *
  */
 public class Archive {
-
+	
+	@Getter
+	@Setter
+	private String siteId;
+	
+	@Getter
+	@Setter
+	private String userUuid;
+	
+	@Getter
+	@Setter
+	private Date startDate;
+	
+	@Getter
+	@Setter
+	private Date endDate;
 }

@@ -6,13 +6,13 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.GenericGenerator;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -34,10 +34,10 @@ public class ArchiveEntity implements Serializable {
 	@Getter
 	@Setter
 	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "archive_entity_sequence")
-	@SequenceGenerator(name = "archive_entity_sequence", sequenceName = "archive_entity_seq")
-	private long id;
+	@Column(name = "id", length = 36)
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	private String id;
 	
 	@Getter
 	@Setter
@@ -51,14 +51,9 @@ public class ArchiveEntity implements Serializable {
 	
 	@Getter
 	@Setter
-	@Column(name = "settings", nullable = false)
+	@Column(name = "settings", nullable = true)
 	@Lob
 	private String settings;
-	
-	@Getter
-	@Setter
-	@Column(name = "archive_id", length=200, nullable = false)
-	private String archiveId;
 	
 	@Getter
 	@Setter
@@ -68,7 +63,7 @@ public class ArchiveEntity implements Serializable {
 	
 	@Getter
 	@Setter
-	@Column(name = "end_date", nullable = false)
+	@Column(name = "end_date", nullable = true)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date endDate;
 	

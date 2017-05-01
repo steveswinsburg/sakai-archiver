@@ -79,6 +79,8 @@ public class CreateArchivePage extends BasePage {
 			public void onSubmit(final AjaxRequestTarget target, final Form<?> f) {
 				final ArchiveSettings formSettings = (ArchiveSettings) f.getModelObject();
 				System.out.println(formSettings);
+				
+				info("Archive scheduled");
 			}
 
 		};
