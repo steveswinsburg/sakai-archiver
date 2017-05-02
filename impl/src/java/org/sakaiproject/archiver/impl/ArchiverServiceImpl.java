@@ -12,15 +12,21 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Setter
 	private ArchiverPersistenceService dao;
-	
-	
+
 	public void init() {
 		log.info("ArchiverService started");
 	}
 
 	@Override
-	public boolean isArchiveInProgress(String siteId) {
-		Archive archive = dao.getCurrent(siteId);
+	public boolean isArchiveInProgress(final String siteId) {
+		final Archive archive = this.dao.getCurrent(siteId);
 		return (archive != null) ? true : false;
+	}
+
+	@Override
+	public void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds) {
+
+		this.dao.create(siteId, userUuid);
+
 	}
 }

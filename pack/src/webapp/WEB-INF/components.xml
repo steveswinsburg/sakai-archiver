@@ -14,23 +14,24 @@
     </bean>
     
     <!--  wire up the persistence service with hibernate -->
-    <bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceService"
-        class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+	<bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager" />
+		</property>
 		<property name="target">
-			<bean class="org.sakaiproject.archiver.persistence.ArchiverPersistenceService"
-				  init-method="init"
-				  destroy-method="destroy">
-				<property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+			<bean class="org.sakaiproject.archiver.persistence.impl.ArchiverPersistenceServiceImpl">
+				<property name="sessionFactory">
+					<ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory" />
+				</property>
 			</bean>
 		</property>
-        <property name="transactionManager" ref="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager" />
 		<property name="transactionAttributes">
-            <props>
-                <prop key="*">PROPAGATION_REQUIRED</prop>
-            </props>
-        </property>
-    </bean>
-
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+ 
 
 	<bean id="org.sakaiproject.archiver.api.ArchiverService"
     	class="org.sakaiproject.archiver.impl.ArchiverServiceImpl"

@@ -19,7 +19,7 @@ public class ArchiveSettings implements Serializable {
 	@Getter
 	@Setter
 	private boolean includeStudentData;
-	
+
 	@Getter
 	@Setter
 	private List<ArchiveableTool> archiveableTools;

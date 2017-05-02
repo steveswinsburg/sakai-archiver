@@ -70,6 +70,7 @@
 			<groupId>org.sakaiproject.archiver</groupId>
 			<artifactId>archiver-api</artifactId>
 	    	<version>0.1-SNAPSHOT</version>
+	    	<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	
