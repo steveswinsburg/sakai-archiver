@@ -11,6 +11,9 @@ import org.sakaiproject.archiver.impl.ArchiveMapper;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implements ArchiverPersistenceService {
 
 	public void init() {
@@ -35,12 +38,14 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		entity.setSiteId(siteId);
 		entity.setUserUuid(userUuid);
 		entity.setStartDate(new Date());
-		save(entity);
 
-		System.out.println("saved: " + entity.getId());
+		final Session session = getSessionFactory().getCurrentSession();
+		session.save(entity);
+		session.flush();
+
+		log.debug("saved: " + entity.getId());
 
 		return ArchiveMapper.toDto(entity);
-
 	}
 
 	/**
@@ -60,19 +65,6 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		final ArchiveEntity entity = (ArchiveEntity) criteria.uniqueResult();
 
 		return ArchiveMapper.toDto(entity);
-	}
-
-	/**
-	 * Helper to save some sort of entity to the database
-	 *
-	 * @param entity
-	 */
-	private <T> void save(final T entity) {
-		final Session session = getSessionFactory().getCurrentSession();
-		session.beginTransaction();
-		session.save(entity);
-		session.getTransaction().commit();
-		session.close();
 	}
 
 }

@@ -1,5 +1,8 @@
 package org.sakaiproject.archiver.api;
 
+import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
+
 /**
  * Service for performing an archive. Provides methods that all implementers will need to use to get their content into the aggregated
  * archive.
@@ -17,13 +20,26 @@ public interface ArchiverService {
 	boolean isArchiveInProgress(final String siteId);
 
 	/**
-	 * Start creating an archive for this site
+	 * Start creating an archive for this site.
 	 *
 	 * @param siteId siteId to archive
 	 * @param userUuid userUuid who started the archive
 	 * @param includeStudentData if student data is to be included
 	 * @param toolIds the id of the tool in the site
+	 *
+	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
+	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
 	 */
-	void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds);
+	void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException;
 
+	/**
+	 * Tools should call this to add their content into the archive
+	 *
+	 * @param archiveId the id of the archive that the content is for
+	 * @param toolId the tool that the archive is for
+	 * @param content the content to be archived
+	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
+	 */
+	void archiveContent(final String archiveId, final String toolId, byte[] content, String filename);
 }

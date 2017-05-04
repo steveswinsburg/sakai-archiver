@@ -5,6 +5,7 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnLoadHeaderItem;
@@ -82,14 +83,13 @@ public class BasePage extends WebPage {
 		};
 		this.previousArchivesLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
 		nav.add(this.previousArchivesLink);
-		
+
 		add(nav);
 
 		// Add a FeedbackPanel for displaying our messages
 		this.feedbackPanel = new RichFeedbackPanel("feedback");
 		add(this.feedbackPanel);
-		
-		
+
 		isArchiveInProgress();
 
 	}
@@ -131,14 +131,15 @@ public class BasePage extends WebPage {
 				new PriorityHeaderItem(
 						JavaScriptHeaderItem
 								.forUrl(String.format("/library/webjars/jquery/1.11.3/jquery.min.js?version=%s", version))));
+
 		// And pair this instance of jQuery with a Bootstrap version we've tested with
 		response.render(
 				new PriorityHeaderItem(
 						JavaScriptHeaderItem
 								.forUrl(String.format("/library/webjars/bootstrap/3.3.7/js/bootstrap.min.js?version=%s", version))));
-		// Some global gradebookng styles
-		// response.render(CssHeaderItem
-		// .forUrl(String.format("/gradebookng-tool/styles/gradebook-shared.css?version=%s", version)));
+
+		// Some style overrides
+		response.render(CssHeaderItem.forUrl(String.format("/archiver-app/styles/archiver.css?version=%s", version)));
 
 	}
 
@@ -159,12 +160,12 @@ public class BasePage extends WebPage {
 		log.debug("User preferred locale: " + locale);
 		getSession().setLocale(locale);
 	}
-	
+
 	/**
 	 * Sets the feedback panel message that an archive is in progress
 	 */
-	private void isArchiveInProgress(){
-		if(this.businessService.isArchiveInProgress()){
+	private void isArchiveInProgress() {
+		if (this.businessService.isArchiveInProgress()) {
 			info("Archive is in progress");
 		}
 	}

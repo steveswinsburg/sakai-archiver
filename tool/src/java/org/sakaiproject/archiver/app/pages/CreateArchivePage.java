@@ -2,8 +2,6 @@ package org.sakaiproject.archiver.app.pages;
 
 import java.util.List;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -14,6 +12,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
+import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
 public class CreateArchivePage extends BasePage {
 
@@ -31,10 +31,10 @@ public class CreateArchivePage extends BasePage {
 		final ArchiveSettings settings = new ArchiveSettings();
 		final Model<ArchiveSettings> formModel = Model.of(settings);
 
-		// get tools configured for archiving 
+		// get tools configured for archiving
 		final List<ArchiveableTool> configuredTools = this.businessService.getConfiguredTools();
 		settings.setArchiveableTools(configuredTools);
-		
+
 		// form
 		final Form<ArchiveSettings> form = new Form<ArchiveSettings>("create", formModel) {
 			private static final long serialVersionUID = 1L;
@@ -43,8 +43,24 @@ public class CreateArchivePage extends BasePage {
 			public boolean isVisible() {
 				return !configuredTools.isEmpty();
 			}
+
+			@Override
+			public void onSubmit() {
+				final ArchiveSettings formSettings = getModelObject();
+
+				try {
+					CreateArchivePage.this.businessService.createArchive(formSettings);
+					success(getString("archive.started"));
+				} catch (final ToolsNotSpecifiedException e) {
+					error(getString("archive.error.notools"));
+				} catch (final ArchiveAlreadyInProgressException e) {
+					error(getString("archive.error.existing"));
+				}
+
+			}
+
 		};
-		
+
 		// tool list
 		final ListView<ArchiveableTool> includeToolsView = new ListView<ArchiveableTool>("includeToolsView", configuredTools) {
 			private static final long serialVersionUID = 1L;
@@ -71,35 +87,20 @@ public class CreateArchivePage extends BasePage {
 		includeStudentData.setOutputMarkupId(true);
 		form.add(includeStudentData);
 
-		// submit button
-		final AjaxButton submit = new AjaxButton("submit", form) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onSubmit(final AjaxRequestTarget target, final Form<?> f) {
-				final ArchiveSettings formSettings = (ArchiveSettings) f.getModelObject();
-				System.out.println(formSettings);
-				
-				info("Archive scheduled");
-			}
-
-		};
-		form.add(submit);
 		add(form);
-		
-		//error message if no tools
-		Label noToolsError = new Label("noToolsError", new ResourceModel("error.create.notools")) {
+
+		// error message if no tools
+		final Label noToolsError = new Label("noToolsError", new ResourceModel("error.create.notools")) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return configuredTools.isEmpty();
 			}
-			
+
 		};
 		add(noToolsError);
 
-		
 	}
 
 }

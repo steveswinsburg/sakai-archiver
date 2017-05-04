@@ -8,6 +8,8 @@ import java.util.Locale;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
+import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.site.api.SiteService;
@@ -113,13 +115,21 @@ public class ArchiverBusinessService {
 	 * Start a new archive for the current site and initiated by the current user
 	 *
 	 * @param settings the settings for this archive, from the UI
+	 * @throws ArchiveAlreadyInProgressException
 	 *
+	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
+	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
 	 */
-	public void createArchive(final ArchiveSettings settings) {
+	public void createArchive(final ArchiveSettings settings) throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException {
+
+		log.debug("settings: " + settings);
 
 		final String siteId = getCurrentSiteId();
 		final String userUuid = getCurrentUser().getId();
-		final String[] toolIds = settings.getArchiveableTools().stream().map(t -> t.getToolId()).toArray(String[]::new);
+
+		// get tools to include in the archive
+		final String[] toolIds = settings.getArchiveableTools().stream().filter(t -> t.isIncludeInArchive()).map(t -> t.getToolId())
+				.toArray(String[]::new);
 
 		this.archiverService.startArchive(siteId, userUuid, settings.isIncludeStudentData(), toolIds);
 	}

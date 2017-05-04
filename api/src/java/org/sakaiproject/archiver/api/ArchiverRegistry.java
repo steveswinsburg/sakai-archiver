@@ -1,16 +1,14 @@
 package org.sakaiproject.archiver.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Registry of all tools/services which are {@link Archiveable}
- * 
+ *
  * @since 12.0
  * @author Steve Swinsburg
  */
@@ -18,11 +16,19 @@ import lombok.extern.slf4j.Slf4j;
 public class ArchiverRegistry {
 
 	private static ArchiverRegistry instance;
-	
-	private final Map<String, Archiveable> registry = new HashMap<>();
-	
+
+	// holds the map of toolId to service class
+	// must be thread safe
+	@Getter
+	private final Map<String, Archiveable> registry = new ConcurrentHashMap<>();
+
+	private ArchiverRegistry() {
+		// no instances
+	}
+
 	/**
 	 * Get an instance of the {@link ArchiverRegistry} so that services can register/unregister themselves
+	 *
 	 * @return
 	 */
 	public static synchronized ArchiverRegistry getInstance() {
@@ -31,55 +37,42 @@ public class ArchiverRegistry {
 		}
 		return instance;
 	}
-	
+
 	/**
-	 * Register an {@link Archiveable} service
+	 * Register an {@link Archiveable} service for a toolId
+	 *
+	 * @param toolId the toolId to register this archiver for
+	 * @param archiveable the service to register
+	 *
 	 * @param service
 	 */
-	public synchronized void register(final Archiveable archiveable) {
-		String key = getKey(archiveable);
-		if(!isRegistered(key)){
-			log.warn("ArchiverRegistry already contains %S", key);
+	public synchronized void register(final String toolId, final Archiveable archiveable) {
+		if (!isRegistered(toolId)) {
+			log.warn("ArchiverRegistry already contains a registration for %S", toolId);
 		} else {
-			registry.put(key, archiveable);
+			this.registry.put(toolId, archiveable);
 		}
 	}
-	
+
 	/**
 	 * Unregister an {@link Archiveable} service
-	 * @param service
+	 *
+	 * @param toolId the toolId to unregister this archiver for
 	 */
-	public synchronized void unregister(final Archiveable archiveable) {
-		String key = getKey(archiveable);
-		if(!isRegistered(key)){
-			registry.remove(key);
-		} 
+	public synchronized void unregister(final String toolId) {
+		if (!isRegistered(toolId)) {
+			this.registry.remove(toolId);
+		}
 	}
-   
+
 	/**
-	 * Get the list of registered services that are {@link Archiveable}
-	 * @return {@link List} of registered {@link Archiveable} services
-	 */
-	public List<Archiveable> getArchiveables() {
-		return this.registry.values().stream().collect(Collectors.toList());
-	}
-	
-	/**
-	 * Checks if a service is registered already
-	 * @param name 
+	 * Checks if a service is registered already for this toolId
+	 *
+	 * @param toolId the toolId to check the registry for
 	 * @return
 	 */
-	private boolean isRegistered(final String name) {
-		return registry.containsKey(name);
+	private boolean isRegistered(final String toolId) {
+		return this.registry.containsKey(toolId);
 	}
-	
-	/**
-	 * Common way to get a key for a service
-	 * @param archiveable
-	 * @return
-	 */
-    private String getKey(Archiveable archiveable){
-    	return archiveable.getClass().getCanonicalName();
-    }
-	
+
 }
