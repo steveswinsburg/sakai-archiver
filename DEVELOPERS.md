@@ -7,10 +7,10 @@ Your service must implement `org.sakaiproject.archiver.api.Archiveable`.
 You will need to add the dependency:
 ````
 <dependency>
-			<groupId>org.sakaiproject.archiver</groupId>
-			<artifactId>archiver-api</artifactId>
-			<version>0.1-SNAPSHOT</version>
-			<scope>provided</scope>
+  <groupId>org.sakaiproject.archiver</groupId>
+  <artifactId>archiver-api</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <scope>provided</scope>
 </dependency>
 ````
 
