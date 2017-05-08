@@ -2,8 +2,17 @@
 
 ## Adding a service
 
+Your service must implement `org.sakaiproject.archiver.api.Archiveable`.
 
-Your service must implement `org.sakai.project.archiver.api.Archiveable`.
+You will need to add the dependency:
+````
+<dependency>
+			<groupId>org.sakaiproject.archiver</groupId>
+			<artifactId>archiver-api</artifactId>
+			<version>0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+</dependency>
+````
 
 Then, to register your service, call `org.sakai.project.archiver.api.ArchiveRegistry.getInstance().register(yourservice, toolId)`
 when your service starts up. The init() block is a good place for this registration.
