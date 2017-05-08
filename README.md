@@ -3,11 +3,13 @@ An archiving app for Sakai
 
 ## Configuration
 
-Set the list of `archiver.tools` in `sakai.properties`.
+In `akai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created. 
+
 For example:
 
 ````
 archiver.tools = sakai.gradebookng, sakai.rwiki
+archiver.path = /Users/steve/sakai/archives/
 ````
 
 ## Developers
