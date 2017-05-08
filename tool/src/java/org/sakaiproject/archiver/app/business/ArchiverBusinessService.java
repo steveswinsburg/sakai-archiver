@@ -9,6 +9,7 @@ import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -119,8 +120,10 @@ public class ArchiverBusinessService {
 	 *
 	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
 	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
+	 * @throws {@link ArchiveInitialisationException} if the archive could not be initialised
 	 */
-	public void createArchive(final ArchiveSettings settings) throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException {
+	public void createArchive(final ArchiveSettings settings)
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException {
 
 		log.debug("settings: " + settings);
 

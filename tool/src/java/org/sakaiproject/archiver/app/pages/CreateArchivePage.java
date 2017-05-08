@@ -13,6 +13,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
 public class CreateArchivePage extends BasePage {
@@ -55,6 +56,9 @@ public class CreateArchivePage extends BasePage {
 					error(getString("archive.error.notools"));
 				} catch (final ArchiveAlreadyInProgressException e) {
 					error(getString("archive.error.existing"));
+				} catch (final ArchiveInitialisationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
 			}

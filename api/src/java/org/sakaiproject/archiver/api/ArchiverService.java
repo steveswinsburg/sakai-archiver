@@ -1,6 +1,8 @@
 package org.sakaiproject.archiver.api;
 
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
+import org.sakaiproject.archiver.exception.ArchiveWriterException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
 /**
@@ -29,12 +31,13 @@ public interface ArchiverService {
 	 *
 	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
 	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
+	 * @throws {@link ArchiveInitialisationException} if the archive could not be initialised
 	 */
 	void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException;
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException;
 
 	/**
-	 * Tools should call this to add their content into the archive
+	 * Tools can call this to add content of a file into the archive
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param toolId the tool that the archive is for
@@ -42,4 +45,29 @@ public interface ArchiverService {
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 */
 	void archiveContent(final String archiveId, final String toolId, byte[] content, String filename);
+
+	/**
+	 * Tools can call this to add content of a file into the archive, with an optional subdirectory
+	 *
+	 * @param archiveId the id of the archive that the content is for
+	 * @param toolId the tool that the archive is for
+	 * @param content the content to be archived
+	 * @param subdirectory the subdirectory where the file will be written
+	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
+	 */
+	void archiveContent(final String archiveId, final String toolId, byte[] content, String subdirectory, String filename);
+
+	/**
+	 * Tools can call this to have an object serialised into XML. Object must be serialisable!
+	 *
+	 * This method will throw an {@link ArchiveWriterException} which each tool must handle.
+	 *
+	 * @param archiveId the id of the archive that the content is for
+	 * @param toolId the tool that the archive is for
+	 * @param content the content to be archived. Object must be serialisable.
+	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
+	 *
+	 * @throws {@link ArchiveWriterException} if the object could not be serialised. Callers should handle this.
+	 */
+	void archiveContent(final String archiveId, final String toolId, Object content, String filename) throws ArchiveWriterException;
 }
