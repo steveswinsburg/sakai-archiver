@@ -48,9 +48,11 @@ public class ArchiverRegistry {
 	 */
 	public synchronized void register(final String toolId, final Archiveable archiveable) {
 		if (!isRegistered(toolId)) {
-			log.warn("ArchiverRegistry already contains a registration for %S", toolId);
+			log.warn("ArchiverRegistry already contains a registration for {}", toolId);
 		} else {
 			this.registry.put(toolId, archiveable);
+			log.info("Added registration for {} as {}", toolId, archiveable.getClass().getCanonicalName());
+
 		}
 	}
 

@@ -29,10 +29,10 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	 *
 	 * @param siteId
 	 * @param userUuid
-	 * @return
+	 * @return the entity
 	 */
 	@Override
-	public Archive create(final String siteId, final String userUuid) {
+	public ArchiveEntity create(final String siteId, final String userUuid) {
 
 		final ArchiveEntity entity = new ArchiveEntity();
 		entity.setSiteId(siteId);
@@ -45,7 +45,24 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 
 		log.debug("saved: " + entity.getId());
 
-		return ArchiveMapper.toDto(entity);
+		return entity;
+	}
+
+	/**
+	 * Update an archive
+	 *
+	 * @param entity
+	 * @return the entity
+	 */
+	@Override
+	public ArchiveEntity update(final ArchiveEntity entity) {
+
+		final Session session = getSessionFactory().getCurrentSession();
+		session.update(entity);
+		session.flush();
+
+		log.debug("saved: " + entity.getId());
+		return entity;
 	}
 
 	/**

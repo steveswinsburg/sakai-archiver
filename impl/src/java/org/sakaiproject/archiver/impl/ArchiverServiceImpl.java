@@ -1,5 +1,6 @@
 package org.sakaiproject.archiver.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.dto.Archive;
+import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveWriterException;
@@ -63,14 +65,17 @@ public class ArchiverServiceImpl implements ArchiverService {
 		}
 
 		// create the record
-		final Archive archive = this.dao.create(siteId, userUuid);
+		final ArchiveEntity archive = this.dao.create(siteId, userUuid);
+		final String archiveId = archive.getId();
 
 		// create disk location
 		try {
-			FileUtils.forceMkdir(FileUtils.getFile(getArchiveBasePath()));
+			FileUtils.forceMkdir(FileUtils.getFile(buildPath(getArchiveBasePath(), siteId, archiveId)));
 		} catch (final IOException e) {
 			throw new ArchiveInitialisationException("Archive could not be started", e);
 		}
+
+		// TODO update archive with file location
 
 		// now archive all of the registered tools
 		// TODO this must run in a separate thread
@@ -79,19 +84,18 @@ public class ArchiverServiceImpl implements ArchiverService {
 		for (final String toolId : toolsToArchive) {
 			final Archiveable archivable = registry.get(toolId);
 			if (archivable == null) {
-				log.error("No registered archiver for %S", toolId);
+				log.error("No registered archiver for {}", toolId);
 				break;
 			}
 
-			archivable.archive(archive.getArchiveId(), siteId, includeStudentData);
+			archivable.archive(archiveId, siteId, includeStudentData);
 		}
 
 	}
 
 	@Override
 	public void archiveContent(final String archiveId, final String toolId, final byte[] content, final String filename) {
-
-		log.info("Archiving to %S for %S as %S with content of: %S", archiveId, toolId, filename, content.toString());
+		log.info("Archiving to {} for {} as {} with content of: {}", archiveId, toolId, filename, content.toString());
 
 	}
 
@@ -102,6 +106,13 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private String getArchiveBasePath() {
 		return this.serverConfigurationService.getString("archiver.path", FileUtils.getTempDirectoryPath());
+	}
+
+	/**
+	 * Build a path made up of the parts supplied, and using the system independent file separator
+	 */
+	private String buildPath(final String... parts) {
+		return String.join(File.separator, parts);
 	}
 
 	@Override

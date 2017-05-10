@@ -1,6 +1,7 @@
 package org.sakaiproject.archiver.persistence;
 
 import org.sakaiproject.archiver.dto.Archive;
+import org.sakaiproject.archiver.entity.ArchiveEntity;
 
 public interface ArchiverPersistenceService {
 
@@ -9,9 +10,17 @@ public interface ArchiverPersistenceService {
 	 *
 	 * @param siteId
 	 * @param userUuid
-	 * @return
+	 * @return the persistent entity
 	 */
-	public Archive create(String siteId, String userUuid);
+	public ArchiveEntity create(String siteId, String userUuid);
+
+	/**
+	 * Update an existing archive
+	 *
+	 * @param entity the entity with updated fields to be persisted
+	 * @return the updated entity
+	 */
+	public ArchiveEntity update(ArchiveEntity entity);
 
 	/**
 	 * Get a current archive for the given site. Return null if none exists or is not currently active.
