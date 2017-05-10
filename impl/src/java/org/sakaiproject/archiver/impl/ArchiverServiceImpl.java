@@ -83,7 +83,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 				break;
 			}
 
-			archivable.archive(archive.getArchiveId(), includeStudentData);
+			archivable.archive(archive.getArchiveId(), siteId, includeStudentData);
 		}
 
 	}

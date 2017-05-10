@@ -16,8 +16,9 @@ public interface Archiveable {
 	 * Create the tool archive
 	 *
 	 * @param archiveId the id of the archive that this tool should use to send the content to
+	 * @param siteId the id of the site to get data for
 	 * @param includeStudentContent if student content should be included in the archive
 	 */
-	void archive(String archiveId, boolean includeStudentContent);
+	void archive(String archiveId, String siteId, boolean includeStudentContent);
 
 }
