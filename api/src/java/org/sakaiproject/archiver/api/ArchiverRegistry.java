@@ -29,7 +29,7 @@ public class ArchiverRegistry {
 	/**
 	 * Get an instance of the {@link ArchiverRegistry} so that services can register/unregister themselves
 	 *
-	 * @return
+	 * @return the instance as a singleton
 	 */
 	public static synchronized ArchiverRegistry getInstance() {
 		if (instance == null) {
@@ -43,26 +43,23 @@ public class ArchiverRegistry {
 	 *
 	 * @param toolId the toolId to register this archiver for
 	 * @param archiveable the service to register
-	 *
-	 * @param service
 	 */
 	public synchronized void register(final String toolId, final Archiveable archiveable) {
-		if (!isRegistered(toolId)) {
+		if (isRegistered(toolId)) {
 			log.warn("ArchiverRegistry already contains a registration for {}", toolId);
 		} else {
 			this.registry.put(toolId, archiveable);
 			log.info("Added registration for {} as {}", toolId, archiveable.getClass().getCanonicalName());
-
 		}
 	}
 
 	/**
 	 * Unregister an {@link Archiveable} service
 	 *
-	 * @param toolId the toolId to unregister this archiver for
+	 * @param toolId the toolId to be unregistered
 	 */
 	public synchronized void unregister(final String toolId) {
-		if (!isRegistered(toolId)) {
+		if (isRegistered(toolId)) {
 			this.registry.remove(toolId);
 		}
 	}
