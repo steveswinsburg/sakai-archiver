@@ -5,6 +5,7 @@ import java.util.Date;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.impl.ArchiveMapper;
@@ -38,6 +39,7 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		entity.setSiteId(siteId);
 		entity.setUserUuid(userUuid);
 		entity.setStartDate(new Date());
+		entity.setStatus(Status.STARTED);
 
 		final Session session = getSessionFactory().getCurrentSession();
 		session.save(entity);
@@ -74,6 +76,8 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	 */
 	@Override
 	public Archive getCurrent(final String siteId) {
+
+		// TODO look at status iunstead
 
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
 		criteria.add(Restrictions.eq("siteId", siteId));
