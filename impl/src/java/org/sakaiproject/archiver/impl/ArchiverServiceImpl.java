@@ -86,7 +86,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 			}
 
 			archivable.archive(archiveId, siteId, includeStudentData);
-
 		}
 
 		finalise(archive);

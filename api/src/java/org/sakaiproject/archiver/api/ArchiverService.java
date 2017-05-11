@@ -56,14 +56,4 @@ public interface ArchiverService {
 	 */
 	void archiveContent(final String archiveId, final String toolId, byte[] content, String subdirectory, String filename);
 
-	/**
-	 * Tools can call this to have their object serialised into JSON before being archived.
-	 *
-	 * @param archiveId the id of the archive that the content is for
-	 * @param toolId the tool that the archive is for
-	 * @param content the content to be archived into JSON.
-	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
-	 *
-	 */
-	void archiveContent(final String archiveId, final String toolId, Object content, String filename);
 }
