@@ -2,7 +2,6 @@ package org.sakaiproject.archiver.api;
 
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
-import org.sakaiproject.archiver.exception.ArchiveWriterException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
 /**
@@ -58,16 +57,13 @@ public interface ArchiverService {
 	void archiveContent(final String archiveId, final String toolId, byte[] content, String subdirectory, String filename);
 
 	/**
-	 * Tools can call this to have an object serialised into XML. Object must be serialisable!
-	 *
-	 * This method will throw an {@link ArchiveWriterException} which each tool must handle.
+	 * Tools can call this to have their object serialised into JSON before being archived.
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param toolId the tool that the archive is for
-	 * @param content the content to be archived. Object must be serialisable.
+	 * @param content the content to be archived into JSON.
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 *
-	 * @throws {@link ArchiveWriterException} if the object could not be serialised. Callers should handle this.
 	 */
-	void archiveContent(final String archiveId, final String toolId, Object content, String filename) throws ArchiveWriterException;
+	void archiveContent(final String archiveId, final String toolId, Object content, String filename);
 }

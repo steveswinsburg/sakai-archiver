@@ -7,13 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.JAXBIntrospector;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-
 import org.apache.commons.io.FileUtils;
 import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
@@ -23,7 +16,6 @@ import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
-import org.sakaiproject.archiver.exception.ArchiveWriterException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -102,37 +94,14 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Override
 	public void archiveContent(final String archiveId, final String toolId, final byte[] content, final String filename) {
-		log.info("Archiving to {} for {} as {} with content of: {}", archiveId, toolId, filename, content.toString());
-
+		archiveContent(archiveId, toolId, content, null, filename);
 	}
 
 	@Override
 	public void archiveContent(final String archiveId, final String toolId, final byte[] content, final String subdirectory,
 			final String filename) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void archiveContent(final String archiveId, final String toolId, final Object content, final String filename)
-			throws ArchiveWriterException {
-
-		// TODO only writes to system.out
-		try {
-			final JAXBContext jc = JAXBContext.newInstance(Object.class);
-			final JAXBIntrospector introspector = jc.createJAXBIntrospector();
-			final Marshaller marshaller = jc.createMarshaller();
-			if (null == introspector.getElementName(content)) {
-				final JAXBElement jaxbElement = new JAXBElement(new QName("ROOT"), content.getClass(), content);
-				marshaller.marshal(jaxbElement, System.out);
-			} else {
-				marshaller.marshal(content, System.out);
-			}
-		} catch (final JAXBException e) {
-			throw new ArchiveWriterException("Content could not be serialised", e);
-		}
-
+		log.info("Archiving to {} for {} as {} inside {} with content of: {}", archiveId, toolId, filename, subdirectory,
+				content.toString());
 	}
 
 	/**
