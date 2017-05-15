@@ -17,32 +17,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<inceptionYear>2017</inceptionYear>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.apache.wicket</groupId>
-				<artifactId>wicket</artifactId>
-				<version>6.18.0</version>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.wicket</groupId>
-				<artifactId>wicket-spring</artifactId>
-				<version>6.18.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.wicket</groupId>
-				<artifactId>wicket-extensions</artifactId>
-				<version>6.18.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>1.8.5</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<modules>
 		<module>api</module>
 		<module>impl</module>
@@ -62,4 +36,20 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<developers>
+		<developer>
+			<name>Steve Swinsburg</name>
+			<email>steve.swinsburg@gmail.com</email>
+			<timezone>+10</timezone>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>Amie Davis</name>
+			<email>amiedav@gmail.com</email>
+			<timezone>+10</timezone>
+		</contributor>
+	</contributors>
+	
 </project>
