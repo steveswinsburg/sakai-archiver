@@ -39,6 +39,10 @@
       		<version>2.8.0</version>
       		<scope>compile</scope>
     	</dependency>
+      	<dependency>
+        	<groupId>commons-io</groupId>
+        	<artifactId>commons-io</artifactId>
+		</dependency>
     	<dependency>
         	<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

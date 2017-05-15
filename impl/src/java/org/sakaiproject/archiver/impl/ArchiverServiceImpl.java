@@ -18,6 +18,7 @@ import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
+import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.component.api.ServerConfigurationService;
 
 import lombok.Setter;
