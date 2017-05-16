@@ -8,7 +8,7 @@ In `akai.properties`, set the list of `archiver.tools` and the `archiver.path` w
 For example:
 
 ````
-archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.siteinfo,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool
+archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool
 archiver.path = /Users/steve/sakai/archives/
 ````
 
