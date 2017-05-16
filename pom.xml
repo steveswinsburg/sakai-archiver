@@ -22,6 +22,8 @@
 		<module>impl</module>
 		<module>pack</module>
 		<module>tool</module>
+		<module>deploy</module>
+		<module>provider-content</module>
 	</modules>
 	<build>
 		<plugins>
