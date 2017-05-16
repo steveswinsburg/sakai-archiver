@@ -100,12 +100,11 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
-			final String subdirectory,
-			final String filename) {
-		log.info("Archiving to {} for {} as {} inside {} with content of: {}", archiveId, toolId, filename, subdirectory,
+			final String filename, final String... subdirectories) {
+		log.info("Archiving to {} for {} as {} inside {} with content of: {}", archiveId, toolId, filename, buildPath(subdirectories),
 				content.toString());
 
-		// final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId)
+		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, buildPath(subdirectories), filename);
 
 	}
 
