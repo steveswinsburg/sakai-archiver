@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
@@ -95,7 +96,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename) {
-		archiveContent(archiveId, siteId, toolId, content, null, filename);
+		archiveContent(archiveId, siteId, toolId, content, filename, new String[0]);
 	}
 
 	@Override
@@ -105,7 +106,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 				buildPath(subdirectories), filename,
 				content.toString());
 
-		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, buildPath(subdirectories), filename);
+		// archive-base/siteId/archiveId/toolId/[subdirs]/file
+		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, toolId, buildPath(subdirectories), filename);
 		log.debug("Writing to {}", filePath);
 
 		final File file = new File(filePath);
@@ -124,14 +126,22 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 * @return
 	 */
 	private String getArchiveBasePath() {
-		return this.serverConfigurationService.getString("archiver.path", FileUtils.getTempDirectoryPath());
+		return StringUtils.removeEnd(this.serverConfigurationService.getString("archiver.path", FileUtils.getTempDirectoryPath()), "/");
 	}
 
 	/**
-	 * Build a path made up of the parts supplied, and using the system's file separator
+	 * Build a path made up of the parts supplied, and using the system's file separator. Null safe in both array and element.
 	 */
 	private String buildPath(final String... parts) {
-		return String.join(File.separator, parts);
+		if (parts == null || parts.length == 0) {
+			return null;
+		}
+
+		final String[] cleanedParts = Arrays.stream(parts)
+				.filter(s -> (StringUtils.isNotBlank(s)))
+				.toArray(String[]::new);
+
+		return String.join(File.separator, cleanedParts);
 	}
 
 	/**
