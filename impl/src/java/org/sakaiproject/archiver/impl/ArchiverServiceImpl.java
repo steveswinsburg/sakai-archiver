@@ -93,15 +93,20 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	@Override
-	public void archiveContent(final String archiveId, final String toolId, final byte[] content, final String filename) {
-		archiveContent(archiveId, toolId, content, null, filename);
+	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
+			final String filename) {
+		archiveContent(archiveId, siteId, toolId, content, null, filename);
 	}
 
 	@Override
-	public void archiveContent(final String archiveId, final String toolId, final byte[] content, final String subdirectory,
+	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
+			final String subdirectory,
 			final String filename) {
 		log.info("Archiving to {} for {} as {} inside {} with content of: {}", archiveId, toolId, filename, subdirectory,
 				content.toString());
+
+		// final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId)
+
 	}
 
 	/**
@@ -114,7 +119,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Build a path made up of the parts supplied, and using the system independent file separator
+	 * Build a path made up of the parts supplied, and using the system's file separator
 	 */
 	private String buildPath(final String... parts) {
 		return String.join(File.separator, parts);

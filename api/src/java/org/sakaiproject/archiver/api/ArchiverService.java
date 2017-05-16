@@ -39,21 +39,24 @@ public interface ArchiverService {
 	 * Tools can call this to add content of a file into the archive
 	 *
 	 * @param archiveId the id of the archive that the content is for
+	 * @param siteId that this archive is for
 	 * @param toolId the tool that the archive is for
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 */
-	void archiveContent(final String archiveId, final String toolId, byte[] content, String filename);
+	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String filename);
 
 	/**
 	 * Tools can call this to add content of a file into the archive, with an optional subdirectory
 	 *
 	 * @param archiveId the id of the archive that the content is for
+	 * @param siteId that this archive is for
 	 * @param toolId the tool that the archive is for
 	 * @param content the content to be archived
 	 * @param subdirectory the subdirectory where the file will be written
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 */
-	void archiveContent(final String archiveId, final String toolId, byte[] content, String subdirectory, String filename);
+	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String subdirectory,
+			String filename);
 
 }
