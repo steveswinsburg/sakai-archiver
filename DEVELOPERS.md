@@ -1,6 +1,6 @@
 # sakai-archiver (for developers)
 
-## Adding a service
+## Adding an archiver provider
 
 Your service must implement `org.sakaiproject.archiver.api.Archiveable`.
 
@@ -32,4 +32,6 @@ When an archive is initiated, your service's `archive()` implementation will be 
 Use the methods in `org.sakaiproject.archiver.api.ArchiverService` within your service to send the data from your service to the archiver.
 
 There is a helper utility `org.sakaiproject.archiver.util.Jsonifier#toJson(Object)` which you can throw objects at to get String (JSON) representations of objects back, and then you can send them over for archiving.
+
+
 
