@@ -3,7 +3,7 @@ An archiving app for Sakai
 
 ## Configuration
 
-In `akai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created. 
+In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created. 
 
 For example:
 

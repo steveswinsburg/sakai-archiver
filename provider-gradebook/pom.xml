@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>Archiver Provider - Content</name>
-	<description>An archiver provider for the content tools</description>
+	<name>Archiver Provider - Gradebook</name>
+	<description>An archiver provider for gradebook</description>
 	<groupId>org.sakaiproject.archiver.provider</groupId>
-	<artifactId>archiver-provider-content</artifactId>
+	<artifactId>archiver-provider-gradebook</artifactId>
 
 	<packaging>sakai-component</packaging>
 
@@ -32,6 +32,21 @@
 			<artifactId>sakai-component-manager</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.sakaiproject.edu-services.gradebook</groupId>
+			<artifactId>gradebook-service-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.edu-services.gradebook</groupId>
+			<artifactId>gradebook-service-hibernate</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.edu-services.course-management</groupId>
+			<artifactId>coursemanagement-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.sakaiproject.archiver</groupId>
 			<artifactId>archiver-api</artifactId>
 			<scope>provided</scope>
@@ -43,7 +58,16 @@
 		</dependency>
 	</dependencies>
 	
-	<build />
+	<build>
+		<resources>
+			<resource>
+				<directory>src/resources</directory>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
 
 	 
 </project>

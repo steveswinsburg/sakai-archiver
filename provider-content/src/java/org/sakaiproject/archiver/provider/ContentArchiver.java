@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Implementation of {@link Archiveable} for various content tools
  *
- * @author Steve Siwnsburg(steve.swinsburg@gmail.com)
+ * @author Steve Swinsburg(steve.swinsburg@gmail.com)
  * @since 12.0
  */
 @Slf4j

@@ -25,7 +25,21 @@
 		<module>deploy</module>
 		<module>provider-content</module>
 		<module>provider-syllabus</module>
+		<module>provider-gradebook</module>
 	</modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.sakaiproject.archiver</groupId>
+				<artifactId>archiver-api</artifactId>
+				<version>0.2-SNAPSHOT</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
+	
 	<build>
 		<plugins>
 			<plugin>
