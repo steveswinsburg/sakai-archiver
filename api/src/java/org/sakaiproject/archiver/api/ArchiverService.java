@@ -54,7 +54,8 @@ public interface ArchiverService {
 	 * @param toolId the tool that the archive is for
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
-	 * @param subdirectories the subdirectories within the archive where the file will be written
+	 * @param subdirectories the subdirectories within the archive where the file will be written. Do not include any path separator, these
+	 *            will be added automatically.
 	 */
 	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String filename,
 			final String... subdirectories);
