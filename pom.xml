@@ -5,7 +5,7 @@
 	<description>An archiver app for Sakai</description>
 	<groupId>org.sakaiproject.archiver</groupId>
 	<artifactId>archiver</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>org.sakaiproject</groupId>

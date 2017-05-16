@@ -33,8 +33,8 @@ public class CreateArchivePage extends BasePage {
 		final Model<ArchiveSettings> formModel = Model.of(settings);
 
 		// get tools configured for archiving
-		final List<ArchiveableTool> configuredTools = this.businessService.getConfiguredTools();
-		settings.setArchiveableTools(configuredTools);
+		final List<ArchiveableTool> archiveableTools = this.businessService.getArchiveableTools();
+		settings.setArchiveableTools(archiveableTools);
 
 		// form
 		final Form<ArchiveSettings> form = new Form<ArchiveSettings>("create", formModel) {
@@ -42,7 +42,7 @@ public class CreateArchivePage extends BasePage {
 
 			@Override
 			public boolean isVisible() {
-				return !configuredTools.isEmpty();
+				return !archiveableTools.isEmpty();
 			}
 
 			@Override
@@ -66,7 +66,7 @@ public class CreateArchivePage extends BasePage {
 		};
 
 		// tool list
-		final ListView<ArchiveableTool> includeToolsView = new ListView<ArchiveableTool>("includeToolsView", configuredTools) {
+		final ListView<ArchiveableTool> includeToolsView = new ListView<ArchiveableTool>("includeToolsView", archiveableTools) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -99,7 +99,7 @@ public class CreateArchivePage extends BasePage {
 
 			@Override
 			public boolean isVisible() {
-				return configuredTools.isEmpty();
+				return archiveableTools.isEmpty();
 			}
 
 		};

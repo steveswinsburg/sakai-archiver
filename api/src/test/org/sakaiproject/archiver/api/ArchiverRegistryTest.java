@@ -61,7 +61,7 @@ public class ArchiverRegistryTest {
 		}
 
 		@Override
-		public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
+		public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 			// do nothing
 		}
 

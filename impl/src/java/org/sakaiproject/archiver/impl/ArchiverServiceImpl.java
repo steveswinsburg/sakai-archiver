@@ -83,10 +83,10 @@ public class ArchiverServiceImpl implements ArchiverService {
 			final Archiveable archivable = registry.get(toolId);
 			if (archivable == null) {
 				log.error("No registered archiver for {}", toolId);
-				break;
+				continue;
 			}
 
-			archivable.archive(archiveId, siteId, includeStudentData);
+			archivable.archive(archiveId, siteId, toolId, includeStudentData);
 		}
 
 		finalise(archive);
@@ -101,10 +101,20 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename, final String... subdirectories) {
-		log.info("Archiving to {} for {} as {} inside {} with content of: {}", archiveId, toolId, filename, buildPath(subdirectories),
+		log.debug("Archiving to archive: {} for site: {} and tool: {} in dir: {} and file: {} with content: {}", archiveId, siteId, toolId,
+				buildPath(subdirectories), filename,
 				content.toString());
 
 		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, buildPath(subdirectories), filename);
+		log.debug("Writing to {}", filePath);
+
+		final File file = new File(filePath);
+
+		try {
+			FileUtils.writeByteArrayToFile(file, content);
+		} catch (final IOException e) {
+			log.error("Could not write file: " + file, e);
+		}
 
 	}
 

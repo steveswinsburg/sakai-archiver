@@ -2,8 +2,10 @@ package org.sakaiproject.archiver.app.business;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
@@ -13,7 +15,11 @@ import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SitePage;
 import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
@@ -82,20 +88,27 @@ public class ArchiverBusinessService {
 	}
 
 	/**
-	 * Gets a list of the tools that have been configured in sakai.properties
+	 * Gets a list of the tools that have been configured in sakai.properties and are added to the current site
 	 *
 	 * @return list of {@link ArchiveableTool}s. May be empty.
 	 */
-	public List<ArchiveableTool> getConfiguredTools() {
+	public List<ArchiveableTool> getArchiveableTools() {
+
 		final List<ArchiveableTool> tools = new ArrayList<>();
 
 		final String[] toolIds = this.serverConfigurationService.getStrings("archiver.tools");
-		if (toolIds != null) {
-			Arrays.asList(toolIds).forEach(toolId -> {
-				final Tool t = this.toolManager.getTool(toolId);
 
-				final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
-				tools.add(tool);
+		if (toolIds != null) {
+
+			final String siteId = getCurrentSiteId();
+			final Set<String> toolsInSite = getToolIdsForSite(siteId);
+
+			Arrays.asList(toolIds).forEach(toolId -> {
+				if (toolsInSite.contains(toolId)) {
+					final Tool t = this.toolManager.getTool(toolId);
+					final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
+					tools.add(tool);
+				}
 			});
 		}
 
@@ -148,6 +161,36 @@ public class ArchiverBusinessService {
 		} catch (final Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Get the list of toolIds in a site
+	 *
+	 * TODO get the actual name of the tool in the site and return list of Tools or something similar
+	 *
+	 * @param siteId the site to check
+	 * @return
+	 */
+	private Set<String> getToolIdsForSite(final String siteId) {
+
+		final Set<String> toolIds = new HashSet<>();
+
+		Site site;
+		try {
+			site = this.siteService.getSite(siteId);
+		} catch (final IdUnusedException e) {
+			log.error("Invalid site. Cannot lookup tools");
+			return toolIds;
+		}
+
+		for (final SitePage page : site.getPages()) {
+			for (final ToolConfiguration toolConfig : page.getTools()) {
+				toolIds.add(toolConfig.getToolId());
+			}
+		}
+
+		return toolIds;
+
 	}
 
 }
