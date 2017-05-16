@@ -24,6 +24,7 @@
 		<module>tool</module>
 		<module>deploy</module>
 		<module>provider-content</module>
+		<module>provider-syllabus</module>
 	</modules>
 	<build>
 		<plugins>
