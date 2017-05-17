@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>Archiver Provider - Content</name>
-	<description>An archiver provider for the content tools</description>
+	<name>Archiver Provider - Web Content</name>
+	<description>An archiver provider for webcontent tools</description>
 	<groupId>org.sakaiproject.archiver.provider</groupId>
-	<artifactId>archiver-provider-content</artifactId>
+	<artifactId>archiver-provider-webcontent</artifactId>
 
 	<packaging>sakai-component</packaging>
 

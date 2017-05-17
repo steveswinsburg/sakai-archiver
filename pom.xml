@@ -22,7 +22,7 @@
 		<module>pack</module>
 		<module>tool</module>
 		<module>deploy</module>
-		<module>provider-content</module>
+		<module>provider-webcontent</module>
 		<module>provider-gradebook</module>
 	</modules>
 	
