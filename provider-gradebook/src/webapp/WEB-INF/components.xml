@@ -9,6 +9,8 @@
 
 		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
+		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
 
 	</bean>
 

@@ -41,10 +41,10 @@ public class I18n {
 
 	/**
 	 * Helper to get the Locale from Sakai
-	 * 
+	 *
 	 * @return the locale
 	 */
-	private static Locale getUserPreferredLocale() {
+	public static Locale getUserPreferredLocale() {
 		final ResourceLoader rl = new ResourceLoader();
 		return rl.getLocale();
 	}
