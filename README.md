@@ -7,10 +7,20 @@ In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` 
 
 For example:
 
-````
+```
 archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool
 archiver.path = /Users/steve/sakai/archives/
-````
+```
+
+## Deployment
+By default, all archiver providers are deployed. However, each archiver provider can be deployed independently if required. Simply build the ones you require or edit the base `pom.xml` and look for the `<modules>` section.
+
+## Permissions
+Each provider requires full access to the data it is accessing. This means that the user initialing the import must have an instructor type permission in each tool. The specific permissions for each provider are:
+<dl>
+  <dt>Gradebook</dt>
+  <dd>gradebook.gradeAll</dd>
+</dl>
 
 ## Developers
 See ![DEVELOPERS.md](DEVELOPERS.md)
