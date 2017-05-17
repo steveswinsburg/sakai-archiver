@@ -1,4 +1,4 @@
-package org.sakaiproject.archiver.model;
+package org.sakaiproject.archiver.provider.model;
 
 import java.util.ArrayList;
 import java.util.List;
