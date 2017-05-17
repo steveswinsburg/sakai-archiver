@@ -24,6 +24,7 @@
 		<module>deploy</module>
 		<module>provider-webcontent</module>
 		<module>provider-gradebook</module>
+		<module>provider-home</module>
 	</modules>
 	
 	<dependencyManagement>
