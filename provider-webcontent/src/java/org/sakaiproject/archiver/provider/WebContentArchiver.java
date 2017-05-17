@@ -43,8 +43,6 @@ public class WebContentArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		log.info("Archiving {}", toolId);
-
 		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String url = t.getPlacementConfig().getProperty("source");
