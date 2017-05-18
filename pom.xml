@@ -25,6 +25,7 @@
 		<module>provider-webcontent</module>
 		<module>provider-gradebook</module>
 		<module>provider-home</module>
+		<module>provider-announcements</module>
 	</modules>
 	
 	<dependencyManagement>
