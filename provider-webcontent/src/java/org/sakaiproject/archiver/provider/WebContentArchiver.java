@@ -16,22 +16,22 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementation of {@link Archiveable} for various content tools
+ * Implementation of {@link Archiveable} for the web content tools
  *
  * @author Steve Swinsburg(steve.swinsburg@gmail.com)
  * @since 12.0
  */
 @Slf4j
-public class ContentArchiver implements Archiveable {
+public class WebContentArchiver implements Archiveable {
 
-	private static final String HOME_TOOL = "sakai.iframe";
+	private static final String TOOL_ID = "sakai.iframe";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(HOME_TOOL, this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(HOME_TOOL);
+		ArchiverRegistry.getInstance().unregister(TOOL_ID);
 	}
 
 	@Setter
@@ -43,35 +43,14 @@ public class ContentArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		log.info("Archiving {}", toolId);
-
-		switch (toolId) {
-			case HOME_TOOL: {
-				archiveHomeTool(archiveId, siteId);
-				break;
-			}
-			default: {
-				log.error("No handler for {}", toolId);
-			}
-		}
-
-	}
-
-	/**
-	 * Archive the home tool
-	 *
-	 * @param archiveId
-	 * @param siteId
-	 */
-	public void archiveHomeTool(final String archiveId, final String siteId) {
-
-		final Set<ToolConfiguration> tools = getTools(siteId, HOME_TOOL);
+		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String url = t.getPlacementConfig().getProperty("source");
 			final String filename = t.getTitle();
 			final String fileContents = createUrlFileContents(url);
-			this.archiverService.archiveContent(archiveId, siteId, HOME_TOOL, fileContents.getBytes(), filename + ".url");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), filename + ".url");
 		});
+
 	}
 
 	/**

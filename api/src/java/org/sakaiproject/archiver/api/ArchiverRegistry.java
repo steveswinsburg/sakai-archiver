@@ -60,6 +60,7 @@ public class ArchiverRegistry {
 	 */
 	public synchronized void unregister(final String toolId) {
 		if (isRegistered(toolId)) {
+			log.info("Unregistering {}", toolId);
 			this.registry.remove(toolId);
 		}
 	}

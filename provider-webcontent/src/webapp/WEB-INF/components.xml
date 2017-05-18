@@ -4,8 +4,8 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	
-	<bean id="org.sakaiproject.archiver.provider.ContentArchiver"
-		class="org.sakaiproject.archiver.provider.ContentArchiver" init-method="init" destroy-method="destroy">
+	<bean id="org.sakaiproject.archiver.provider.WebContentArchiver"
+		class="org.sakaiproject.archiver.provider.WebContentArchiver" init-method="init" destroy-method="destroy">
 
 		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
