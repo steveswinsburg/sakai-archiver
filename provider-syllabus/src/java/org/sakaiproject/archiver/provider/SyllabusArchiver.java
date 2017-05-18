@@ -27,14 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SyllabusArchiver implements Archiveable {
 
-	private static final String HOME_TOOL = "sakai.syllabus";
+	private static final String SYLLABUS_TOOL = "sakai.syllabus";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(HOME_TOOL, this);
+		ArchiverRegistry.getInstance().register(SYLLABUS_TOOL, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(HOME_TOOL);
+		ArchiverRegistry.getInstance().unregister(SYLLABUS_TOOL);
 	}
 
 	@Setter
@@ -68,11 +68,11 @@ public class SyllabusArchiver implements Archiveable {
 
 			String jsonArchiveItem = Jsonifier.toJson(archiveItem);
 			log.debug("Archive item metadata: " + jsonArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, "sakai.syllabus", jsonArchiveItem.getBytes(), archiveItem.getTitle() + " (metadata).json");
+			this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, jsonArchiveItem.getBytes(), archiveItem.getTitle() + " (metadata).json");
 			
 			String archiveData = syllabus.getAsset();
 			log.debug("Archive item content: " + archiveData);
-			this.archiverService.archiveContent(archiveId, siteId, "sakai.syllabus", archiveData.getBytes(), archiveItem.getTitle() + " (content).html");
+			this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, archiveData.getBytes(), archiveItem.getTitle() + " (content).html");
 
 			//get the attachments
 			Set<SyllabusAttachment> syllabusAttachments = this.syllabusManager.getSyllabusAttachmentsForSyllabusData(syllabus);
@@ -81,7 +81,7 @@ public class SyllabusArchiver implements Archiveable {
 				byte[] syllabusAttachmentBytes;
 				try {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
-					this.archiverService.archiveContent(archiveId, siteId, "sakai.syllabus", syllabusAttachmentBytes, syllabusAttachment.getName(), syllabus.getTitle() + " (attachments)");
+					this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, syllabusAttachmentBytes, syllabusAttachment.getName(), syllabus.getTitle() + " (attachments)");
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting syllabus attachment " + syllabusAttachment.getName() + " in syllabus " + syllabus.getTitle());
 					continue;
