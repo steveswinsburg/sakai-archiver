@@ -105,7 +105,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 			final String filename, final String... subdirectories) {
 		log.debug("Archiving to archive: {} for site: {} and tool: {} in dir: {} and file: {} with content: {}", archiveId, siteId, toolId,
 				buildPath(subdirectories), filename,
-				content.toString());
+				Arrays.toString(subdirectories));
 
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
 		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, toolId, buildPath(subdirectories), filename);
