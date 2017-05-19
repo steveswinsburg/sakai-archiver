@@ -37,7 +37,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementation of {@link Archiveable} for the gradebook tools
+ * Implementation of {@link Archiveable} for the Gradebook tools
  *
  * Caller must have gradeall permission
  *
