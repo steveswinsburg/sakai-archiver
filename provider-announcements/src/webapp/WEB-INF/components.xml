@@ -7,7 +7,8 @@
 	<bean id="org.sakaiproject.archiver.provider.Announcements"
 		class="org.sakaiproject.archiver.provider.Announcements" init-method="init" destroy-method="destroy">
 
-		<property name="archiverService" ref="org.sakaiproject.archiver.api.Announcements" />
+		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
+		<property name="announcementService" ref="org.sakaiproject.announcement.api.AnnouncementService" />
 
 	</bean>
 
