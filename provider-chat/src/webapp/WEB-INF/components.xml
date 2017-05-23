@@ -9,6 +9,7 @@
 
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
 		<property name="chatManager" ref="org.sakaiproject.chat2.model.ChatManager" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
 		
 	</bean>
 
