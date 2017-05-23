@@ -57,12 +57,8 @@ public class SyllabusArchiver implements Archiveable {
 		Set<SyllabusData> syllabusSet = this.syllabusManager.getSyllabiForSyllabusItem(siteSyllabus);
 
 		// Go through and archive each syllabus item
-		ArchiveItem archiveItem = new ArchiveItem();
 		for (SyllabusData syllabus : syllabusSet) {
-			archiveItem.setTitle(syllabus.getTitle());
-			archiveItem.setStartDate(syllabus.getStartDate());
-			archiveItem.setEndDate(syllabus.getEndDate());
-			archiveItem.setBody(syllabus.getAsset());
+			ArchiveItem archiveItem = createArchiveItem(syllabus);
 			String jsonArchiveItem = Jsonifier.toJson(archiveItem);
 			log.debug("Archive item metadata: " + jsonArchiveItem);
 			this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + ".json");
@@ -81,6 +77,23 @@ public class SyllabusArchiver implements Archiveable {
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * Build the ArchiveItem for a syllabus item
+	 * @param syllabus
+	 * @return the archive item to be saved
+	 */
+	private ArchiveItem createArchiveItem(SyllabusData syllabus) {
+		
+		ArchiveItem archiveItem = new ArchiveItem();
+		archiveItem.setTitle(syllabus.getTitle());
+		archiveItem.setStartDate(syllabus.getStartDate());
+		archiveItem.setEndDate(syllabus.getEndDate());
+		archiveItem.setBody(syllabus.getAsset());
+		
+		return archiveItem;
 	}
 	
 	/**
