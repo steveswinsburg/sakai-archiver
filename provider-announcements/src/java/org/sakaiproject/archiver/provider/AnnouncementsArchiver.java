@@ -86,14 +86,14 @@ public class AnnouncementsArchiver implements Archiveable {
 								attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), 
 								archiveItem.getTitle() + " (attachments)");
 					} catch (ServerOverloadException | IdUnusedException | TypeException e) {
-						log.debug("Error getting attachment for announcement: " + archiveItem.getTitle());
+						log.error("Error getting attachment for announcement: " + archiveItem.getTitle());
 						continue;
 					}
 					
 				}
 			}
 		} catch (PermissionException e) {
-			log.debug("Failed to get announcements");
+			log.error("Failed to get announcements");
 		}
 	}
 	
