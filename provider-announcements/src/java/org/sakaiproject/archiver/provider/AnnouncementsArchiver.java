@@ -63,19 +63,15 @@ public class AnnouncementsArchiver implements Archiveable {
 			for (Message message : announcements) {
 				AnnouncementMessage announcement = (AnnouncementMessage) message;
 				
-				// Save the metadata for this announcement
+				// Save this announcement
 				ArchiveItem archiveItem = new ArchiveItem();
 				archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
 				archiveItem.setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
 				archiveItem.setCreatedOn(new Date(announcement.getHeader().getDate().getTime()));
+				archiveItem.setBody(announcement.getBody()); 
 				String jsonArchiveItem = Jsonifier.toJson(archiveItem);
-				log.debug("Announcement metadata: " + jsonArchiveItem);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + " (metadata).json");
-				
-				// Save the body of the announcement
-				String announcementBody = announcement.getBody();
-				log.debug("Announcement body: " + announcementBody);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, announcementBody.getBytes(), archiveItem.getTitle() + " (content).html");
+				log.debug("Announcement data: " + jsonArchiveItem);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + ".json");
 				
 				// get the attachments
 				for (Reference attachment : announcement.getAnnouncementHeader().getAttachments()) {
@@ -98,14 +94,24 @@ public class AnnouncementsArchiver implements Archiveable {
 	}
 	
 	/**
-	 * Simplified helper class to represent metadata for an individual announcement in a site
+	 * Simplified helper class to represent individual announcement in a site
 	 */
 	private static class ArchiveItem {
 		
-		@Getter @Setter private String title;
-		@Getter @Setter private String createdBy;
-		@Getter @Setter private Date createdOn;
-		@Getter @Setter private String channel;
+		@Getter @Setter 
+		private String title;
+		
+		@Getter @Setter 
+		private String body;
+		
+		@Getter @Setter 
+		private String createdBy;
+		
+		@Getter @Setter 
+		private Date createdOn;
+		
+		@Getter @Setter 
+		private String channel;
 	}
 
 }
