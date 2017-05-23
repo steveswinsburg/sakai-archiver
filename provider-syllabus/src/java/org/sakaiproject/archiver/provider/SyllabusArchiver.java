@@ -27,14 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SyllabusArchiver implements Archiveable {
 
-	private static final String HOME_TOOL = "sakai.syllabus";
+	private static final String SYLLABUS_TOOL = "sakai.syllabus";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(HOME_TOOL, this);
+		ArchiverRegistry.getInstance().register(SYLLABUS_TOOL, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(HOME_TOOL);
+		ArchiverRegistry.getInstance().unregister(SYLLABUS_TOOL);
 	}
 
 	@Setter
