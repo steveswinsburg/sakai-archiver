@@ -34,7 +34,7 @@ public class BasePage extends WebPage {
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean(name = "org.sakaiproject.archiver.app.business.ArchiverBusinessService")
-	protected ArchiverBusinessService businessService;
+	protected transient ArchiverBusinessService businessService;
 
 	Link<Void> createArchiveLink;
 	Link<Void> previousArchivesLink;
