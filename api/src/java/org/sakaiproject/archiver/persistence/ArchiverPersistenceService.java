@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.persistence;
 
-import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 
 public interface ArchiverPersistenceService {
@@ -23,12 +22,12 @@ public interface ArchiverPersistenceService {
 	public ArchiveEntity update(ArchiveEntity entity);
 
 	/**
-	 * Get a current archive for the given site. Return null if none exists or is not currently active.
+	 * Get the current archive for the given site. Return null if none exists or is not currently active.
 	 *
 	 * @param siteId
 	 * @param userUuid
 	 * @return
 	 */
-	public Archive getCurrent(String siteId);
+	public ArchiveEntity getCurrent(String siteId);
 
 }

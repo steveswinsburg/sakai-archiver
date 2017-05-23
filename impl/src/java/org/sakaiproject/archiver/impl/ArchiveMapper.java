@@ -14,7 +14,7 @@ public class ArchiveMapper {
 
 	/**
 	 * Map an {@link ArchiveEntity} to a {@Archive} dto or null if entity is null
-	 * 
+	 *
 	 * @param entity
 	 * @return
 	 */
@@ -32,4 +32,5 @@ public class ArchiveMapper {
 		dto.setEndDate(entity.getEndDate());
 		return dto;
 	}
+
 }

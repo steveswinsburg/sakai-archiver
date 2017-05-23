@@ -6,9 +6,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.sakaiproject.archiver.api.Status;
-import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
-import org.sakaiproject.archiver.impl.ArchiveMapper;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 
@@ -68,16 +66,16 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	}
 
 	/**
-	 * Get a current archive for the given site. Return null if none exists or is not currently active.
+	 * Get the current archive for the given site. Return null if none exists or is not currently active.
 	 *
 	 * @param siteId
 	 * @param userUuid
 	 * @return
 	 */
 	@Override
-	public Archive getCurrent(final String siteId) {
+	public ArchiveEntity getCurrent(final String siteId) {
 
-		// TODO look at status iunstead
+		// TODO look at status instead
 
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
 		criteria.add(Restrictions.eq("siteId", siteId));
@@ -85,7 +83,7 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		// TODO catch exception if there is more than one for whatever reason, and deal with it.
 		final ArchiveEntity entity = (ArchiveEntity) criteria.uniqueResult();
 
-		return ArchiveMapper.toDto(entity);
+		return entity;
 	}
 
 }

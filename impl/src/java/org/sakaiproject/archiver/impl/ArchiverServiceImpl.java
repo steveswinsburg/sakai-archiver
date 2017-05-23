@@ -2,21 +2,25 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.api.Status;
-import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
+import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
+import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.util.Zipper;
@@ -41,7 +45,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public boolean isArchiveInProgress(final String siteId) {
 
-		final Archive archive = this.dao.getCurrent(siteId);
+		final ArchiveEntity archive = this.dao.getCurrent(siteId);
 		return (archive != null) ? true : false;
 	}
 
@@ -107,6 +111,18 @@ public class ArchiverServiceImpl implements ArchiverService {
 				buildPath(subdirectories), filename,
 				Arrays.toString(subdirectories));
 
+		try {
+			validateFileExtension(filename);
+		} catch (final FileExtensionExcludedException e1) {
+			log.error("File {} is of an excluded extension and will not be archived", filename);
+		}
+
+		try {
+			validateFileSize(content);
+		} catch (final FileSizeExceededException e1) {
+			log.error("File {} is too large and will not be archived", filename);
+		}
+
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
 		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, toolId, buildPath(subdirectories), filename);
 		log.debug("Writing to {}", filePath);
@@ -122,12 +138,44 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Get base dir for all archives as configured in sakai.properties
+	 * Get base dir for all archives as configured in sakai.properties via <code>archiver.path</code>
+	 *
+	 * Removes any trailing /
+	 *
+	 * Note: This may need adjusting on Windows?
 	 *
 	 * @return
 	 */
 	private String getArchiveBasePath() {
 		return StringUtils.removeEnd(this.serverConfigurationService.getString("archiver.path", FileUtils.getTempDirectoryPath()), "/");
+	}
+
+	/**
+	 * Get the maximum individual filesize (in bytes) that can be included in an archive as configured in sakai.properties via
+	 * <code>archiver.max.filesize</cope> which is a number in MB.
+	 *
+	 * Default if not specified is: 50MB = 52,428,800
+	 *
+	 * @return
+	 */
+	private long getMaxFileSize() {
+		final int config = this.serverConfigurationService.getInt("archiver.max.filesize", 50);
+		final long maxBytes = config * FileUtils.ONE_MB;
+		return maxBytes;
+	}
+
+	/**
+	 * Get any excluded extensions as configured in sakai.properties via <code>archiver.exclude.extensions</code>
+	 *
+	 * @return
+	 */
+	private List<String> getExcludedExtensions() {
+		final List<String> excludedExtensions = new ArrayList<>();
+		final String[] config = this.serverConfigurationService.getStrings("archiver.exclude.extensions");
+		if (ArrayUtils.isNotEmpty(config)) {
+			excludedExtensions.addAll(Arrays.asList(config));
+		}
+		return excludedExtensions;
 	}
 
 	/**
@@ -166,6 +214,31 @@ public class ArchiverServiceImpl implements ArchiverService {
 		// close the db record
 		archive.setEndDate(new Date());
 		this.dao.update(archive);
+	}
+
+	/**
+	 * Validate the length of a file to be archived
+	 *
+	 * @param content
+	 * @throws FileSizeExceededException
+	 */
+	private void validateFileSize(final byte[] content) throws FileSizeExceededException {
+		if (content.length > getMaxFileSize()) {
+			throw new FileSizeExceededException();
+		}
+	}
+
+	/**
+	 * Valite the file extension is not excluded
+	 *
+	 * @param filename
+	 * @throws FileSizeExceededException
+	 */
+	private void validateFileExtension(final String filename) throws FileExtensionExcludedException {
+		final String extension = FilenameUtils.getExtension(filename);
+		if (getExcludedExtensions().contains(extension)) {
+			throw new FileExtensionExcludedException();
+		}
 	}
 
 }
