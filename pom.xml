@@ -27,6 +27,7 @@
 		<module>provider-gradebook</module>
 		<module>provider-home</module>
 		<module>provider-dropbox</module>
+		<module>provider-assignments</module>
 	</modules>
 	
 	<dependencyManagement>
