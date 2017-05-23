@@ -70,7 +70,7 @@ public class ChatArchiver implements Archiveable {
 
 					// Convert to JSON and save to file
 					int rangeStart = start+1;
-					int rangeEnd = numMessages - start >= 100 ? start+100 : numMessages+1;
+					int rangeEnd = numMessages - start >= 100 ? start+100 : numMessages;
 					this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(), 
 							chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json", "Chat messages for " + chatChannel.getTitle());
 
