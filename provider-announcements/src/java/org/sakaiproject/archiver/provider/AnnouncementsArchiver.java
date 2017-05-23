@@ -95,7 +95,7 @@ public class AnnouncementsArchiver implements Archiveable {
 	 * @param announcement
 	 * @return the archive item to be saved
 	 */
-	ArchiveItem createArchiveItem(AnnouncementMessage announcement) {
+	private ArchiveItem createArchiveItem(AnnouncementMessage announcement) {
 		
 		ArchiveItem archiveItem = new ArchiveItem();
 		archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
