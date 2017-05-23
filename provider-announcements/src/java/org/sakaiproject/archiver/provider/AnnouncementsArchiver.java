@@ -64,11 +64,7 @@ public class AnnouncementsArchiver implements Archiveable {
 				AnnouncementMessage announcement = (AnnouncementMessage) message;
 				
 				// Save this announcement
-				ArchiveItem archiveItem = new ArchiveItem();
-				archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
-				archiveItem.setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
-				archiveItem.setCreatedOn(new Date(announcement.getHeader().getDate().getTime()));
-				archiveItem.setBody(announcement.getBody()); 
+				ArchiveItem archiveItem = createArchiveItem(announcement);
 				String jsonArchiveItem = Jsonifier.toJson(archiveItem);
 				log.debug("Announcement data: " + jsonArchiveItem);
 				this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + ".json");
@@ -94,9 +90,26 @@ public class AnnouncementsArchiver implements Archiveable {
 	}
 	
 	/**
+	 * Build the ArchiveItem for an announcement
+	 * 
+	 * @param announcement
+	 * @return the archive item to be saved
+	 */
+	ArchiveItem createArchiveItem(AnnouncementMessage announcement) {
+		
+		ArchiveItem archiveItem = new ArchiveItem();
+		archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
+		archiveItem.setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
+		archiveItem.setCreatedOn(new Date(announcement.getHeader().getDate().getTime()));
+		archiveItem.setBody(announcement.getBody()); 
+		
+		return archiveItem;
+	}
+	
+	/**
 	 * Simplified helper class to represent individual announcement in a site
 	 */
-	private static class ArchiveItem {
+	private class ArchiveItem {
 		
 		@Getter @Setter 
 		private String title;
