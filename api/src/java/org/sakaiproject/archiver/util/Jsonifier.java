@@ -9,7 +9,7 @@ import com.google.gson.GsonBuilder;
 public class Jsonifier {
 
 	public static String toJson(final Object obj) {
-		final Gson gson = new GsonBuilder().create();
+		final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 		return gson.toJson(obj);
 	}
 }

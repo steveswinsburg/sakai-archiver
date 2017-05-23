@@ -13,8 +13,8 @@ import org.sakaiproject.archiver.entity.ArchiveEntity;
 public class ArchiveMapper {
 
 	/**
-	 * Map an {@link ArchiveEntity} to a {@Archive} dto or null if entity is null
-	 * 
+	 * Map an {@link ArchiveEntity} to a {@link Archive} dto or null if entity is null
+	 *
 	 * @param entity
 	 * @return
 	 */
@@ -30,6 +30,10 @@ public class ArchiveMapper {
 		dto.setUserUuid(entity.getUserUuid());
 		dto.setStartDate(entity.getStartDate());
 		dto.setEndDate(entity.getEndDate());
+		dto.setStatus(entity.getStatus());
+		dto.setZipPath(entity.getZipPath());
+
 		return dto;
 	}
+
 }

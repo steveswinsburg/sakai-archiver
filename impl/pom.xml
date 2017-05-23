@@ -18,7 +18,6 @@
 		<dependency>
 			<groupId>org.sakaiproject.archiver</groupId>
 			<artifactId>archiver-api</artifactId>
-			<version>0.2-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -57,6 +56,13 @@
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>sakai-kernel-util</artifactId>
+		</dependency>
+		
+		<dependency>
+    		<groupId>org.mockito</groupId>
+    		<artifactId>mockito-all</artifactId>
+    		<version>1.10.19</version>
+    		<scope>test</scope>
 		</dependency>
 		
 	</dependencies>

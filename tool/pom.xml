@@ -69,10 +69,13 @@
 			<artifactId>spring-beans</artifactId>
 			<scope>provided</scope> <!-- to satisfy EB and eclipse -->
 		</dependency>
+		<dependency>
+        	<groupId>commons-io</groupId>
+        	<artifactId>commons-io</artifactId>
+		</dependency>
    		<dependency>
 			<groupId>org.sakaiproject.archiver</groupId>
 			<artifactId>archiver-api</artifactId>
-	    	<version>0.2-SNAPSHOT</version>
 	    	<scope>provided</scope>
 		</dependency>
 	</dependencies>
