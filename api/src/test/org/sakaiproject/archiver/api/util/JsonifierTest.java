@@ -99,5 +99,4 @@ public class JsonifierTest {
 		// {"param1":"param1","param2":2,"param3":"Jan 11, 1970 4:54:48 PM","param4":false,"list1":["elem1","elem2"],"map1":{"1":"Jan 2,
 		// 1970 4:51:51 PM","9":"Jan 12, 1970 11:46:39 PM","2":"Jan 3, 1970 11:43:42 PM"}}
 	}
-
 }
