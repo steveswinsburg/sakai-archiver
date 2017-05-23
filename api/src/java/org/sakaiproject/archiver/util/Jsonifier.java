@@ -12,10 +12,4 @@ public class Jsonifier {
 		final Gson gson = new GsonBuilder().create();
 		return gson.toJson(obj);
 	}
-	
-	public static String toJson(final Object obj, final String dateFormat) {
-		Gson gson=  new GsonBuilder().setDateFormat(dateFormat).create();
-		return gson.toJson(obj);
-	}
-	
 }

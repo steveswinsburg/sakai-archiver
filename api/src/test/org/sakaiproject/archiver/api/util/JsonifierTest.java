@@ -2,9 +2,7 @@ package org.sakaiproject.archiver.api.util;
 
 import static org.junit.Assert.assertEquals;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Test;
@@ -42,20 +40,6 @@ public class JsonifierTest {
 		final String expected = "{\"param1\":\"param1\",\"param2\":\"param2\",\"list1\":[\"elem1\",\"elem2\"]}";
 		assertEquals(expected, result);
 	}
-	
-	@Test
-	public void should_serialiseToJson_when_complexObjectWithDateProvided() {
-		
-		final TestObjectWithDate testObject = new TestObjectWithDate();
-		testObject.setParam1("param1");
-		Date currentDate = new Date();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		testObject.setDate(currentDate);
-		
-		final String result = Jsonifier.toJson(testObject, "yyyy-MM-dd HH:mm:ss.SSS");
-		final String expected = "{\"param1\":\"param1\",\"date\":\"" + sdf.format(currentDate) + "\"}";
-		assertEquals(expected, result);
-	}
 
 	class TestObject {
 
@@ -71,15 +55,4 @@ public class JsonifierTest {
 		@Setter
 		private List<String> list1;
 	}
-	
-	class TestObjectWithDate {
-		@Getter
-		@Setter
-		private String param1;
-		
-		@Getter
-		@Setter
-		private Date date;
-	}
-
 }
