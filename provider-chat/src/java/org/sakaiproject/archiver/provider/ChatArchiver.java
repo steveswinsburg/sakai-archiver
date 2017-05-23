@@ -12,6 +12,7 @@ import org.sakaiproject.chat2.model.ChatChannel;
 import org.sakaiproject.chat2.model.ChatManager;
 import org.sakaiproject.chat2.model.ChatMessage;
 import org.sakaiproject.exception.PermissionException;
+import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
@@ -52,13 +53,8 @@ public class ChatArchiver implements Archiveable {
 		for (ChatChannel chatChannel : chatChannels) {
 
 			// Save the metadata for this channel
-			ChatChannelMetadata metadata = new ChatChannelMetadata();
-			metadata.setDateCreated(chatChannel.getCreationDate());
-			metadata.setStartDate(chatChannel.getStartDate());
-			metadata.setEndDate(chatChannel.getEndDate());
-			metadata.setTitle(chatChannel.getTitle());
-			metadata.setDescription(chatChannel.getDescription());
-			metadata.setId(chatChannel.getId());
+			ChatChannelMetadata metadata = createChatChannelMetadata(chatChannel);
+
 			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(metadata).getBytes(), 
 					chatChannel.getTitle() + " (metadata).json");
 
@@ -70,8 +66,8 @@ public class ChatArchiver implements Archiveable {
 				try {
 					List<ChatMessage> chatMessages = chatManager.getChannelMessages(chatChannel, null, null, start, 99, true);
 
-					List<SimpleChatMessage> messagesToSave = createArchiveItem(chatMessages);
-					
+					List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
+
 					// Convert to JSON and save to file
 					int rangeStart = start+1;
 					int rangeEnd = numMessages - start >= 100 ? start+100 : numMessages+1;
@@ -85,37 +81,84 @@ public class ChatArchiver implements Archiveable {
 			}
 		}
 	}
-	
+
+	private ChatChannelMetadata createChatChannelMetadata(ChatChannel chatChannel) {
+
+		ChatChannelMetadata metadata = new ChatChannelMetadata();
+		metadata.setDateCreated(chatChannel.getCreationDate());
+		metadata.setStartDate(chatChannel.getStartDate());
+		metadata.setEndDate(chatChannel.getEndDate());
+		metadata.setTitle(chatChannel.getTitle());
+		metadata.setDescription(chatChannel.getDescription());
+		metadata.setId(chatChannel.getId());
+
+		return metadata;
+	}
+
+
 	/**
-	 * Build the list of messages to be saved for this channel
+	 * Build the list of messages to be archived for this channel
 	 * 
 	 * @param chatMessages
 	 * @return the list of messages to be saved
 	 */
-	private List<SimpleChatMessage> createArchiveItem(List<ChatMessage> chatMessages) {
+	private List<SimpleChatMessage> createArchiveItems(List<ChatMessage> chatMessages) {
 		List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
 		for (ChatMessage message : chatMessages) {
-			SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
-			simpleChatMessage.setBody(message.getBody());
-			simpleChatMessage.setDate(message.getMessageDate());
-			try {
-				simpleChatMessage.setOwner(userDirectoryService.getUser(message.getOwner()).getDisplayName());
-				simpleChatMessage.setUserId(userDirectoryService.getUser(message.getOwner()).getEid());
-
-			} catch (UserNotDefinedException e) {
-				log.error("Could not find user with userId " + message.getOwner());
-				continue;
-			}
+			SimpleChatMessage simpleChatMessage = createArchiveItem(message);
 			messagesToSave.add(simpleChatMessage);
 		}
-		
+
 		return messagesToSave;
+	}
+
+	/**
+	 * Build the archive item for an individual chat message
+	 * @param message
+	 * @return 
+	 */
+
+	private SimpleChatMessage createArchiveItem(ChatMessage message) {
+
+		SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
+		simpleChatMessage.setBody(message.getBody());
+		simpleChatMessage.setDate(message.getMessageDate());
+		
+		User user = getUser(message.getOwner());
+		if (user != null) {
+			simpleChatMessage.setOwner(user.getDisplayName());
+			simpleChatMessage.setEid(user.getEid());
+		} else {
+			simpleChatMessage.setOwner(message.getOwner());
+			simpleChatMessage.setEid(message.getOwner());
+		}
+
+		return simpleChatMessage;
+	}
+
+	/**
+	 * Helper to get the user associated with a chat message
+	 * @param owner
+	 * @return user
+	 */
+	private User getUser(String owner) {
+
+		User user;
+
+		try {
+			user = userDirectoryService.getUser(owner);
+			return user;
+			
+		} catch (UserNotDefinedException e) {
+			log.error("Could not find user with userId: " + owner + ", uuid will be used in place of display name and eid.");
+		}
+		return null;
 	}
 
 	/**
 	 * Simplified helper class to represent an individual chat message
 	 */
-	private static class SimpleChatMessage {
+	private class SimpleChatMessage {
 
 		@Getter @Setter
 		private String body;
@@ -127,14 +170,14 @@ public class ChatArchiver implements Archiveable {
 		private String owner;
 
 		@Getter @Setter
-		private String userId;
+		private String eid;
 
 	}
 
 	/**
 	 * Simplified helper class to represent the metadata for a chat channel
 	 */
-	private static class ChatChannelMetadata {
+	private class ChatChannelMetadata {
 
 		@Getter @Setter
 		private String title;
