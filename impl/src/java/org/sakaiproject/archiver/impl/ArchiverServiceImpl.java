@@ -16,9 +16,11 @@ import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.api.Status;
+import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
+import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
 import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -45,8 +47,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public boolean isArchiveInProgress(final String siteId) {
 
-		final ArchiveEntity archive = this.dao.getCurrent(siteId);
-		return (archive != null) ? true : false;
+		final ArchiveEntity entity = this.dao.getCurrent(siteId);
+		return (entity != null) ? true : false;
 	}
 
 	@Override
@@ -65,8 +67,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 		}
 
 		// create the record
-		final ArchiveEntity archive = this.dao.create(siteId, userUuid);
-		final String archiveId = archive.getId();
+		final ArchiveEntity entity = this.dao.create(siteId, userUuid);
+		final String archiveId = entity.getId();
 
 		// create disk location
 		final String archivePath = buildPath(getArchiveBasePath(), siteId, archiveId);
@@ -77,8 +79,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 		}
 
 		// update archive with file location
-		archive.setArchivePath(archivePath);
-		this.dao.update(archive);
+		entity.setArchivePath(archivePath);
+		this.dao.update(entity);
 
 		// now archive all of the registered tools
 		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
@@ -95,7 +97,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 			archivable.archive(archiveId, siteId, toolId, includeStudentData);
 		}
 
-		finalise(archive);
+		finalise(entity);
 	}
 
 	@Override
@@ -137,6 +139,16 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	}
 
+	@Override
+	public Archive getArchive(final String archiveId) throws ArchiveNotFoundException {
+		final ArchiveEntity entity = this.dao.get(archiveId);
+		if (entity == null) {
+			throw new ArchiveNotFoundException("Archive: " + archiveId + " does not exist");
+		}
+
+		return ArchiveMapper.toDto(entity);
+	}
+
 	/**
 	 * Get base dir for all archives as configured in sakai.properties via <code>archiver.path</code>
 	 *
@@ -160,8 +172,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private long getMaxFileSize() {
 		final int config = this.serverConfigurationService.getInt("archiver.max.filesize", 50);
-		final long maxBytes = config * FileUtils.ONE_MB;
-		return maxBytes;
+		return config * FileUtils.ONE_MB;
 	}
 
 	/**
@@ -194,26 +205,26 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Finalise an archive
+	 * Finalise an archiving record
 	 *
-	 * @param archive the ArchiveEntity tracking this archive
+	 * @param entity the ArchiveEntity tracking this archive
 	 */
-	private void finalise(final ArchiveEntity archive) {
+	private void finalise(final ArchiveEntity entity) {
 
 		// zips the archive directory
-		final File archiveDirectory = new File(archive.getArchivePath());
+		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
 			final String zipPath = Zipper.zipDirectory(archiveDirectory);
-			archive.setZipPath(zipPath);
-			archive.setStatus(Status.COMPLETE);
+			entity.setZipPath(zipPath);
+			entity.setStatus(Status.COMPLETE);
 		} catch (final IOException e) {
 			log.error("Could not zip archive");
-			archive.setStatus(Status.FAILED);
+			entity.setStatus(Status.FAILED);
 		}
 
 		// close the db record
-		archive.setEndDate(new Date());
-		this.dao.update(archive);
+		entity.setEndDate(new Date());
+		this.dao.update(entity);
 	}
 
 	/**
@@ -223,6 +234,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 * @throws FileSizeExceededException
 	 */
 	private void validateFileSize(final byte[] content) throws FileSizeExceededException {
+		log.debug("File size: " + content.length);
 		if (content.length > getMaxFileSize()) {
 			throw new FileSizeExceededException();
 		}
@@ -236,6 +248,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void validateFileExtension(final String filename) throws FileExtensionExcludedException {
 		final String extension = FilenameUtils.getExtension(filename);
+		log.debug("File extension: " + extension);
 		if (getExcludedExtensions().contains(extension)) {
 			throw new FileExtensionExcludedException();
 		}

@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 
@@ -32,8 +33,10 @@ public class ArchiverServiceImplTest {
 		final String userUuid = UUID.randomUUID().toString();
 		final Date startDate = new Date();
 		final Date endDate = null;
+		final Status status = Status.STARTED;
+		final String zipPath = null;
 
-		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate);
+		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate, status, zipPath);
 
 		when(this.dao.getCurrent(anyString())).thenReturn(entity);
 		final boolean result = this.impl.isArchiveInProgress(anyString());

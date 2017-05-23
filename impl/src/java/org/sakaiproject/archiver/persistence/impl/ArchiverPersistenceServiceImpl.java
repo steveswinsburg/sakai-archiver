@@ -23,13 +23,6 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 
 	}
 
-	/**
-	 * Create a new archive
-	 *
-	 * @param siteId
-	 * @param userUuid
-	 * @return the entity
-	 */
 	@Override
 	public ArchiveEntity create(final String siteId, final String userUuid) {
 
@@ -48,12 +41,6 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		return entity;
 	}
 
-	/**
-	 * Update an archive
-	 *
-	 * @param entity
-	 * @return the entity
-	 */
 	@Override
 	public ArchiveEntity update(final ArchiveEntity entity) {
 
@@ -65,13 +52,6 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		return entity;
 	}
 
-	/**
-	 * Get the current archive for the given site. Return null if none exists or is not currently active.
-	 *
-	 * @param siteId
-	 * @param userUuid
-	 * @return
-	 */
 	@Override
 	public ArchiveEntity getCurrent(final String siteId) {
 
@@ -81,9 +61,14 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		criteria.add(Restrictions.eq("siteId", siteId));
 		criteria.add(Restrictions.isNull("endDate"));
 		// TODO catch exception if there is more than one for whatever reason, and deal with it.
-		final ArchiveEntity entity = (ArchiveEntity) criteria.uniqueResult();
+		return (ArchiveEntity) criteria.uniqueResult();
 
-		return entity;
 	}
 
+	@Override
+	public ArchiveEntity get(final String archiveId) {
+		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
+		criteria.add(Restrictions.eq("id", archiveId));
+		return (ArchiveEntity) criteria.uniqueResult();
+	}
 }

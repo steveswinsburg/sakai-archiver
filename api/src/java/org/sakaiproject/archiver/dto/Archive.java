@@ -2,6 +2,8 @@ package org.sakaiproject.archiver.dto;
 
 import java.util.Date;
 
+import org.sakaiproject.archiver.api.Status;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,4 +35,13 @@ public class Archive {
 	@Getter
 	@Setter
 	private Date endDate;
+
+	@Getter
+	@Setter
+	private Status status;
+
+	@Getter
+	@Setter
+	private String zipPath;
+
 }

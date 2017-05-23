@@ -1,7 +1,9 @@
 package org.sakaiproject.archiver.api;
 
+import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
+import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
 /**
@@ -59,5 +61,14 @@ public interface ArchiverService {
 	 */
 	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String filename,
 			final String... subdirectories);
+
+	/**
+	 * Get an archive for the given archiveId
+	 *
+	 * @param archiveId the id to get the archive for
+	 * @return the {@link Archive} dto
+	 * @throws {@ArchiveNotFoundException} if no archive can be found by that archiveId
+	 */
+	Archive getArchive(String archiveId) throws ArchiveNotFoundException;
 
 }

@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 
@@ -20,8 +21,10 @@ public class ArchiveMapperTest {
 		final String userUuid = UUID.randomUUID().toString();
 		final Date startDate = new Date();
 		final Date endDate = new Date();
+		final Status status = Status.STARTED;
+		final String zipPath = "/path/to/zip/file.zip";
 
-		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate);
+		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate, status, zipPath);
 
 		final Archive dto = ArchiveMapper.toDto(entity);
 
@@ -30,7 +33,8 @@ public class ArchiveMapperTest {
 		assertEquals("userUuid not mapped correctly", entity.getUserUuid(), dto.getUserUuid());
 		assertEquals("startDate not mapped correctly", entity.getStartDate(), dto.getStartDate());
 		assertEquals("endDate not mapped correctly", entity.getEndDate(), dto.getEndDate());
-
+		assertEquals("status not mapped correctly", entity.getStatus(), dto.getStatus());
+		assertEquals("zipPath not mapped correctly", entity.getZipPath(), dto.getZipPath());
 	}
 
 	@Test

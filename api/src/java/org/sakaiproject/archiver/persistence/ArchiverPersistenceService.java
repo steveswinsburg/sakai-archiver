@@ -25,9 +25,16 @@ public interface ArchiverPersistenceService {
 	 * Get the current archive for the given site. Return null if none exists or is not currently active.
 	 *
 	 * @param siteId
-	 * @param userUuid
 	 * @return
 	 */
 	public ArchiveEntity getCurrent(String siteId);
+
+	/**
+	 * Get an archive by its id. Returns null if none exists by that id.
+	 *
+	 * @param archiveId the id to lookup the archive for
+	 * @return
+	 */
+	public ArchiveEntity get(String archiveId);
 
 }
