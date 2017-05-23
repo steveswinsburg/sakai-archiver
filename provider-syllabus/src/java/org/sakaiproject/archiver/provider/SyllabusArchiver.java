@@ -50,8 +50,6 @@ public class SyllabusArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		log.info("Archiving {}", toolId);
-
 		// Get syllabus
 		SyllabusItem siteSyllabus = this.syllabusManager.getSyllabusItemByContextId(siteId);
 
@@ -59,20 +57,11 @@ public class SyllabusArchiver implements Archiveable {
 		Set<SyllabusData> syllabusSet = this.syllabusManager.getSyllabiForSyllabusItem(siteSyllabus);
 
 		// Go through and archive each syllabus item
-		ArchiveItem archiveItem = new ArchiveItem();
 		for (SyllabusData syllabus : syllabusSet) {
-			log.debug("Collecting " + syllabus.getTitle());
-			archiveItem.setTitle(syllabus.getTitle());
-			archiveItem.setStartDate(syllabus.getStartDate());
-			archiveItem.setEndDate(syllabus.getEndDate());
-
+			ArchiveItem archiveItem = createArchiveItem(syllabus);
 			String jsonArchiveItem = Jsonifier.toJson(archiveItem);
 			log.debug("Archive item metadata: " + jsonArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, jsonArchiveItem.getBytes(), archiveItem.getTitle() + " (metadata).json");
-			
-			String archiveData = syllabus.getAsset();
-			log.debug("Archive item content: " + archiveData);
-			this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, archiveData.getBytes(), archiveItem.getTitle() + " (content).html");
+			this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + ".json");
 
 			//get the attachments
 			Set<SyllabusAttachment> syllabusAttachments = this.syllabusManager.getSyllabusAttachmentsForSyllabusData(syllabus);
@@ -81,13 +70,30 @@ public class SyllabusArchiver implements Archiveable {
 				byte[] syllabusAttachmentBytes;
 				try {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
-					this.archiverService.archiveContent(archiveId, siteId, SYLLABUS_TOOL, syllabusAttachmentBytes, syllabusAttachment.getName(), syllabus.getTitle() + " (attachments)");
+					this.archiverService.archiveContent(archiveId, siteId, toolId, syllabusAttachmentBytes, syllabusAttachment.getName(), syllabus.getTitle() + " (attachments)");
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting syllabus attachment " + syllabusAttachment.getName() + " in syllabus " + syllabus.getTitle());
 					continue;
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * Build the ArchiveItem for a syllabus item
+	 * @param syllabus
+	 * @return the archive item to be saved
+	 */
+	private ArchiveItem createArchiveItem(SyllabusData syllabus) {
+		
+		ArchiveItem archiveItem = new ArchiveItem();
+		archiveItem.setTitle(syllabus.getTitle());
+		archiveItem.setStartDate(syllabus.getStartDate());
+		archiveItem.setEndDate(syllabus.getEndDate());
+		archiveItem.setBody(syllabus.getAsset());
+		
+		return archiveItem;
 	}
 	
 	/**
@@ -103,5 +109,8 @@ public class SyllabusArchiver implements Archiveable {
 		
 		@Getter @Setter
 		private Date endDate;
+		
+		@Getter @Setter
+		private String body;
 	}
 }
