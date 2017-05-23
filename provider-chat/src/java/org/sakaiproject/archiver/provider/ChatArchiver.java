@@ -70,22 +70,8 @@ public class ChatArchiver implements Archiveable {
 				try {
 					List<ChatMessage> chatMessages = chatManager.getChannelMessages(chatChannel, null, null, start, 99, true);
 
-					List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
-					for (ChatMessage message : chatMessages) {
-						SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
-						simpleChatMessage.setBody(message.getBody());
-						simpleChatMessage.setDate(message.getMessageDate());
-						try {
-							simpleChatMessage.setOwner(userDirectoryService.getUser(message.getOwner()).getDisplayName());
-							simpleChatMessage.setUserId(userDirectoryService.getUser(message.getOwner()).getEid());
-
-						} catch (UserNotDefinedException e) {
-							log.error("Could not find user with userId " + message.getOwner());
-							continue;
-						}
-						messagesToSave.add(simpleChatMessage);
-					}
-
+					List<SimpleChatMessage> messagesToSave = createArchiveItem(chatMessages);
+					
 					// Convert to JSON and save to file
 					int rangeStart = start+1;
 					int rangeEnd = numMessages - start >= 100 ? start+100 : numMessages+1;
@@ -98,6 +84,32 @@ public class ChatArchiver implements Archiveable {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Build the list of messages to be saved for this channel
+	 * 
+	 * @param chatMessages
+	 * @return the list of messages to be saved
+	 */
+	private List<SimpleChatMessage> createArchiveItem(List<ChatMessage> chatMessages) {
+		List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
+		for (ChatMessage message : chatMessages) {
+			SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
+			simpleChatMessage.setBody(message.getBody());
+			simpleChatMessage.setDate(message.getMessageDate());
+			try {
+				simpleChatMessage.setOwner(userDirectoryService.getUser(message.getOwner()).getDisplayName());
+				simpleChatMessage.setUserId(userDirectoryService.getUser(message.getOwner()).getEid());
+
+			} catch (UserNotDefinedException e) {
+				log.error("Could not find user with userId " + message.getOwner());
+				continue;
+			}
+			messagesToSave.add(simpleChatMessage);
+		}
+		
+		return messagesToSave;
 	}
 
 	/**
