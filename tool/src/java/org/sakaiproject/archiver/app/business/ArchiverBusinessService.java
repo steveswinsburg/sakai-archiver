@@ -10,6 +10,7 @@ import java.util.Set;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
+import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -148,6 +149,15 @@ public class ArchiverBusinessService {
 				.toArray(String[]::new);
 
 		this.archiverService.startArchive(siteId, userUuid, settings.isIncludeStudentData(), toolIds);
+	}
+
+	/**
+	 * Get a list of Archives for the current site.
+	 *
+	 * @return
+	 */
+	public List<Archive> getArchives() {
+		return this.archiverService.getArchives(getCurrentSiteId());
 	}
 
 	/**

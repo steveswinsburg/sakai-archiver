@@ -1,7 +1,9 @@
 package org.sakaiproject.archiver.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.sakaiproject.archiver.api.Status;
@@ -16,8 +18,9 @@ import lombok.Setter;
  * @author Steve Swinsburg (steve.swinsburg@gmail.com)
  *
  */
+public class Archive implements Comparable<Archive>, Serializable {
 
-public class Archive {
+	private static final long serialVersionUID = 1L;
 
 	@Getter
 	@Setter
@@ -50,6 +53,15 @@ public class Archive {
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+	}
+
+	@Override
+	public int compareTo(final Archive other) {
+		return new CompareToBuilder()
+				.append(this.startDate, other.startDate)
+				.append(this.endDate, other.endDate)
+				.append(this.status, other.status)
+				.toComparison();
 	}
 
 }

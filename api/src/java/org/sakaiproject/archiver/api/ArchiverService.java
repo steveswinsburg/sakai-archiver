@@ -1,5 +1,7 @@
 package org.sakaiproject.archiver.api;
 
+import java.util.List;
+
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
@@ -69,6 +71,14 @@ public interface ArchiverService {
 	 * @return the {@link Archive} dto
 	 * @throws {@ArchiveNotFoundException} if no archive can be found by that archiveId
 	 */
-	Archive getArchive(String archiveId) throws ArchiveNotFoundException;
+	Archive getArchive(final String archiveId) throws ArchiveNotFoundException;
+
+	/**
+	 * Get a list of archives for the given site
+	 *
+	 * @param siteId the siteId to get the archives for
+	 * @return List of {@link Archive}
+	 */
+	List<Archive> getArchives(final String siteId);
 
 }

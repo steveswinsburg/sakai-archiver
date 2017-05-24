@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -141,12 +142,21 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Override
 	public Archive getArchive(final String archiveId) throws ArchiveNotFoundException {
-		final ArchiveEntity entity = this.dao.get(archiveId);
+		final ArchiveEntity entity = this.dao.getByArchiveId(archiveId);
 		if (entity == null) {
-			throw new ArchiveNotFoundException("Archive: " + archiveId + " does not exist");
+			throw new ArchiveNotFoundException("Archive " + archiveId + " does not exist");
 		}
 
 		return ArchiveMapper.toDto(entity);
+	}
+
+	@Override
+	public List<Archive> getArchives(final String siteId) {
+		if (StringUtils.isBlank(siteId)) {
+			return Collections.emptyList();
+		}
+		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
+		return ArchiveMapper.toDtos(entities);
 	}
 
 	/**

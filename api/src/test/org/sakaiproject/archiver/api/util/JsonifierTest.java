@@ -31,10 +31,10 @@ public class JsonifierTest {
 
 	@Before
 	public void setup() {
-		this.date1 = getDate(4);
+		this.date1 = getDate(41);
 		this.date2 = getDate(-6);
-		this.date3 = getDate(17);
-		this.date4 = getDate(-11);
+		this.date3 = getDate(170);
+		this.date4 = getDate(-17);
 	}
 
 	@Test

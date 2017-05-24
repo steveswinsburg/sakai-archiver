@@ -1,5 +1,7 @@
 package org.sakaiproject.archiver.persistence;
 
+import java.util.List;
+
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 
 public interface ArchiverPersistenceService {
@@ -35,6 +37,14 @@ public interface ArchiverPersistenceService {
 	 * @param archiveId the id to lookup the archive for
 	 * @return
 	 */
-	public ArchiveEntity get(String archiveId);
+	public ArchiveEntity getByArchiveId(String archiveId);
+
+	/**
+	 * Get a list of archives by the associated siteId ordered by date descending
+	 *
+	 * @param siteId the id to lookup the archives for
+	 * @return List of {@link ArchiveEntity} or empty list if none exist for the site
+	 */
+	public List<ArchiveEntity> getBySiteId(String siteId);
 
 }

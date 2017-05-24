@@ -1,5 +1,9 @@
 package org.sakaiproject.archiver.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 
@@ -34,6 +38,18 @@ public class ArchiveMapper {
 		dto.setZipPath(entity.getZipPath());
 
 		return dto;
+	}
+
+	/**
+	 * Map a list of {@link ArchiveEntity} to a list of {@link Archive} dto
+	 * 
+	 * @param entities
+	 * @return
+	 */
+	public static List<Archive> toDtos(final List<ArchiveEntity> entities) {
+		final List<Archive> archives = new ArrayList<>();
+		archives.addAll(entities.stream().map(e -> ArchiveMapper.toDto(e)).collect(Collectors.toList()));
+		return archives;
 	}
 
 }

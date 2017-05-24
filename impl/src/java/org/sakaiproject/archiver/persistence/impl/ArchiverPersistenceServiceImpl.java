@@ -1,9 +1,11 @@
 package org.sakaiproject.archiver.persistence.impl;
 
 import java.util.Date;
+import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
@@ -66,9 +68,18 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	}
 
 	@Override
-	public ArchiveEntity get(final String archiveId) {
+	public ArchiveEntity getByArchiveId(final String archiveId) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
 		criteria.add(Restrictions.eq("id", archiveId));
 		return (ArchiveEntity) criteria.uniqueResult();
 	}
+
+	@Override
+	public List<ArchiveEntity> getBySiteId(final String siteId) {
+		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
+		criteria.add(Restrictions.eq("siteId", siteId));
+		criteria.addOrder(Order.desc("endDate"));
+		return criteria.list();
+	}
+
 }

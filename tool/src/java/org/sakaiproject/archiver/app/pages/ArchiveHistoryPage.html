@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<body>
+<wicket:extend>
+	<h2><wicket:message key="heading.history">Archive History</wicket:message></h2>	
+	
+	<table>
+		<thead>
+			<tr>
+				<th><span><wicket:message key="heading.history.datecompleted" /></span></th>
+				<th><span><wicket:message key="heading.history.status" /></span></th>
+				<th><span><wicket:message key="heading.history.creator" /></span></th>
+				<th><span><wicket:message key="heading.history.download" /></span></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr wicket:id="archiveHistoryView">
+				<td wicket:id="dateCompleted"></td>
+				<td wicket:id="status"></td>
+				<td wicket:id="creator"></td>
+				<td wicket:id="downloadLink"></td>
+			</tr>
+		</tbody>
+	</table>
+
+
+	</wicket:extend>
+</body>
+</html>
