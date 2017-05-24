@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.api.Status;
@@ -73,27 +74,36 @@ public class DownloadServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		final String pathInfo = request.getPathInfo();
+		log.debug("Raw request -> " + pathInfo);
+
 		final String currentUserId = getCurrentUserId();
 		if (StringUtils.isBlank(currentUserId)) {
+			log.debug("Not logged in");
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You must be logged in to download archives");
 			return;
 		}
 
-		final String archiveId = request.getParameter("archiveId");
-		if (StringUtils.isBlank(archiveId)) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "You must supply an archive id");
+		final String[] parts = StringUtils.split(pathInfo, "/");
+
+		if (ArrayUtils.isEmpty(parts) || parts.length != 1) {
+			log.debug("Archive ID not provided");
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "You must provide the archive id");
 			return;
 		}
+		final String archiveId = parts[0];
 
 		Archive archive = null;
 		try {
 			archive = this.archiverService.getArchive(archiveId);
 		} catch (final ArchiveNotFoundException e) {
+			log.debug("Archive not found {}", archiveId);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 			return;
 		}
 
 		if (archive.getStatus() != Status.COMPLETE) {
+			log.debug("Archive not complete {}", archive);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, "Archive is not yet complete and cannot be downloaded at this time");
 			return;
 		}
@@ -102,16 +112,28 @@ public class DownloadServlet extends HttpServlet {
 		try {
 			checkPermission(currentUserId, siteId);
 		} catch (final IdUnusedException e) {
+			log.debug("Site not found {}", siteId);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 			return;
 		} catch (final ArchivePermissionException e) {
+			log.debug("User {} authorised in site {}", currentUserId, siteId);
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
 			return;
 		}
 
 		final String zipPath = archive.getZipPath();
 		if (StringUtils.isBlank(zipPath)) {
+			log.debug("Zip path not present in archive {}", archiveId);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, "Archive path is incomplete and cannot be downloaded at this time");
+			return;
+		}
+
+		log.debug("Enriched request -> user: " + currentUserId + ", archive: " + archive);
+
+		final File zipFile = new File(zipPath);
+		if (!zipFile.exists() || !zipFile.isFile()) {
+			log.debug("Zip file does not exist on the filesystem: {}", zipPath);
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "Archive no longer exists");
 			return;
 		}
 
