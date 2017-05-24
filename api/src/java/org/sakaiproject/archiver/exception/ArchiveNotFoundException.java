@@ -6,6 +6,10 @@ package org.sakaiproject.archiver.exception;
 public class ArchiveNotFoundException extends Exception {
 	private static final long serialVersionUID = 1L;
 
+	public ArchiveNotFoundException() {
+		super();
+	}
+
 	public ArchiveNotFoundException(final String message) {
 		super(message);
 	}

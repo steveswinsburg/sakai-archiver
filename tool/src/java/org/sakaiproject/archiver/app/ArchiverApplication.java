@@ -1,9 +1,15 @@
 package org.sakaiproject.archiver.app;
 
+import org.apache.wicket.core.request.handler.PageProvider;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.settings.IExceptionSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.sakaiproject.archiver.app.pages.CreateArchivePage;
+import org.sakaiproject.archiver.app.pages.ErrorPage;
 
 public class ArchiverApplication extends WebApplication {
 
@@ -41,12 +47,12 @@ public class ArchiverApplication extends WebApplication {
 		getExceptionSettings().setUnexpectedExceptionDisplay(IExceptionSettings.SHOW_EXCEPTION_PAGE);
 
 		// Intercept any unexpected error stacktrace and take to our page
-		// getRequestCycleListeners().add(new AbstractRequestCycleListener() {
-		// @Override
-		// public IRequestHandler onException(final RequestCycle cycle, final Exception e) {
-		// return new RenderPageRequestHandler(new PageProvider(new ErrorPage(e)));
-		// }
-		// });
+		getRequestCycleListeners().add(new AbstractRequestCycleListener() {
+			@Override
+			public IRequestHandler onException(final RequestCycle cycle, final Exception e) {
+				return new RenderPageRequestHandler(new PageProvider(new ErrorPage(e)));
+			}
+		});
 
 		// cleanup the HTML
 		getMarkupSettings().setStripWicketTags(true);

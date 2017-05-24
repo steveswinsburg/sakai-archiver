@@ -5,13 +5,13 @@
 <wicket:extend>
 	<h2><wicket:message key="heading.history">Archive History</wicket:message></h2>	
 	
-	<table>
+	<table class="table table-striped table-bordered table-hover table-condensed">
 		<thead>
 			<tr>
-				<th><span><wicket:message key="heading.history.datecompleted" /></span></th>
-				<th><span><wicket:message key="heading.history.status" /></span></th>
-				<th><span><wicket:message key="heading.history.creator" /></span></th>
-				<th><span><wicket:message key="heading.history.download" /></span></th>
+				<th><wicket:message key="heading.history.datecompleted" /></th>
+				<th><wicket:message key="heading.history.status" /></th>
+				<th><wicket:message key="heading.history.creator" /></th>
+				<th><wicket:message key="heading.history.download" /></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -19,10 +19,17 @@
 				<td wicket:id="dateCompleted"></td>
 				<td wicket:id="status"></td>
 				<td wicket:id="creator"></td>
-				<td wicket:id="downloadLink"></td>
+				<td>
+					<a href="#" wicket:id="downloadLink">
+						<wicket:message key="link.history.download" />
+					</a>
+				</td>
 			</tr>
 		</tbody>
+		
+		<!--  make this expandable. remove the download linnk.. when you expand you see the download lin kand the settings -->
 	</table>
+	<div wicket:id="navigator"></div>
 
 
 	</wicket:extend>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<body>
+<wicket:extend>
+	
+	<div class="messageError">
+		<h2><wicket:message key="errorpage.heading" /></h2>
+		<p><wicket:message key="errorpage.message" /></p>
+	</div>
+	
+	<pre><wicket:container wicket:id="stacktrace" /></pre>
+			
+</wicket:extend>
+</body>
+</html>

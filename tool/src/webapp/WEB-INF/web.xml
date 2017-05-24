@@ -70,23 +70,4 @@
 		<listener-class>org.sakaiproject.util.SakaiContextLoaderListener
 		</listener-class>
 	</listener>
-
-	<!-- download servlet -->
-	<servlet>
-		<servlet-name>sakai.archiver.download</servlet-name>
-		<servlet-class>org.sakaiproject.archiver.download.DownloadServlet
-		</servlet-class>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>sakai.archiver.download</servlet-name>
-		<url-pattern>/download/*</url-pattern>
-	</servlet-mapping>
-	<filter-mapping>
-		<filter-name>sakai.request</filter-name>
-		<servlet-name>sakai.archiver.download</servlet-name>
-		<dispatcher>REQUEST</dispatcher>
-		<dispatcher>FORWARD</dispatcher>
-		<dispatcher>INCLUDE</dispatcher>
-	</filter-mapping>
 </web-app>
