@@ -8,6 +8,10 @@
 		class="org.sakaiproject.archiver.provider.AssignmentArchiver" init-method="init" destroy-method="destroy">
 
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
+		<property name="assignmentService" ref="org.sakaiproject.assignment.api.AssignmentService" />
+		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
+		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
+		<property name="gradebookExternalAssessmentService" ref="org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService" />
 		
 	</bean>
 
