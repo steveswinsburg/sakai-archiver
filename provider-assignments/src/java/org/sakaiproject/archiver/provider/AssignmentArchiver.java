@@ -12,7 +12,6 @@ import org.sakaiproject.assignment.api.Assignment.AssignmentAccess;
 import org.sakaiproject.assignment.api.AssignmentContent;
 import org.sakaiproject.assignment.api.AssignmentService;
 import org.sakaiproject.content.api.ContentHostingService;
-import org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 
 import lombok.Setter;
@@ -36,9 +35,6 @@ public class AssignmentArchiver implements Archiveable {
 
 	@Setter
 	private GradebookService gradebookService;
-
-	@Setter
-	private GradebookExternalAssessmentService gradebookExternalService;
 
 	@Setter
 	private ContentHostingService contentHostingService;
@@ -145,6 +141,8 @@ public class AssignmentArchiver implements Archiveable {
 		@Setter
 		private String allPurposeItemText;
 
+		@Setter
+		private SimpleGradebookItem gradebookItemDetails;
 
 		public SimpleAssignment(Assignment a) {
 			super();
@@ -166,8 +164,62 @@ public class AssignmentArchiver implements Archiveable {
 			this.position_order = a.getPosition_order();
 			this.groups = a.getGroups();
 			this.access = a.getAccess();
+			this.gradebookItemDetails = setGradebookFields(a);
 
 		}
 	}
 
+	/**
+	 * Simplified helper class for a gradebook item
+	 */
+	private class SimpleGradebookItem {
+
+		@Setter
+		private Long gradebookItemId;
+
+		@Setter
+		private String gradebookItemName;
+	}
+
+	/**
+	 * Set up a SimpleGradebookItem
+	 * May be null if there is no gradebook item associated with the assignment
+	 * @param a the assignment
+	 * @return SimpleGradebookItem
+	 */
+	private SimpleGradebookItem setGradebookFields(Assignment a) {
+
+		SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
+
+		if (this.gradebookService.isGradebookDefined(a.getContext())) {
+			gradebookItem = getGradebookFields(a, gradebookItem);
+		}
+		else {
+			log.info("There is no gradebook item associated with this assignment.");
+		}
+		return gradebookItem;
+	}
+
+	/**
+	 * Get the gradebook item associated with an assignment.
+	 * @param a the Assignment
+	 * @param gradebookItem the SimpleGradebookItem
+	 * @return the populated SimpleGradebookItem
+	 */
+	private SimpleGradebookItem getGradebookFields(Assignment a, SimpleGradebookItem gradebookItem) {
+
+		String gradebookAssignmentProp = a.getProperties().getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
+		if (gradebookAssignmentProp != null) {
+			// try to get internal Gradebook assignment first
+			org.sakaiproject.service.gradebook.shared.Assignment gAssignment = gradebookService.getAssignment(a.getContext(), gradebookAssignmentProp);
+			if (gAssignment != null) {
+				// linked Gradebook item is internal
+				gradebookItem.setGradebookItemId(gAssignment.getId());
+				gradebookItem.setGradebookItemName(gAssignment.getName());
+			} else {
+				log.info("Gradebook item could not be found for assignment " + a.getTitle());
+			}
+		}		
+		return gradebookItem;
+	}
 }

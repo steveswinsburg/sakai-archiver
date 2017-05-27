@@ -11,7 +11,6 @@
 		<property name="assignmentService" ref="org.sakaiproject.assignment.api.AssignmentService" />
 		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
 		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
-		<property name="gradebookExternalAssessmentService" ref="org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService" />
 		
 	</bean>
 
