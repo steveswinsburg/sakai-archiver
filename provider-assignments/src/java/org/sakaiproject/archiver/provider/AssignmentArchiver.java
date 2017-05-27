@@ -8,10 +8,18 @@ import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.assignment.api.Assignment;
-import org.sakaiproject.assignment.api.Assignment.AssignmentAccess;
-import org.sakaiproject.assignment.api.AssignmentContent;
 import org.sakaiproject.assignment.api.AssignmentService;
+import org.sakaiproject.assignment.api.AssignmentSubmission;
+import org.sakaiproject.assignment.api.model.AssignmentAllPurposeItem;
+import org.sakaiproject.assignment.api.model.AssignmentModelAnswerItem;
+import org.sakaiproject.assignment.api.model.AssignmentNoteItem;
+import org.sakaiproject.assignment.api.model.AssignmentSupplementItemService;
 import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.entity.api.Reference;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.exception.PermissionException;
+import org.sakaiproject.exception.ServerOverloadException;
+import org.sakaiproject.exception.TypeException;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 
 import lombok.Setter;
@@ -44,6 +52,9 @@ public class AssignmentArchiver implements Archiveable {
 
 	@Setter
 	private ArchiverService archiverService;
+	
+	@Setter
+	private AssignmentSupplementItemService assignmentSupplementItemService;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -65,9 +76,6 @@ public class AssignmentArchiver implements Archiveable {
 
 		@Setter
 		private String id;
-
-		@Setter
-		private AssignmentContent content;
 
 		@Setter
 		private String timeOpen;
@@ -112,13 +120,10 @@ public class AssignmentArchiver implements Archiveable {
 		private String status;
 
 		@Setter
-		private int position_order;
-
-		@Setter
 		private Collection groups;
 
 		@Setter
-		private AssignmentAccess access;
+		private String access;
 
 		@Setter
 		private String gradeScale;
@@ -128,9 +133,6 @@ public class AssignmentArchiver implements Archiveable {
 
 		@Setter
 		private String submissionType;
-
-		@Setter
-		private boolean allowResubmission;
 
 		@Setter
 		private String modelAnswerText;
@@ -145,10 +147,11 @@ public class AssignmentArchiver implements Archiveable {
 		private SimpleGradebookItem gradebookItemDetails;
 
 		public SimpleAssignment(Assignment a) {
-			super();
 			if (a == null){
 				return;
 			}
+			
+			// These fields can simply be copied over
 			this.id = a.getId();
 			this.timeOpen = a.getOpenTimeString();
 			this.timeDue = a.getDueTimeString();
@@ -157,15 +160,43 @@ public class AssignmentArchiver implements Archiveable {
 			this.section = a.getSection();
 			this.draft = a.getDraft();
 			this.creator = a.getCreator();
+			this.timeCreated = a.getTimeCreated().toString();
 			this.authors = a.getAuthors();
+			this.lastModified = a.getTimeLastModified().toString();
 			this.authorLastModified = a.getAuthorLastModified();
 			this.title = a.getTitle();
 			this.status = a.getStatus();
-			this.position_order = a.getPosition_order();
 			this.groups = a.getGroups();
-			this.access = a.getAccess();
-			this.gradebookItemDetails = setGradebookFields(a);
-
+			this.access = a.getAccess().toString();
+			
+			// See if there is a gradebook item associated with this assignment
+			if (gradebookService.isGradebookDefined(a.getContext())) {
+				this.gradebookItemDetails = getGradebookFields(a);
+			}
+			
+			// Get content related fields
+			if (a.getContent() != null) {
+				this.instructions = a.getContent().getInstructions();
+				this.gradeScale = a.getContent().getTypeOfGradeString();
+				this.submissionType = a.getContent().getTypeOfSubmissionString();
+				
+				//if grade scale is "points", get the maximum points allowed
+				this.gradeScaleMaxPoints = a.getContent().getMaxGradePointDisplay();
+			}
+			
+			// Supplement Items
+			AssignmentModelAnswerItem assignmentModelAnswerItem = assignmentSupplementItemService.getModelAnswer(a.getId());
+			if (assignmentModelAnswerItem != null) {
+				this.modelAnswerText = assignmentModelAnswerItem.getText();
+			}
+			AssignmentNoteItem assignmentNoteItem = assignmentSupplementItemService.getNoteItem(a.getId());
+			if (assignmentNoteItem != null) {
+				this.privateNoteText = assignmentNoteItem.getNote();
+			}
+			AssignmentAllPurposeItem assignmentAllPurposeItem = assignmentSupplementItemService.getAllPurposeItem(a.getId());
+			if (assignmentAllPurposeItem != null) {
+				this.allPurposeItemText =  assignmentAllPurposeItem.getText();
+			}
 		}
 	}
 
@@ -182,42 +213,22 @@ public class AssignmentArchiver implements Archiveable {
 	}
 
 	/**
-	 * Set up a SimpleGradebookItem
-	 * May be null if there is no gradebook item associated with the assignment
-	 * @param a the assignment
-	 * @return SimpleGradebookItem
-	 */
-	private SimpleGradebookItem setGradebookFields(Assignment a) {
-
-		SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
-
-		if (this.gradebookService.isGradebookDefined(a.getContext())) {
-			gradebookItem = getGradebookFields(a, gradebookItem);
-		}
-		else {
-			log.info("There is no gradebook item associated with this assignment.");
-		}
-		return gradebookItem;
-	}
-
-	/**
 	 * Get the gradebook item associated with an assignment.
 	 * @param a the Assignment
 	 * @param gradebookItem the SimpleGradebookItem
 	 * @return the populated SimpleGradebookItem
 	 */
-	private SimpleGradebookItem getGradebookFields(Assignment a, SimpleGradebookItem gradebookItem) {
-
+	private SimpleGradebookItem getGradebookFields(Assignment a) {
+		SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
 		String gradebookAssignmentProp = a.getProperties().getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
 		if (gradebookAssignmentProp != null) {
-			// try to get internal Gradebook assignment first
 			org.sakaiproject.service.gradebook.shared.Assignment gAssignment = gradebookService.getAssignment(a.getContext(), gradebookAssignmentProp);
 			if (gAssignment != null) {
 				// linked Gradebook item is internal
 				gradebookItem.setGradebookItemId(gAssignment.getId());
 				gradebookItem.setGradebookItemName(gAssignment.getName());
 			} else {
-				log.info("Gradebook item could not be found for assignment " + a.getTitle());
+				log.info("Gradebook item could not be found for assignment " + a.getTitle() + ". It could be linked to an external gradebook.");
 			}
 		}		
 		return gradebookItem;

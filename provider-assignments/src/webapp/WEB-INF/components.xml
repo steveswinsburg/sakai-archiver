@@ -9,6 +9,7 @@
 
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
 		<property name="assignmentService" ref="org.sakaiproject.assignment.api.AssignmentService" />
+		<property name="assignmentSupplementItemService" ref="org.sakaiproject.assignment.api.model.AssignmentSupplementItemService" />
 		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
 		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
 		
