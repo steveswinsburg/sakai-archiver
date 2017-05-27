@@ -63,10 +63,25 @@ public class AssignmentArchiver implements Archiveable {
 		List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
 		for (Assignment assignment : assignments) {
+			
+			// get the assignment data
 			SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
 			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), assignment.getTitle() + ".json");
+			
+			// get the attachments for the assignment
+			for (Reference attachment : assignment.getContent().getAttachments()) {
+				byte[] attachmentBytes;
+				try {
+					attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+					this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
+							attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), 
+							assignment.getTitle() + " (attachments)");
+				} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
+					log.error("Error getting attachment for assignment: " + assignment.getTitle());
+					continue;
+				} 
+			}
 		}
-		log.debug(assignments.toString());
 	}
 
 	/**
