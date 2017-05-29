@@ -29,6 +29,7 @@
 		<module>provider-chat</module>
 		<module>provider-announcements</module>
 		<module>provider-dropbox</module>
+		<module>provider-resources</module>
 	</modules>
 	
 	<dependencyManagement>
