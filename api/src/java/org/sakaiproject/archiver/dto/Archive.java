@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.apache.commons.lang.builder.CompareToBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.sakaiproject.archiver.api.Status;
@@ -62,6 +63,14 @@ public class Archive implements Comparable<Archive>, Serializable {
 				.append(this.endDate, other.endDate)
 				.append(this.status, other.status)
 				.toComparison();
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		final Archive other = (Archive) o;
+		return new EqualsBuilder()
+				.append(this.archiveId, other.archiveId)
+				.isEquals();
 	}
 
 }
