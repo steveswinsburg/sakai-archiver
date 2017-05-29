@@ -125,7 +125,7 @@ public class JsonifierTest {
 	}
 
 	private String expectedDateSerialisation(final Date date) {
-		final DateFormat dateFormat = new SimpleDateFormat("MMM dd, YYYY h:mm:ss a");
+		final DateFormat dateFormat = new SimpleDateFormat("MMM d, YYYY h:mm:ss a");
 		return dateFormat.format(date);
 	}
 }
