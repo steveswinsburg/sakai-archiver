@@ -36,14 +36,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AssignmentArchiver implements Archiveable {
 
-	private static final String ASSIGNMENT_TOOL = "sakai.assignment.grades";
+	private static final String TOOL_ID = "sakai.assignment.grades";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(ASSIGNMENT_TOOL, this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(ASSIGNMENT_TOOL);
+		ArchiverRegistry.getInstance().unregister(TOOL_ID);
 	}
 
 	@Setter
@@ -70,23 +70,18 @@ public class AssignmentArchiver implements Archiveable {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
-
+		
 		List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
 		for (Assignment assignment : assignments) {
-			
-			// get the assignment data
+
+			// archive the assignment data
 			SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), assignment.getTitle() + ".json");
-			
-			// get the attachments for the assignment
+			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), "details.json", assignment.getTitle());
+
+			// archive the attachments for the assignment
 			for (Reference attachment : assignment.getContent().getAttachments()) {
-				byte[] attachmentBytes;
 				try {
-					attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-					this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
-							attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), 
-							assignment.getTitle() + " (attachments)");
 					archiveAttachments(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
 				} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
 					log.error("Error getting attachment for assignment: " + assignment.getTitle());
@@ -284,25 +279,16 @@ public class AssignmentArchiver implements Archiveable {
 		private String acceptUntil;
 
 		@Setter
-		private String section;
-
-		@Setter
 		private boolean draft;
 
 		@Setter
 		private String creator;
 
 		@Setter
-		private String timeCreated;
-
-		@Setter
 		private List authors;
 
 		@Setter
 		private String instructions;
-
-		@Setter
-		private String lastModified;
 
 		@Setter
 		private String authorLastModified;
@@ -344,41 +330,42 @@ public class AssignmentArchiver implements Archiveable {
 			if (a == null){
 				return;
 			}
-			
+
 			// These fields can simply be copied over
 			this.id = a.getId();
 			this.timeOpen = a.getOpenTimeString();
 			this.timeDue = a.getDueTimeString();
 			this.lateAfter = a.getDropDeadTimeString();
 			this.acceptUntil = a.getCloseTimeString();
-			this.section = a.getSection();
 			this.draft = a.getDraft();
 			this.creator = a.getCreator();
-			this.timeCreated = a.getTimeCreated().toString();
 			this.authors = a.getAuthors();
-			this.lastModified = a.getTimeLastModified().toString();
 			this.authorLastModified = a.getAuthorLastModified();
 			this.title = a.getTitle();
 			this.status = a.getStatus();
-			this.groups = a.getGroups();
 			this.access = a.getAccess().toString();
 			
+			// See if there are groups submissions for this assignment
+			if (a.isGroup()) {
+				this.groups = a.getGroups();
+			}
+
 			// See if there is a gradebook item associated with this assignment
 			SimpleGradebookItem gradebookItem = getGradebookFields(a);
 			if (gradebookItem != null) {
 				this.gradebookItemDetails = gradebookItem;
 			}
-			
+
 			// Get content related fields
 			if (a.getContent() != null) {
 				this.instructions = a.getContent().getInstructions();
 				this.gradeScale = a.getContent().getTypeOfGradeString();
 				this.submissionType = a.getContent().getTypeOfSubmissionString();
-				
+
 				//if grade scale is "points", get the maximum points allowed
 				this.gradeScaleMaxPoints = a.getContent().getMaxGradePointDisplay();
 			}
-			
+
 			// Supplement Items
 			AssignmentModelAnswerItem assignmentModelAnswerItem = assignmentSupplementItemService.getModelAnswer(a.getId());
 			if (assignmentModelAnswerItem != null) {

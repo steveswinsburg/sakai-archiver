@@ -12,6 +12,8 @@
 		<property name="assignmentSupplementItemService" ref="org.sakaiproject.assignment.api.model.AssignmentSupplementItemService" />
 		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
 		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
+		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
 		
 	</bean>
 
