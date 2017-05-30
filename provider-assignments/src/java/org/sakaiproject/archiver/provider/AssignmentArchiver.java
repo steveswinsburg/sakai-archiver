@@ -67,7 +67,6 @@ public class AssignmentArchiver implements Archiveable {
 	@Setter
 	private AssignmentSupplementItemService assignmentSupplementItemService;
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 		
