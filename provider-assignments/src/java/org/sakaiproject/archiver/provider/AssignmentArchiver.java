@@ -76,11 +76,30 @@ public class AssignmentArchiver implements Archiveable {
 					this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
 							attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), 
 							assignment.getTitle() + " (attachments)");
+					archiveAttachments(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
 				} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
 					log.error("Error getting attachment for assignment: " + assignment.getTitle());
 					continue;
 				} 
 			}
+	/**
+	 * Helper method to archive attachments
+	 * 
+	 * @param attachment
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 * @param title
+	 * @throws ServerOverloadException
+	 * @throws PermissionException
+	 * @throws IdUnusedException
+	 * @throws TypeException
+	 */
+	private void archiveAttachments(Reference attachment, String archiveId, String siteId, String toolId, String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
+		byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
+				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
+	}
 		}
 	}
 
