@@ -185,8 +185,9 @@ public class AssignmentArchiver implements Archiveable {
 			this.access = a.getAccess().toString();
 			
 			// See if there is a gradebook item associated with this assignment
-			if (gradebookService.isGradebookDefined(a.getContext())) {
-				this.gradebookItemDetails = getGradebookFields(a);
+			SimpleGradebookItem gradebookItem = getGradebookFields(a);
+			if (gradebookItem != null) {
+				this.gradebookItemDetails = gradebookItem;
 			}
 			
 			// Get content related fields
@@ -225,27 +226,5 @@ public class AssignmentArchiver implements Archiveable {
 
 		@Setter
 		private String gradebookItemName;
-	}
-
-	/**
-	 * Get the gradebook item associated with an assignment.
-	 * @param a the Assignment
-	 * @param gradebookItem the SimpleGradebookItem
-	 * @return the populated SimpleGradebookItem
-	 */
-	private SimpleGradebookItem getGradebookFields(Assignment a) {
-		SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
-		String gradebookAssignmentProp = a.getProperties().getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
-		if (gradebookAssignmentProp != null) {
-			org.sakaiproject.service.gradebook.shared.Assignment gAssignment = gradebookService.getAssignment(a.getContext(), gradebookAssignmentProp);
-			if (gAssignment != null) {
-				// linked Gradebook item is internal
-				gradebookItem.setGradebookItemId(gAssignment.getId());
-				gradebookItem.setGradebookItemName(gAssignment.getName());
-			} else {
-				log.info("Gradebook item could not be found for assignment " + a.getTitle() + ". It could be linked to an external gradebook.");
-			}
-		}		
-		return gradebookItem;
 	}
 }
