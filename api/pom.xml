@@ -39,12 +39,12 @@
       		<version>2.8.0</version>
       		<scope>provided</scope>
     	</dependency>
-    	
     	<dependency>
         	<groupId>commons-lang</groupId>
         	<artifactId>commons-lang</artifactId>
-        	<scope>test</scope>
+        	<scope>provided</scope>
 		</dependency>
+		
       	<dependency>
         	<groupId>commons-io</groupId>
         	<artifactId>commons-io</artifactId>

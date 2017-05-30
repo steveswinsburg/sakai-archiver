@@ -37,7 +37,7 @@ public class BasePage extends WebPage {
 	protected transient ArchiverBusinessService businessService;
 
 	Link<Void> createArchiveLink;
-	Link<Void> previousArchivesLink;
+	Link<Void> archiveHistoryLink;
 
 	public final RichFeedbackPanel feedbackPanel;
 
@@ -71,18 +71,18 @@ public class BasePage extends WebPage {
 		this.createArchiveLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
 		nav.add(this.createArchiveLink);
 
-		// previous archives
-		this.previousArchivesLink = new Link<Void>("previousArchivesLink") {
+		// archive history
+		this.archiveHistoryLink = new Link<Void>("archiveHistoryLink") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick() {
-				setResponsePage(PreviousArchivesPage.class);
+				setResponsePage(ArchiveHistoryPage.class);
 			}
 
 		};
-		this.previousArchivesLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
-		nav.add(this.previousArchivesLink);
+		this.archiveHistoryLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
+		nav.add(this.archiveHistoryLink);
 
 		add(nav);
 

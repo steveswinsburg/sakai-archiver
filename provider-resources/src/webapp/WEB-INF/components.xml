@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	
+	<bean id="org.sakaiproject.archiver.provider.ResourcesArchiver"
+		class="org.sakaiproject.archiver.provider.ResourcesArchiver" init-method="init" destroy-method="destroy">
+
+		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
+
+	</bean>
+
+</beans>

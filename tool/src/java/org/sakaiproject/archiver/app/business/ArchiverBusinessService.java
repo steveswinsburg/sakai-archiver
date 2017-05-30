@@ -1,5 +1,6 @@
 package org.sakaiproject.archiver.app.business;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,8 +11,10 @@ import java.util.Set;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
+import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
+import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -24,6 +27,7 @@ import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.ResourceLoader;
 
 import lombok.Setter;
@@ -148,6 +152,49 @@ public class ArchiverBusinessService {
 				.toArray(String[]::new);
 
 		this.archiverService.startArchive(siteId, userUuid, settings.isIncludeStudentData(), toolIds);
+	}
+
+	/**
+	 * Get a list of Archives for the current site.
+	 *
+	 * @return
+	 */
+	public List<Archive> getArchives() {
+		return this.archiverService.getArchives(getCurrentSiteId());
+	}
+
+	/**
+	 * Get a user's display name
+	 *
+	 * @param userUuid
+	 * @return display name or uuid if user cannot be found
+	 */
+	public String getUserDisplayName(final String userUuid) {
+		try {
+			return this.userDirectoryService.getUser(userUuid).getDisplayName();
+		} catch (final UserNotDefinedException e) {
+			log.debug("No user found for {}", userUuid);
+			return userUuid;
+		}
+	}
+
+	/**
+	 * Get the zip file for an archive of type {@link File}
+	 *
+	 * @param archive
+	 * @return the file
+	 * @throws {@link ArchiveNotFoundException} if the zipFile no longer exists
+	 */
+	public File getArchiveZip(final Archive archive) throws ArchiveNotFoundException {
+
+		final String zipPath = archive.getZipPath();
+
+		final File zipFile = new File(zipPath);
+		if (!zipFile.exists() || !zipFile.isFile()) {
+			log.error("Zip file does not exist on the filesystem: " + zipFile);
+			throw new ArchiveNotFoundException();
+		}
+		return zipFile;
 	}
 
 	/**

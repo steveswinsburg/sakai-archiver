@@ -1,7 +1,13 @@
 package org.sakaiproject.archiver.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 
+import org.apache.commons.lang.builder.CompareToBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.sakaiproject.archiver.api.Status;
 
 import lombok.Getter;
@@ -14,7 +20,9 @@ import lombok.Setter;
  * @author Steve Swinsburg (steve.swinsburg@gmail.com)
  *
  */
-public class Archive {
+public class Archive implements Comparable<Archive>, Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Getter
 	@Setter
@@ -43,5 +51,32 @@ public class Archive {
 	@Getter
 	@Setter
 	private String zipPath;
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+	}
+
+	@Override
+	public int compareTo(final Archive other) {
+		return new CompareToBuilder()
+				.append(this.startDate, other.startDate)
+				.append(this.endDate, other.endDate)
+				.append(this.status, other.status)
+				.toComparison();
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		final Archive other = (Archive) o;
+		return new EqualsBuilder()
+				.append(this.archiveId, other.archiveId)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder().append(this.archiveId).toHashCode();
+	}
 
 }

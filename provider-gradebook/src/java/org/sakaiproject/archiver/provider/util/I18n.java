@@ -13,7 +13,10 @@ import org.sakaiproject.util.ResourceLoader;
  */
 public class I18n {
 
-	private static final String BASE_NAME = "org.sakaiproject.archiver.provider.export";
+	private static final String BASE_NAME = "org.sakaiproject.archiver.app.ArchiverApplication";
+
+	private I18n() {
+	}
 
 	/**
 	 * Get a simple message from the bundle
