@@ -88,6 +88,19 @@ public class AssignmentArchiver implements Archiveable {
 					continue;
 				} 
 			}
+			
+			// archive the grades spreadsheet for the assignment
+//			byte[] gradesSpreadsheet;
+//			try {
+//				gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(this.assignmentService.gradesSpreadsheetReference(siteId, assignment.getId()));
+//				if (gradesSpreadsheet != null ) {
+//					this.archiverService.archiveContent(archiveId, siteId, toolId, gradesSpreadsheet, "grades.csv", assignment.getTitle());
+//				}
+//			} catch (IdUnusedException | PermissionException e) {
+//				log.error("Error getting grades spreadsheet for assignment: " + assignment.getTitle());
+//				continue;
+//			}
+			
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
 				this.archiveSubmissions(assignment, archiveId, siteId, toolId);
