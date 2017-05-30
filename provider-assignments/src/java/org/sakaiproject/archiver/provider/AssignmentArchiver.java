@@ -188,6 +188,31 @@ public class AssignmentArchiver implements Archiveable {
 	}
 
 	/**
+	 * Get the gradebook item associated with an assignment.
+	 * @param a the Assignment
+	 * @param gradebookItem the SimpleGradebookItem
+	 * @return the populated SimpleGradebookItem
+	 */
+	private SimpleGradebookItem getGradebookFields(Assignment a) {
+		
+		if (gradebookService.isGradebookDefined(a.getContext())) {
+			SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
+			String gradebookAssignmentProp = a.getProperties().getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
+			if (gradebookAssignmentProp != null) {
+				org.sakaiproject.service.gradebook.shared.Assignment gAssignment = gradebookService.getAssignment(a.getContext(), gradebookAssignmentProp);
+				if (gAssignment != null) {
+					// there is a linked Gradebook item
+					gradebookItem.setGradebookItemId(gAssignment.getId());
+					gradebookItem.setGradebookItemName(gAssignment.getName());
+					return gradebookItem;
+				}
+			}		
+		}
+		return null;
+	}
+
+	
+	/**
 	 * Simplified helper class to represent feedback for a submission
 	 */
 	private class SimpleFeedback {
