@@ -8,6 +8,12 @@ import com.google.gson.GsonBuilder;
  */
 public class Jsonifier {
 
+	/**
+	 * Serialise an object to JSON
+	 *
+	 * @param obj the object to serialise
+	 * @return a String of JSON
+	 */
 	public static String toJson(final Object obj) {
 		final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 		return gson.toJson(obj);
