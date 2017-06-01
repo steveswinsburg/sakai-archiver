@@ -78,8 +78,7 @@ public class ResourcesArchiver implements Archiveable {
 			final String[] subdirs = getSubDirs(siteId, resource);
 			final String filename = getFilename(resource);
 
-			log.debug("resource: " + resource.getUrl());
-			System.out.println("parent: " + resource.getContainingCollection().getUrl(true));
+			log.debug("resource: {}", resource.getUrl());
 
 			try {
 				this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, resource.getContent(), filename, subdirs);

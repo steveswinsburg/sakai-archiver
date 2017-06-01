@@ -65,7 +65,7 @@ public class DateifierTest {
 	}
 
 	private String getExpectedDateString(final Date date) {
-		final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+		final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		return dateFormat.format(date);
 	}
 }

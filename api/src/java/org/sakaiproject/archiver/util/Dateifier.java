@@ -33,7 +33,7 @@ public class Dateifier {
 			return null;
 		}
 
-		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
+		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 				.withLocale(locale)
 				.withZone(ZoneId.systemDefault());
 
