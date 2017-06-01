@@ -2,24 +2,26 @@ package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.exception.ServerOverloadException;
 import org.sakaiproject.site.api.SiteService;
-import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.user.api.UserNotDefinedException;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,37 +62,39 @@ public class ResourcesArchiver implements Archiveable {
 		final String collectionId = getSiteCollectionId(siteId);
 		final List<ContentResource> resources = this.contentHostingService.getAllResources(collectionId);
 
+		// TODO do we care about student uploaded files here?
+		// List<String> studentUuids = this.getStudentUuids(siteId);
+
+		final List<Metadata> metadata = new ArrayList<>();
+
+		// maintain a cache of display names for this archive run
+		final Map<String, String> userDisplayNames = new HashMap<>();
+
 		resources.forEach(resource -> {
 
-			// final String[] subdirs = prepend(studentName, getSubDirs(siteId, studentUuid, resource));
+			final String creatorUuid = getCreatorUuid(resource);
+			userDisplayNames.computeIfAbsent(creatorUuid, k -> getUserDisplayName(creatorUuid));
 
-			System.out.println("resource: " + resource.getUrl());
+			final String[] subdirs = getSubDirs(siteId, resource);
+			final String filename = getFilename(resource);
+
+			log.debug("resource: " + resource.getUrl());
 			System.out.println("parent: " + resource.getContainingCollection().getUrl(true));
+
+			try {
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, resource.getContent(), filename, subdirs);
+				metadata.add(createMetadata(resource, subdirs, filename, userDisplayNames.get(creatorUuid)));
+			} catch (final ServerOverloadException e) {
+				log.error("Error retrieving data for resource {}", resource.getUrl(true));
+			}
 
 		});
 
-		/*
-		 * final List<String> studentUuids = getStudentUuids(siteId); final Map<String, String> studentNames =
-		 * getUserDisplayNames(studentUuids);
-		 * 
-		 * studentUuids.forEach(studentUuid -> { final String collectionId = getDropBoxCollectionId(siteId, studentUuid); final
-		 * List<ContentResource> resources = this.contentHostingService.getAllResources(collectionId);
-		 * 
-		 * final String studentName = getStudentName(studentUuid, studentNames);
-		 * 
-		 * resources.forEach(resource -> {
-		 * 
-		 * final String[] subdirs = prepend(studentName, getSubDirs(siteId, studentUuid, resource));
-		 * 
-		 * try { this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, resource.getContent(), getFilename(resource), subdirs); }
-		 * catch (final ServerOverloadException e) { log.error("Error retrieving data for resource {}", resource.getUrl(true)); }
-		 * 
-		 * });
-		 * 
-		 * });
-		 */
+		final String json = Jsonifier.toJson(metadata);
+		log.debug("Resources JSON: {} ", json);
 
-		//
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, json.getBytes(), "index.json");
+
 	}
 
 	/**
@@ -123,13 +127,12 @@ public class ResourcesArchiver implements Archiveable {
 	 * Get the hierarchy of subdirectories that this resource is contained within
 	 *
 	 * @param siteId
-	 * @param userId
 	 * @param collectionUrl
 	 * @return String[] or null
 	 */
-	private String[] getSubDirs(final String siteId, final String userId, final ContentResource resource) {
+	private String[] getSubDirs(final String siteId, final ContentResource resource) {
 
-		// get the parent collection and remove the /content/group-user/{siteid}/userId prefix
+		// get the parent collection and remove the /content/group/{siteid}/userId prefix
 		// anything remaining is turned into subdirectories
 		final String containingCollectionId = resource.getContainingCollection().getUrl(true);
 		final String prefix = "/content" + getSiteCollectionId(siteId);
@@ -150,41 +153,82 @@ public class ResourcesArchiver implements Archiveable {
 	}
 
 	/**
-	 * Prepend a String to the beginning of an existing array
+	 * Get the creator uuid of the file
 	 *
-	 * @param element the string to add
-	 * @param array the array to add it to
+	 * @param resource
 	 * @return
 	 */
-	private String[] prepend(final String element, final String[] array) {
-		return (String[]) ArrayUtils.add(array, 0, element);
+	private String getCreatorUuid(final ContentResource resource) {
+		final ResourceProperties props = resource.getProperties();
+		return props.getProperty(ResourceProperties.PROP_CREATOR);
 	}
 
 	/**
-	 * Get map of userId to display name
+	 * Get the creation date of the file
 	 *
-	 * @param userUuids the list of uuids to lookup
+	 * @param resource
 	 * @return
 	 */
-	private Map<String, String> getUserDisplayNames(final List<String> userUuids) {
-		final List<User> users = this.userDirectoryService.getUsers(userUuids);
-		final Map<String, String> userMap = users.stream().collect(Collectors.toMap(User::getId, User::getSortName));
-		return userMap;
+	private String getCreationDate(final ContentResource resource) {
+		final ResourceProperties props = resource.getProperties();
+		return props.getProperty(ResourceProperties.PROP_CREATION_DATE);
 	}
 
 	/**
-	 * Get a name from the map, falling back to uuid if no name found
+	 * Get the display name for a single user. Fall back to uuid if not found
 	 *
-	 * @param studentUuid the uuid to lookup
-	 * @param studentNames the map of uuid to display name
+	 * @param userUuid uuid to lookup
 	 * @return
 	 */
-	private final String getStudentName(final String studentUuid, final Map<String, String> studentNames) {
-		String studentName = studentNames.get(studentUuid);
-		if (StringUtils.isBlank(studentName)) {
-			studentName = studentUuid;
+	private String getUserDisplayName(final String userUuid) {
+		try {
+			return this.userDirectoryService.getUser(userUuid).getDisplayName();
+		} catch (final UserNotDefinedException e) {
+			log.debug("User {} could not be found, falling back to uuid", userUuid);
 		}
-		return studentName;
+		return userUuid;
+	}
+
+	/**
+	 * Create a Metadata object for this resource and other data
+	 *
+	 * @param resource
+	 * @param subdirs
+	 * @param filename
+	 * @param creatorDisplayName
+	 * @return
+	 */
+	private Metadata createMetadata(final ContentResource resource, final String[] subdirs, final String filename,
+			final String creatorDisplayName) {
+		final Metadata m = new Metadata();
+		m.setDir(String.join("/", subdirs));
+		m.setFilename(filename);
+		m.setCreator(creatorDisplayName);
+		m.setCreated(getCreationDate(resource));
+		return m;
+	}
+
+	/**
+	 * Metadata for a resource in the site
+	 */
+	public static class Metadata {
+
+		@Getter
+		@Setter
+		private String dir;
+
+		@Getter
+		@Setter
+		private String filename;
+
+		@Getter
+		@Setter
+		private String creator;
+
+		@Getter
+		@Setter
+		private String created;
+
 	}
 
 }
