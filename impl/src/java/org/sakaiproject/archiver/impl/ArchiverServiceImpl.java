@@ -118,12 +118,14 @@ public class ArchiverServiceImpl implements ArchiverService {
 			validateFileExtension(filename);
 		} catch (final FileExtensionExcludedException e1) {
 			log.error("File {} is of an excluded extension and will not be archived", filename);
+			return;
 		}
 
 		try {
 			validateFileSize(content);
 		} catch (final FileSizeExceededException e1) {
 			log.error("File {} is too large and will not be archived", filename);
+			return;
 		}
 
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
