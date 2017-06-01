@@ -186,13 +186,15 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Get any excluded extensions as configured in sakai.properties via <code>archiver.exclude.extensions</code>
+	 * Get any excluded extensions as configured in sakai.properties via <code>archiver.excluded.extensions</code>
+	 *
+	 * Default is none.
 	 *
 	 * @return
 	 */
 	private List<String> getExcludedExtensions() {
 		final List<String> excludedExtensions = new ArrayList<>();
-		final String[] config = this.serverConfigurationService.getStrings("archiver.exclude.extensions");
+		final String[] config = this.serverConfigurationService.getStrings("archiver.excluded.extensions");
 		if (ArrayUtils.isNotEmpty(config)) {
 			excludedExtensions.addAll(Arrays.asList(config));
 		}
