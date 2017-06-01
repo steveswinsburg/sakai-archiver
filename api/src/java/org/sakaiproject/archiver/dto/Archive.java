@@ -68,6 +68,15 @@ public class Archive implements Comparable<Archive>, Serializable {
 
 	@Override
 	public boolean equals(final Object o) {
+		if (o == null) {
+			return false;
+		}
+		if (o == this) {
+			return true;
+		}
+		if (o.getClass() != getClass()) {
+			return false;
+		}
 		final Archive other = (Archive) o;
 		return new EqualsBuilder()
 				.append(this.archiveId, other.archiveId)
