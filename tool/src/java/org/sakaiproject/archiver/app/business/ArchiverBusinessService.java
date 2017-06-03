@@ -116,6 +116,8 @@ public class ArchiverBusinessService {
 			});
 		}
 
+		log.debug("Archiveable tools {}", tools);
+
 		return tools;
 	}
 

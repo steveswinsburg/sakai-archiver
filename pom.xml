@@ -30,6 +30,7 @@
 		<module>provider-announcements</module>
 		<module>provider-dropbox</module>
 		<module>provider-resources</module>
+		<module>provider-news</module>
 	</modules>
 	
 	<dependencyManagement>
