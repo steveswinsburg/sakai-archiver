@@ -2,7 +2,7 @@
 
 ## Adding an archiver provider
 
-Your service must implement `org.sakaiproject.archiver.api.Archiveable`.
+Your service must implement `org.sakaiproject.archiver.spi.Archiveable`.
 
 You will need to add the dependency:
 ````
