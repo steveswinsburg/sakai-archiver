@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
@@ -101,10 +102,13 @@ public class NewsArchiver implements Archiveable {
 	 *
 	 * If encoding fails, the original is returned.
 	 *
-	 * @param url
+	 * @param string
 	 * @return
 	 */
 	private String decode(final String string) {
+		if (StringUtils.isBlank(string)) {
+			return string;
+		}
 		try {
 			return URLDecoder.decode(string, "UTF-8");
 		} catch (final UnsupportedEncodingException e) {
