@@ -1,4 +1,7 @@
-package org.sakaiproject.archiver.api;
+package org.sakaiproject.archiver.spi;
+
+import org.sakaiproject.archiver.api.ArchiverRegistry;
+import org.sakaiproject.archiver.api.ArchiverService;
 
 /**
  * Services which implement {@link Archiveable} declare that they are able to archive themselves.
