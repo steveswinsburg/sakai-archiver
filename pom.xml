@@ -31,6 +31,7 @@
 		<module>provider-dropbox</module>
 		<module>provider-resources</module>
 		<module>provider-news</module>
+		<module>provider-postem</module>
 	</modules>
 	
 	<dependencyManagement>

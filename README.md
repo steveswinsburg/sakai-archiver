@@ -27,6 +27,8 @@ Each provider requires full access to the data it is accessing. This means that 
 <dl>
   <dt>Gradebook</dt>
   <dd>gradebook.gradeAll</dd>
+  <dt>PostEm</dt>
+  <dd>site.upd</dd>
 </dl>
 
 ## Developers
