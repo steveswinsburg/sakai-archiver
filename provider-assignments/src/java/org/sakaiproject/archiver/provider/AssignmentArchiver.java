@@ -200,7 +200,7 @@ public class AssignmentArchiver implements Archiveable {
 		// Get the user associated with this submitterId
 		User user = getUser(submitterId);
 		if (user != null) {
-			return assignment.getTitle() + "/submissions/" + user.getLastName() + ", " + user.getFirstName() + "/" + folderName;
+			return assignment.getTitle() + "/submissions/" + user.getSortName() + "/" + folderName;
 		}
 		
 		// If a user wasn't found, maybe it's a group submission
@@ -210,8 +210,8 @@ public class AssignmentArchiver implements Archiveable {
 		}
 		
 		// Neither a user or group could be found, save anyway in folder "unknown"
-		log.error("Neither a user or group could not be found for submitterId: {}. Submission will be saved under \"unknown\"", submitterId);
-		return assignment.getTitle() + "/unknown/submission"; 
+		log.error("Neither a user or group name could not be found for submitterId: {}", submitterId);
+		return assignment.getTitle() + "/" + submitterId + "/submission"; 
 	}
 	
 	/**
