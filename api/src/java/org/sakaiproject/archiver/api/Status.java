@@ -16,6 +16,16 @@ public enum Status {
 	COMPLETE,
 
 	/**
+	 * Archive is finished but is incomplete
+	 */
+	INCOMPLETE,
+
+	/**
+	 * Archive was cancelled
+	 */
+	CANCELLED,
+
+	/**
 	 * Archive failed
 	 */
 	FAILED;

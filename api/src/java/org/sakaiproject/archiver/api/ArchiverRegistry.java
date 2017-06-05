@@ -3,6 +3,8 @@ package org.sakaiproject.archiver.api;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.sakaiproject.archiver.spi.Archiveable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

@@ -4,6 +4,7 @@ import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.sakaiproject.archiver.spi.Archiveable;
 
 public class ArchiverRegistryTest {
 

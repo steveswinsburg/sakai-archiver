@@ -6,10 +6,17 @@ An archiving app for Sakai
 In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created. 
 
 For example:
-
 ```
-archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool
+archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool,sakai.simple.rss
 archiver.path = /Users/steve/sakai/archives/
+```
+
+You can also optionally set the maximum filesize of a file included in the archive (in MB), and any file types to skip.
+
+For example:
+```
+archiver.max.filesize=10
+archiver.excluded.extensions=zip,gz,DS_Store
 ```
 
 ## Deployment
@@ -20,6 +27,8 @@ Each provider requires full access to the data it is accessing. This means that 
 <dl>
   <dt>Gradebook</dt>
   <dd>gradebook.gradeAll</dd>
+  <dt>PostEm</dt>
+  <dd>site.upd</dd>
 </dl>
 
 ## Developers

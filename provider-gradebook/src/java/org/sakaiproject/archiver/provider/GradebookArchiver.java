@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.provider.model.CsvData;
@@ -20,6 +19,7 @@ import org.sakaiproject.archiver.provider.model.StudentGradeInfo;
 import org.sakaiproject.archiver.provider.util.FormatHelper;
 import org.sakaiproject.archiver.provider.util.I18n;
 import org.sakaiproject.archiver.provider.util.LastNameComparator;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.CourseGrade;

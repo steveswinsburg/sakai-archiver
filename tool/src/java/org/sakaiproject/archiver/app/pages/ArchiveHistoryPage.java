@@ -17,6 +17,7 @@ import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ZipNotFoundException;
+import org.sakaiproject.archiver.util.Dateifier;
 
 /**
  * Shows previous archives for the site
@@ -43,7 +44,7 @@ public class ArchiveHistoryPage extends BasePage {
 			protected void populateItem(final ListItem<Archive> item) {
 				final Archive archive = item.getModelObject();
 
-				item.add(new Label("dateCompleted", archive.getEndDate().toString()));
+				item.add(new Label("dateCompleted", Dateifier.toIso8601(archive.getEndDate())));
 				item.add(new Label("status", archive.getStatus().toString()));
 				item.add(new Label("creator", ArchiveHistoryPage.this.businessService.getUserDisplayName(archive.getUserUuid())));
 
