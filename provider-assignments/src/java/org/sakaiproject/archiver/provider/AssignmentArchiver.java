@@ -79,14 +79,7 @@ public class AssignmentArchiver implements Archiveable {
 			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), "details.json", assignment.getTitle());
 
 			// archive the attachments for the assignment
-			for (Reference attachment : assignment.getContent().getAttachments()) {
-				try {
-					archiveAttachments(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
-				} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
-					log.error("Error getting attachment for assignment: " + assignment.getTitle());
-					continue;
-				} 
-			}
+			this.archiveAttachments(assignment, archiveId, siteId, toolId);
 			
 			// archive the grades spreadsheet for the assignment
 //			byte[] gradesSpreadsheet;
@@ -106,52 +99,78 @@ public class AssignmentArchiver implements Archiveable {
 			}
 		}
 	}
+	
+	/**
+	 * Get the attachments for this assignment, and archive them
+	 * @param assignment
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 */
+	private void archiveAttachments(Assignment assignment, final String archiveId, final String siteId, final String toolId) {
+		for (Reference attachment : assignment.getContent().getAttachments()) {
+			try {
+				archiveAttachment(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
+			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
+				log.error("Error getting attachment for assignment: " + assignment.getTitle());
+				continue;
+			} 
+		}
+	}
 
 	/**
-	 * Get the submissions for an assignment, and any feedback from the instructor
+	 * Get the submissions for an assignment, and any feedback from the instructor, and archive them
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
-	private void archiveSubmissions(Assignment assignment, String archiveId, String siteId, String toolId) {
+	private void archiveSubmissions(Assignment assignment, final String archiveId, final String siteId, final String toolId) {
 		List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
 		
 		for (AssignmentSubmission submission : submissions) {
 			
 			// get the attachments for this submission
-			for (Object submissionObj : submission.getSubmittedAttachments()) {
-				String subdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission", siteId);
-				
+			List<Reference> submissionAttachments = submission.getSubmittedAttachments();
+			String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
+
+			for (Reference attachment : submissionAttachments) {
 				try {
-					archiveAttachments((Reference)submissionObj, archiveId, siteId, toolId, subdirs);
+					archiveAttachment(attachment, archiveId, siteId, toolId, submissionSubdirs);
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting submission attachment for assignment: " + assignment.getTitle());
 				}
-				// get other data associated with this submission
+			}
+			// get other data associated with this submission
+			if (submission.getTimeSubmitted() != null) {
 				SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(submissionData).getBytes(), "submission.json", subdirs);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(submissionData).getBytes(), "submission.json", submissionSubdirs);
 			}
 
-			// get the attachments provided by the instructor when grading the submission
-			for (Object gradingObj : submission.getFeedbackAttachments()) {
-				String subdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback", siteId);
-				try {
-					archiveAttachments((Reference)gradingObj, archiveId, siteId, toolId, subdirs);
-				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
-					log.error("Error getting feedback attachment for assignment: " + assignment.getTitle());
+			// get the feedback, if this submission has been graded
+			if (submission.getGraded()) {
+				// get the attachments provided by the instructor when grading the submission
+				List<Reference> feedbackAttachments = submission.getFeedbackAttachments();
+				String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
+				for (Reference attachment : feedbackAttachments) {
+					try {
+						archiveAttachment(attachment, archiveId, siteId, toolId, feedbackSubdirs);
+					} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
+						log.error("Error getting feedback attachment for assignment: " + assignment.getTitle());
+					}
 				}
+				
 				// get other data associated with this feedback
 				SimpleFeedback feedback = new SimpleFeedback(submission);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(feedback).getBytes(), "feedback.json", subdirs);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(feedback).getBytes(), "feedback.json", feedbackSubdirs);
 			}
 		}
 	}
 	
 	
 	/**
-	 * Helper method to archive attachments
+	 * Helper method to archive an attachment
 	 * 
 	 * @param attachment
 	 * @param archiveId
@@ -163,35 +182,63 @@ public class AssignmentArchiver implements Archiveable {
 	 * @throws IdUnusedException
 	 * @throws TypeException
 	 */
-	private void archiveAttachments(Reference attachment, String archiveId, String siteId, String toolId, String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
+	private void archiveAttachment(Reference attachment, String archiveId, String siteId, String toolId, String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
 		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
 				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
 	}
 
 	/**
-	 * Get the subdirectory structure
+	 * Get the subdirectory structure for a submission or feedback item
 	 * @param assignmentTitle
 	 * @param submitterId
 	 * @param folderName
-	 * @return
+	 * @return subdirectory string
 	 */
-	private String getSubDirs(Assignment assignment, String submitterId, String folderName, String siteId) {
+	private String getSubDirs(Assignment assignment, String submitterId, String folderName) {
 
-		try {
-			if (assignment.isGroup()) {
-				Group group = this.siteService.getSite(siteId).getGroup(submitterId);
-				return assignment.getTitle() + "/" + group.getTitle() + "/" + folderName; 
-			} else {
-				User user = this.userDirectoryService.getUser(submitterId);
-				return assignment.getTitle() + "/" + user.getLastName() + ", " + user.getFirstName() + "/" + folderName;
-			}
-		} catch (UserNotDefinedException e) {
-			log.error("Unable to find user associated with assignment submission");
-		} catch (IdUnusedException e) {
-			log.error("Could not look up group for assignment");
+		// Get the user associated with this submitterId
+		User user = getUser(submitterId);
+		if (user != null) {
+			return assignment.getTitle() + "/submissions/" + user.getLastName() + ", " + user.getFirstName() + "/" + folderName;
 		}
-		return assignment.getTitle() + "/unknown/submission";
+		
+		// If a user wasn't found, maybe it's a group submission
+		Group group = getGroup(assignment.getContext(), submitterId);
+		if (group != null) {
+			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName; 
+		}
+		
+		// Neither a user or group could be found, save anyway in folder "unknown"
+		log.error("Neither a user or group could not be found for submitterId: {}. Submission will be saved under \"unknown\"", submitterId);
+		return assignment.getTitle() + "/unknown/submission"; 
+	}
+	
+	/**
+	 * Helper method to get the User associated with a submitterId
+	 * @param submitterId
+	 * @return user
+	 */
+	private User getUser(String submitterId) {
+		try {
+			return this.userDirectoryService.getUser(submitterId);
+		} catch (UserNotDefinedException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Helper method to get the Group associated with a submitterId
+	 * @param siteId
+	 * @param submitterId
+	 * @return group
+	 */
+	private Group getGroup(String siteId, String submitterId) {
+		try {
+			return this.siteService.getSite(siteId).getGroup(submitterId);
+		} catch (IdUnusedException e) {
+			return null;
+		}
 	}
 
 	/**
