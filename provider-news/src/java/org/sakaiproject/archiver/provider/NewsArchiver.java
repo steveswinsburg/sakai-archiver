@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;

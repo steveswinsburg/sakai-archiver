@@ -13,7 +13,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.api.Status;
@@ -26,6 +25,7 @@ import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
 import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.component.api.ServerConfigurationService;
 
@@ -87,6 +87,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 
+		// assuming no errors
+		Status status = Status.COMPLETE;
+
 		for (final String toolId : toolsToArchive) {
 			final Archiveable archivable = registry.get(toolId);
 			if (archivable == null) {
@@ -95,10 +98,17 @@ public class ArchiverServiceImpl implements ArchiverService {
 			}
 
 			log.info("Archiving {}", toolId);
-			archivable.archive(archiveId, siteId, toolId, includeStudentData);
+
+			try {
+				archivable.archive(archiveId, siteId, toolId, includeStudentData);
+			} catch (final RuntimeException e) {
+				// TODO rethrow as a checked exception which the UI can deal with
+				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.");
+				status = Status.INCOMPLETE;
+			}
 		}
 
-		finalise(entity);
+		finalise(entity, status);
 	}
 
 	@Override
@@ -111,8 +121,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename, final String... subdirectories) {
 		log.debug("Archiving to archive: {} for site: {} and tool: {} in dir: {} and file: {} with content: {}", archiveId, siteId, toolId,
-				buildPath(subdirectories), filename,
-				Arrays.toString(subdirectories));
+				buildPath(subdirectories), filename, content);
 
 		try {
 			validateFileExtension(filename);
@@ -219,18 +228,21 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Finalise an archiving record
+	 * Finalise an archiving record with the specified status.
 	 *
-	 * @param entity the ArchiveEntity tracking this archive
+	 * Note that the status could be overridden if an error occurs in finalising the archive.
+	 *
+	 * @param entity the {@link ArchiveEntity} tracking this archive
+	 * @param status the {@link Status} to set
 	 */
-	private void finalise(final ArchiveEntity entity) {
+	private void finalise(final ArchiveEntity entity, final Status status) {
 
 		// zips the archive directory
 		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
 			final String zipPath = Zipper.zipDirectory(archiveDirectory);
 			entity.setZipPath(zipPath);
-			entity.setStatus(Status.COMPLETE);
+			entity.setStatus(status);
 		} catch (final IOException e) {
 			log.error("Could not zip archive");
 			entity.setStatus(Status.FAILED);

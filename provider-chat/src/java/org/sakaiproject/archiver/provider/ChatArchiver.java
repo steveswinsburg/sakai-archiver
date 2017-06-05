@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.chat2.model.ChatChannel;
 import org.sakaiproject.chat2.model.ChatManager;
@@ -48,33 +48,33 @@ public class ChatArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		List<ChatChannel> chatChannels = chatManager.getContextChannels(siteId, true);
+		final List<ChatChannel> chatChannels = this.chatManager.getContextChannels(siteId, true);
 
-		for (ChatChannel chatChannel : chatChannels) {
+		for (final ChatChannel chatChannel : chatChannels) {
 
 			// Save the metadata for this channel
-			ChatChannelMetadata metadata = createChatChannelMetadata(chatChannel);
+			final ChatChannelMetadata metadata = createChatChannelMetadata(chatChannel);
 
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(metadata).getBytes(), 
+			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(metadata).getBytes(),
 					chatChannel.getTitle() + " (metadata).json");
 
-			int numMessages = chatManager.getChannelMessagesCount(chatChannel, null, null);
+			final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
 
 			// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
-			for (int start = 0; start <= numMessages - (numMessages%100); start += 100) {
+			for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
 
 				try {
-					List<ChatMessage> chatMessages = chatManager.getChannelMessages(chatChannel, null, null, start, 99, true);
+					final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99, true);
 
-					List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
+					final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
 
 					// Convert to JSON and save to file
-					int rangeStart = start+1;
-					int rangeEnd = numMessages - start >= 100 ? start+100 : numMessages;
-					this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(), 
-							chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json", "Chat messages for " + chatChannel.getTitle());
+					final int rangeStart = start + 1;
+					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
+					this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(),
+							chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json", chatChannel.getTitle() + "(messages)");
 
-				} catch (PermissionException e) {
+				} catch (final PermissionException e) {
 					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
 					continue;
 				}
@@ -82,9 +82,9 @@ public class ChatArchiver implements Archiveable {
 		}
 	}
 
-	private ChatChannelMetadata createChatChannelMetadata(ChatChannel chatChannel) {
+	private ChatChannelMetadata createChatChannelMetadata(final ChatChannel chatChannel) {
 
-		ChatChannelMetadata metadata = new ChatChannelMetadata();
+		final ChatChannelMetadata metadata = new ChatChannelMetadata();
 		metadata.setDateCreated(chatChannel.getCreationDate());
 		metadata.setStartDate(chatChannel.getStartDate());
 		metadata.setEndDate(chatChannel.getEndDate());
@@ -95,17 +95,16 @@ public class ChatArchiver implements Archiveable {
 		return metadata;
 	}
 
-
 	/**
 	 * Build the list of messages to be archived for this channel
-	 * 
+	 *
 	 * @param chatMessages
 	 * @return the list of messages to be saved
 	 */
-	private List<SimpleChatMessage> createArchiveItems(List<ChatMessage> chatMessages) {
-		List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
-		for (ChatMessage message : chatMessages) {
-			SimpleChatMessage simpleChatMessage = createArchiveItem(message);
+	private List<SimpleChatMessage> createArchiveItems(final List<ChatMessage> chatMessages) {
+		final List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
+		for (final ChatMessage message : chatMessages) {
+			final SimpleChatMessage simpleChatMessage = createArchiveItem(message);
 			messagesToSave.add(simpleChatMessage);
 		}
 
@@ -114,17 +113,18 @@ public class ChatArchiver implements Archiveable {
 
 	/**
 	 * Build the archive item for an individual chat message
+	 * 
 	 * @param message
-	 * @return 
+	 * @return
 	 */
 
-	private SimpleChatMessage createArchiveItem(ChatMessage message) {
+	private SimpleChatMessage createArchiveItem(final ChatMessage message) {
 
-		SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
+		final SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
 		simpleChatMessage.setBody(message.getBody());
 		simpleChatMessage.setDate(message.getMessageDate());
-		
-		User user = getUser(message.getOwner());
+
+		final User user = getUser(message.getOwner());
 		if (user != null) {
 			simpleChatMessage.setOwner(user.getDisplayName());
 			simpleChatMessage.setEid(user.getEid());
@@ -138,18 +138,19 @@ public class ChatArchiver implements Archiveable {
 
 	/**
 	 * Helper to get the user associated with a chat message
+	 * 
 	 * @param owner
 	 * @return user
 	 */
-	private User getUser(String owner) {
+	private User getUser(final String owner) {
 
 		User user;
 
 		try {
-			user = userDirectoryService.getUser(owner);
+			user = this.userDirectoryService.getUser(owner);
 			return user;
-			
-		} catch (UserNotDefinedException e) {
+
+		} catch (final UserNotDefinedException e) {
 			log.error("Could not find user with userId: " + owner + ", uuid will be used in place of display name and eid.");
 		}
 		return null;
@@ -160,16 +161,20 @@ public class ChatArchiver implements Archiveable {
 	 */
 	private class SimpleChatMessage {
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String body;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private Date date;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String owner;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String eid;
 
 	}
@@ -179,22 +184,28 @@ public class ChatArchiver implements Archiveable {
 	 */
 	private class ChatChannelMetadata {
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String title;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String description;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private String id;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private Date dateCreated;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private Date startDate;
 
-		@Getter @Setter
+		@Getter
+		@Setter
 		private Date endDate;
 	}
 }

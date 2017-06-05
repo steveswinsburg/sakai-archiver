@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	
+	<bean id="org.sakaiproject.archiver.provider.PostemArchiver"
+		class="org.sakaiproject.archiver.provider.PostemArchiver" init-method="init" destroy-method="destroy">
+
+		<property name="postemGradebookManager" ref="org.sakaiproject.api.app.postem.data.GradebookManager" />
+		<property name="entityManager" ref="org.sakaiproject.entity.api.EntityManager" />
+		<property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService" />
+		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
+
+	</bean>
+
+</beans>

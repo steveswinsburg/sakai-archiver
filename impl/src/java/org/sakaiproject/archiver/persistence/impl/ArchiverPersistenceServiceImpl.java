@@ -78,6 +78,7 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	public List<ArchiveEntity> getBySiteId(final String siteId) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
 		criteria.add(Restrictions.eq("siteId", siteId));
+		criteria.addOrder(Order.desc("startDate"));
 		criteria.addOrder(Order.desc("endDate"));
 		return criteria.list();
 	}
