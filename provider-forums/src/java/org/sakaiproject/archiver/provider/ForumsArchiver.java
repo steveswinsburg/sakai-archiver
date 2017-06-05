@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.sakaiproject.api.app.messageforums.DiscussionForum;
 import org.sakaiproject.api.app.messageforums.ui.DiscussionForumManager;
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.entity.api.Reference;
