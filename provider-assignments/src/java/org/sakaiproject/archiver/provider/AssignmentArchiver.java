@@ -3,9 +3,9 @@ package org.sakaiproject.archiver.provider;
 import java.util.Collection;
 import java.util.List;
 
-import org.sakaiproject.archiver.api.Archiveable;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.assignment.api.Assignment;
 import org.sakaiproject.assignment.api.AssignmentService;
