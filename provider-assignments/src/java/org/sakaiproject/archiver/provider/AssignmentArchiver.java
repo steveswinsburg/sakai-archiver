@@ -15,6 +15,7 @@ import org.sakaiproject.assignment.api.model.AssignmentModelAnswerItem;
 import org.sakaiproject.assignment.api.model.AssignmentNoteItem;
 import org.sakaiproject.assignment.api.model.AssignmentSupplementItemService;
 import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -57,10 +58,10 @@ public class AssignmentArchiver implements Archiveable {
 
 	@Setter
 	private ArchiverService archiverService;
-	
+
 	@Setter
 	private SiteService siteService;
-	
+
 	@Setter
 	private UserDirectoryService userDirectoryService;
 
@@ -69,73 +70,67 @@ public class AssignmentArchiver implements Archiveable {
 
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
-		
-		List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
-		for (Assignment assignment : assignments) {
+		final List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
+
+		for (final Assignment assignment : assignments) {
 
 			// archive the assignment data
-			SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), "details.json", assignment.getTitle());
+			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
+			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), "details.json",
+					assignment.getTitle());
 
 			// archive the attachments for the assignment
-			this.archiveAttachments(assignment, archiveId, siteId, toolId);
-			
-			// archive the grades spreadsheet for the assignment
-//			byte[] gradesSpreadsheet;
-//			try {
-//				gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(this.assignmentService.gradesSpreadsheetReference(siteId, assignment.getId()));
-//				if (gradesSpreadsheet != null ) {
-//					this.archiverService.archiveContent(archiveId, siteId, toolId, gradesSpreadsheet, "grades.csv", assignment.getTitle());
-//				}
-//			} catch (IdUnusedException | PermissionException e) {
-//				log.error("Error getting grades spreadsheet for assignment: " + assignment.getTitle());
-//				continue;
-//			}
-			
+			archiveAttachments(assignment, archiveId, siteId, toolId);
+
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
-				this.archiveSubmissions(assignment, archiveId, siteId, toolId);
+				archiveSubmissions(assignment, archiveId, siteId, toolId);
 			}
 		}
+
+		// archive the grades spreadsheet for the site
+		archiveGradesSpreadsheet(archiveId, siteId, toolId);
 	}
-	
+
 	/**
 	 * Get the attachments for this assignment, and archive them
+	 *
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
 	 */
-	private void archiveAttachments(Assignment assignment, final String archiveId, final String siteId, final String toolId) {
-		for (Reference attachment : assignment.getContent().getAttachments()) {
+	private void archiveAttachments(final Assignment assignment, final String archiveId, final String siteId, final String toolId) {
+		for (final Reference attachment : assignment.getContent().getAttachments()) {
 			try {
 				archiveAttachment(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
 			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
 				log.error("Error getting attachment for assignment: " + assignment.getTitle());
 				continue;
-			} 
+			}
 		}
 	}
 
 	/**
 	 * Get the submissions for an assignment, and any feedback from the instructor, and archive them
+	 *
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
-	private void archiveSubmissions(Assignment assignment, final String archiveId, final String siteId, final String toolId) {
-		List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
-		
-		for (AssignmentSubmission submission : submissions) {
-			
-			// get the attachments for this submission
-			List<Reference> submissionAttachments = submission.getSubmittedAttachments();
-			String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
+	private void archiveSubmissions(final Assignment assignment, final String archiveId, final String siteId, final String toolId) {
+		final List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
 
-			for (Reference attachment : submissionAttachments) {
+		for (final AssignmentSubmission submission : submissions) {
+
+			// get the attachments for this submission
+			final List<Reference> submissionAttachments = submission.getSubmittedAttachments();
+			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
+
+			for (final Reference attachment : submissionAttachments) {
 				try {
 					archiveAttachment(attachment, archiveId, siteId, toolId, submissionSubdirs);
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
@@ -144,34 +139,35 @@ public class AssignmentArchiver implements Archiveable {
 			}
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
-				SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(submissionData).getBytes(), "submission.json", submissionSubdirs);
+				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(submissionData).getBytes(),
+						"submission.json", submissionSubdirs);
 			}
 
 			// get the feedback, if this submission has been graded
 			if (submission.getGraded()) {
 				// get the attachments provided by the instructor when grading the submission
-				List<Reference> feedbackAttachments = submission.getFeedbackAttachments();
-				String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
-				for (Reference attachment : feedbackAttachments) {
+				final List<Reference> feedbackAttachments = submission.getFeedbackAttachments();
+				final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
+				for (final Reference attachment : feedbackAttachments) {
 					try {
 						archiveAttachment(attachment, archiveId, siteId, toolId, feedbackSubdirs);
 					} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 						log.error("Error getting feedback attachment for assignment: " + assignment.getTitle());
 					}
 				}
-				
+
 				// get other data associated with this feedback
-				SimpleFeedback feedback = new SimpleFeedback(submission);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(feedback).getBytes(), "feedback.json", feedbackSubdirs);
+				final SimpleFeedback feedback = new SimpleFeedback(submission);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(feedback).getBytes(), "feedback.json",
+						feedbackSubdirs);
 			}
 		}
 	}
-	
-	
+
 	/**
 	 * Helper method to archive an attachment
-	 * 
+	 *
 	 * @param attachment
 	 * @param archiveId
 	 * @param siteId
@@ -182,90 +178,122 @@ public class AssignmentArchiver implements Archiveable {
 	 * @throws IdUnusedException
 	 * @throws TypeException
 	 */
-	private void archiveAttachment(Reference attachment, String archiveId, String siteId, String toolId, String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
-		byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
+	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String toolId,
+			final String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
+		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
 				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
 	}
 
 	/**
+	 * Helper method to archive the grades spreadsheet for the site
+	 *
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 */
+	private void archiveGradesSpreadsheet(final String archiveId, final String siteId, final String toolId) {
+
+		// Note: The AssignmentService contains a method 'gradesSpreadsheetReference' but this cannot be used in this context.
+		// GradeSheetExporter#getGradesSpreadsheet will not accept that format.
+		// Below is what is needed.
+		final String spreadsheetReference = String.join(Entity.SEPARATOR, AssignmentService.REF_TYPE_GRADES, siteId);
+
+		byte[] gradesSpreadsheet;
+		try {
+
+			gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(spreadsheetReference);
+			if (gradesSpreadsheet != null) {
+				this.archiverService.archiveContent(archiveId, siteId, toolId, gradesSpreadsheet, "grades.xls");
+			}
+		} catch (IdUnusedException | PermissionException e) {
+			log.error("Error getting grades spreadsheet for site {} " + siteId);
+		}
+	}
+
+	/**
 	 * Get the subdirectory structure for a submission or feedback item
+	 *
 	 * @param assignmentTitle
 	 * @param submitterId
 	 * @param folderName
 	 * @return subdirectory string
 	 */
-	private String getSubDirs(Assignment assignment, String submitterId, String folderName) {
+	private String getSubDirs(final Assignment assignment, final String submitterId, final String folderName) {
 
 		// Get the user associated with this submitterId
-		User user = getUser(submitterId);
+		final User user = getUser(submitterId);
 		if (user != null) {
 			return assignment.getTitle() + "/submissions/" + user.getSortName() + "/" + folderName;
 		}
-		
+
 		// If a user wasn't found, maybe it's a group submission
-		Group group = getGroup(assignment.getContext(), submitterId);
+		final Group group = getGroup(assignment.getContext(), submitterId);
 		if (group != null) {
-			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName; 
+			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName;
 		}
-		
+
 		// Neither a user or group could be found, save anyway in folder "unknown"
 		log.error("Neither a user or group name could not be found for submitterId: {}", submitterId);
-		return assignment.getTitle() + "/" + submitterId + "/submission"; 
+		return assignment.getTitle() + "/" + submitterId + "/submission";
 	}
-	
+
 	/**
 	 * Helper method to get the User associated with a submitterId
+	 *
 	 * @param submitterId
 	 * @return user
 	 */
-	private User getUser(String submitterId) {
+	private User getUser(final String submitterId) {
 		try {
 			return this.userDirectoryService.getUser(submitterId);
-		} catch (UserNotDefinedException e) {
+		} catch (final UserNotDefinedException e) {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Helper method to get the Group associated with a submitterId
+	 *
 	 * @param siteId
 	 * @param submitterId
 	 * @return group
 	 */
-	private Group getGroup(String siteId, String submitterId) {
+	private Group getGroup(final String siteId, final String submitterId) {
 		try {
 			return this.siteService.getSite(siteId).getGroup(submitterId);
-		} catch (IdUnusedException e) {
+		} catch (final IdUnusedException e) {
 			return null;
 		}
 	}
 
 	/**
 	 * Get the gradebook item associated with an assignment.
+	 *
 	 * @param a the Assignment
 	 * @param gradebookItem the SimpleGradebookItem
 	 * @return the populated SimpleGradebookItem
 	 */
-	private SimpleGradebookItem getGradebookFields(Assignment a) {
-		
-		if (gradebookService.isGradebookDefined(a.getContext())) {
-			SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
-			String gradebookAssignmentProp = a.getProperties().getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
+	private SimpleGradebookItem getGradebookFields(final Assignment a) {
+
+		if (this.gradebookService.isGradebookDefined(a.getContext())) {
+			final SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
+			final String gradebookAssignmentProp = a.getProperties()
+					.getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
 			if (gradebookAssignmentProp != null) {
-				org.sakaiproject.service.gradebook.shared.Assignment gAssignment = gradebookService.getAssignment(a.getContext(), gradebookAssignmentProp);
+				final org.sakaiproject.service.gradebook.shared.Assignment gAssignment = this.gradebookService.getAssignment(a.getContext(),
+						gradebookAssignmentProp);
 				if (gAssignment != null) {
 					// there is a linked Gradebook item
 					gradebookItem.setGradebookItemId(gAssignment.getId());
 					gradebookItem.setGradebookItemName(gAssignment.getName());
 					return gradebookItem;
 				}
-			}		
+			}
 		}
 		return null;
 	}
 
-	
 	/**
 	 * Simplified helper class to represent feedback for a submission
 	 */
@@ -273,25 +301,25 @@ public class AssignmentArchiver implements Archiveable {
 		@Setter
 		String feedbackComment;
 
-		@Setter 
+		@Setter
 		String feedbackText;
 
 		@Setter
 		String gradedBy;
-		
-		public SimpleFeedback(AssignmentSubmission submission) {
+
+		public SimpleFeedback(final AssignmentSubmission submission) {
 			this.feedbackComment = submission.getFeedbackComment();
 			this.feedbackText = submission.getFeedbackText();
 			this.gradedBy = submission.getGradedBy();
 		}
 	}
-	
+
 	/**
 	 * Simplified helper class to represent an individual submission for an assignment
 	 */
 	private class SimpleSubmission {
 
-		@Setter 
+		@Setter
 		String status;
 
 		@Setter
@@ -306,7 +334,7 @@ public class AssignmentArchiver implements Archiveable {
 		@Setter
 		String timeSubmitted;
 
-		public SimpleSubmission(AssignmentSubmission submission, boolean group) {
+		public SimpleSubmission(final AssignmentSubmission submission, final boolean group) {
 			this.status = submission.getStatus();
 			this.submittedText = submission.getSubmittedText();
 			this.submitterId = submission.getSubmitterId();
@@ -385,8 +413,8 @@ public class AssignmentArchiver implements Archiveable {
 		@Setter
 		private SimpleGradebookItem gradebookItemDetails;
 
-		public SimpleAssignment(Assignment a) {
-			if (a == null){
+		public SimpleAssignment(final Assignment a) {
+			if (a == null) {
 				return;
 			}
 
@@ -403,14 +431,14 @@ public class AssignmentArchiver implements Archiveable {
 			this.title = a.getTitle();
 			this.status = a.getStatus();
 			this.access = a.getAccess().toString();
-			
+
 			// See if there are groups submissions for this assignment
 			if (a.isGroup()) {
 				this.groups = a.getGroups();
 			}
 
 			// See if there is a gradebook item associated with this assignment
-			SimpleGradebookItem gradebookItem = getGradebookFields(a);
+			final SimpleGradebookItem gradebookItem = getGradebookFields(a);
 			if (gradebookItem != null) {
 				this.gradebookItemDetails = gradebookItem;
 			}
@@ -421,22 +449,24 @@ public class AssignmentArchiver implements Archiveable {
 				this.gradeScale = a.getContent().getTypeOfGradeString();
 				this.submissionType = a.getContent().getTypeOfSubmissionString();
 
-				//if grade scale is "points", get the maximum points allowed
+				// if grade scale is "points", get the maximum points allowed
 				this.gradeScaleMaxPoints = a.getContent().getMaxGradePointDisplay();
 			}
 
 			// Supplement Items
-			AssignmentModelAnswerItem assignmentModelAnswerItem = assignmentSupplementItemService.getModelAnswer(a.getId());
+			final AssignmentModelAnswerItem assignmentModelAnswerItem = AssignmentArchiver.this.assignmentSupplementItemService
+					.getModelAnswer(a.getId());
 			if (assignmentModelAnswerItem != null) {
 				this.modelAnswerText = assignmentModelAnswerItem.getText();
 			}
-			AssignmentNoteItem assignmentNoteItem = assignmentSupplementItemService.getNoteItem(a.getId());
+			final AssignmentNoteItem assignmentNoteItem = AssignmentArchiver.this.assignmentSupplementItemService.getNoteItem(a.getId());
 			if (assignmentNoteItem != null) {
 				this.privateNoteText = assignmentNoteItem.getNote();
 			}
-			AssignmentAllPurposeItem assignmentAllPurposeItem = assignmentSupplementItemService.getAllPurposeItem(a.getId());
+			final AssignmentAllPurposeItem assignmentAllPurposeItem = AssignmentArchiver.this.assignmentSupplementItemService
+					.getAllPurposeItem(a.getId());
 			if (assignmentAllPurposeItem != null) {
-				this.allPurposeItemText =  assignmentAllPurposeItem.getText();
+				this.allPurposeItemText = assignmentAllPurposeItem.getText();
 			}
 		}
 	}
