@@ -103,7 +103,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 				archivable.archive(archiveId, siteId, toolId, includeStudentData);
 			} catch (final RuntimeException e) {
 				// TODO rethrow as a checked exception which the UI can deal with
-				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.");
+				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+						siteId, toolId, e);
 				status = Status.INCOMPLETE;
 			}
 		}
@@ -120,8 +121,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename, final String... subdirectories) {
-		log.debug("Archiving to archive: {} for site: {} and tool: {} in dir: {} and file: {} with content: {}", archiveId, siteId, toolId,
-				buildPath(subdirectories), filename, content);
+		log.debug("Archiving to archive: {} for site: {} and tool: {} in dir: {} and file: {}", archiveId, siteId, toolId,
+				buildPath(subdirectories), filename);
 
 		try {
 			validateFileExtension(filename);
@@ -134,6 +135,12 @@ public class ArchiverServiceImpl implements ArchiverService {
 			validateFileSize(content);
 		} catch (final FileSizeExceededException e1) {
 			log.error("File {} is too large and will not be archived", filename);
+			return;
+		}
+
+		// TODO perhaps turn this into a validate?
+		if (ArrayUtils.isEmpty(content)) {
+			log.error("No content to archive. Skipping.");
 			return;
 		}
 
@@ -260,8 +267,14 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 * @throws FileSizeExceededException
 	 */
 	private void validateFileSize(final byte[] content) throws FileSizeExceededException {
-		log.debug("File size: " + content.length);
-		if (content.length > getMaxFileSize()) {
+
+		int size = 0;
+		if (ArrayUtils.isNotEmpty(content)) {
+			size = content.length;
+		}
+		log.debug("File size: {}", size);
+
+		if (size > getMaxFileSize()) {
 			throw new FileSizeExceededException();
 		}
 	}
@@ -274,7 +287,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void validateFileExtension(final String filename) throws FileExtensionExcludedException {
 		final String extension = FilenameUtils.getExtension(filename);
-		log.debug("File extension: " + extension);
+		log.debug("File extension: {}", extension);
 		if (getExcludedExtensions().contains(extension)) {
 			throw new FileExtensionExcludedException();
 		}
