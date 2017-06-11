@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
@@ -52,7 +52,7 @@ public class NewsArchiver implements Archiveable {
 		tools.forEach(t -> {
 			final String filename = t.getTitle();
 			final String fileContents = createNewsFileContents(t);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), filename + ".json");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), filename + ".html");
 		});
 
 	}
@@ -93,7 +93,9 @@ public class NewsArchiver implements Archiveable {
 		newsData.setTitle(title);
 		newsData.setMaxItems(maxItems);
 
-		final String fileContents = Jsonifier.toJson(newsData);
+		// final String fileContents = Jsonifier.toJson(newsData);
+		final String fileContents = Htmlifier.toHtml(newsData);
+
 		return fileContents;
 	}
 
