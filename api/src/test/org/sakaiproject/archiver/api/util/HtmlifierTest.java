@@ -55,7 +55,7 @@ public class HtmlifierTest {
 		assertTrue(html.contains("Mary Jones"));
 
 		// check for nested table
-		assertTrue(html.contains("bestFriend</td><td><table>\n<thead>"));
+		assertTrue(html.contains("bestFriend</td><td><table"));
 
 	}
 
