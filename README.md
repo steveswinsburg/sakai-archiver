@@ -7,7 +7,7 @@ In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` 
 
 For example:
 ```
-archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool,sakai.simple.rss,sakai.site.roster
+archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool,sakai.simple.rss,sakai.site.roster2
 archiver.path = /Users/steve/sakai/archives/
 ```
 
