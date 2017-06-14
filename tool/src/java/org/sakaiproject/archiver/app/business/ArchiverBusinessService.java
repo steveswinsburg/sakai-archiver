@@ -8,9 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
+import org.sakaiproject.archiver.app.model.ArchiveSite;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
@@ -23,6 +25,8 @@ import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SitePage;
 import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.site.api.SiteService.SelectionType;
+import org.sakaiproject.site.api.SiteService.SortType;
 import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolManager;
@@ -203,6 +207,17 @@ public class ArchiverBusinessService {
 			throw new ArchiveNotFoundException();
 		}
 		return zipFile;
+	}
+
+	/**
+	 * Find sites matching the search string
+	 * 
+	 * @param search search string
+	 * @return
+	 */
+	public List<ArchiveSite> findSites(final String search) {
+		final List<Site> sites = this.siteService.getSites(SelectionType.NON_USER, null, search, null, SortType.TITLE_ASC, null);
+		return sites.stream().map(s -> new ArchiveSite(s.getId(), s.getTitle())).collect(Collectors.toList());
 	}
 
 	/**
