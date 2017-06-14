@@ -110,8 +110,12 @@ public class ArchiverBusinessService {
 			Arrays.asList(toolIds).forEach(toolId -> {
 				if (toolsInSite.contains(toolId)) {
 					final Tool t = this.toolManager.getTool(toolId);
-					final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
-					tools.add(tool);
+					if (t != null) {
+						final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
+						tools.add(tool);
+					} else {
+						log.error("Error looking up toolId {} in site {}", toolId, siteId);
+					}
 				}
 			});
 		}
