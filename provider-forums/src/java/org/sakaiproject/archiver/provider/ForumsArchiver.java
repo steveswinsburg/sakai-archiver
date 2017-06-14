@@ -4,16 +4,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.sakaiproject.api.app.messageforums.Attachment;
 import org.sakaiproject.api.app.messageforums.DiscussionForum;
 import org.sakaiproject.api.app.messageforums.DiscussionTopic;
 import org.sakaiproject.api.app.messageforums.Message;
+import org.sakaiproject.api.app.messageforums.Topic;
 import org.sakaiproject.api.app.messageforums.ui.DiscussionForumManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Jsonifier;
 import org.sakaiproject.content.api.ContentHostingService;
-import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.exception.ServerOverloadException;
@@ -53,20 +54,16 @@ public class ForumsArchiver implements Archiveable {
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
 		List<DiscussionForum> forums = this.forumManager.getDiscussionForumsWithTopics(siteId);
-		
+
 		for (DiscussionForum forum : forums) {
-			
-			SimpleForum simpleForum = new SimpleForum(forum);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleForum).getBytes(), forum.getTitle() + ".json", forum.getTitle());
-			
-			// TODO: Different with student content
-			//this.archiveAttachments(forum, archiveId, siteId, toolId);
-			
-			this.archiveTopics(forum, archiveId, siteId, toolId);
-			
+			// Archive the forum, including topics (and messages if includeStudentContent is true)
+			this.archiveForum(forum, archiveId, siteId, toolId, includeStudentContent);
+
+			// Archive the attachments for this forum
+			this.archiveAttachments(forum.getAttachments(), "forum: " + forum.getTitle(), forum.getTitle() + "/forum-attachments/", archiveId, siteId, toolId);
 		}
 	}
-	
+
 	/**
 	 * Archive the topics within a forum
 	 * 
@@ -75,42 +72,67 @@ public class ForumsArchiver implements Archiveable {
 	 * @param siteId
 	 * @param toolId
 	 */
-	private void archiveTopics(DiscussionForum forum, final String archiveId, final String siteId, final String toolId) {
+	@SuppressWarnings("unchecked")
+	private void archiveForum(DiscussionForum forum, final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+
+		// Set up the simple forum object
+		SimpleForum simpleForum = new SimpleForum(forum);
+		
+		// Initialise the array to hold each topic for this forum
+		List<SimpleTopic> simpleTopics = new ArrayList<SimpleTopic>();
 		
 		List<DiscussionTopic> topics = forum.getTopics();
 		for (DiscussionTopic topic : topics) {
 			SimpleTopic simpleTopic = new SimpleTopic(topic);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleTopic).getBytes(), 
-					"topic-metadata.json", forum.getTitle() + "/topics/" + topic.getTitle());
 			
-			//TODO: Topic attachments
+			// Add this topic to the forum's topic array
+			simpleTopics.add(simpleTopic);
 			
-			// Archive the messages within a topic
+			// Set up the folder structure for saving attachments and messages
 			String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
-			 
-			List<Message> messages = topic.getMessages();
-			for (Message message : messages) {
-				
-				// Find the top level message
-				if (message.getInReplyTo() == null) {
-					SimpleMessage topLevelMessage = new SimpleMessage(message);
-					// Set message replies
-					this.setMessageReplies(topLevelMessage, message, messages);
-					
-					// Archive the messages
-					this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(topLevelMessage).getBytes(), 
-							message.getTitle() + ".json", folderStructure);
-				}
-				
-				//TODO: Message attachments
-				if (message.getHasAttachments()) {
-					
+
+			// Archive the attachments for this topic
+			String errorTopicAttachment = "topic: " + topic.getTitle() + " in forum: " + forum.getTitle();
+			this.archiveAttachments(topic.getAttachments(), errorTopicAttachment, folderStructure + "/topic-attachments/", archiveId, siteId, toolId);
+
+			// Archive the messages within a topic, if we want student content
+			if (includeStudentContent) {
+
+				List<Message> messages = topic.getMessages();
+				for (Message message : messages) {
+
+					// Find the top level message
+					if (message.getInReplyTo() == null) {
+						SimpleMessage topLevelMessage = new SimpleMessage(message);
+						
+						// Set message replies
+						this.setMessageReplies(topLevelMessage, message, messages);
+
+						// Archive the messages
+						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(topLevelMessage).getBytes(), 
+								message.getTitle() + ".json", folderStructure);
+					}
+
+					// Archive the attachments for this message
+					if (message.getHasAttachments()) {
+						
+						// It is unfortunately necessary to get the attachments for a message by first getting the topic populated with
+						// the message attachments, and adding the attachments to the message. See doc on setAttachments method.
+						Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topic.getId());
+						this.setAttachments(message, topicWithMessageAttachments.getMessages());
+						
+						String errorMessageAttachment = "message: " + message.getTitle() + " in topic: " + topic.getTitle() + " in forum: " + forum.getTitle();
+						this.archiveAttachments(message.getAttachments(), errorMessageAttachment, folderStructure + "/topic-attachments/message-attachments/message-" + message.getId(), archiveId, siteId, toolId);
+					}
 				}
 			}
 		}
 		
+		// Now that all the topics are set, archive the forum
+		simpleForum.setTopics(simpleTopics);
+		this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleForum).getBytes(), "forum-metadata.json", forum.getTitle());
 	}
-	
+
 	/**
 	 * Add any replies to each SimpleMessage object
 	 * 
@@ -133,43 +155,46 @@ public class ForumsArchiver implements Archiveable {
 	}
 	
 	/**
-	 * Get the attachments for this forum, and archive them
+	 * Archive a list of attachments
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
-	private void archiveAttachments(DiscussionForum forum, final String archiveId, final String siteId, final String toolId) {
-		List<Reference> forumAttachments = forum.getAttachments();
-		for (Reference forumAttachment : forumAttachments) {
+	private void archiveAttachments(List<Attachment> attachments, String errorDescription, String subdir, final String archiveId, final String siteId, final String toolId) {
+		for (Attachment attachment : attachments) {
 			try {
-				archiveAttachment(forumAttachment, archiveId, siteId, toolId, forum.getTitle() + "/attachments");
+				byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getAttachmentId()).getContent();
+				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
+						attachment.getAttachmentName(), subdir);
 			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
-				log.error("Error getting attachment for forum: {}", forum.getTitle());
+				log.error("Error getting attachment for {}", errorDescription);
 				continue;
 			} 
 		}
 	}
 	
 	/**
-	 * Helper method to archive attachments
+	 * This is a dirty hack to set the attachments on the message. There doesn't seem
+	 * to be an api for getting a single message with all attachments. If you try and retrieve
+	 * them after, hibernate throws a lazy exception.
 	 * 
-	 * @param attachment
-	 * @param archiveId
-	 * @param siteId
-	 * @param toolId
-	 * @param title
-	 * @throws ServerOverloadException
-	 * @throws PermissionException
-	 * @throws IdUnusedException
-	 * @throws TypeException
+	 * @param unPopulatedMessage The message we want to set attachments on
+	 * @param populatedMessages The list of populated messages retrieved from the forum manager
 	 */
-	private void archiveAttachment(Reference attachment, String archiveId, String siteId, String toolId, String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
-		byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes, 
-				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
+	private void setAttachments(Message unPopulatedMessage, List<Message> populatedMessages) {
+		
+		for(Message populatedMessage : populatedMessages) {
+			if(populatedMessage.getId().equals(unPopulatedMessage.getId())
+					&& populatedMessage.getHasAttachments()) {
+				unPopulatedMessage.setAttachments(populatedMessage.getAttachments());
+				break;
+			}
+		}
 	}
+	
+	
 	
 	/**
 	 *  Simplified Message class
@@ -336,6 +361,9 @@ public class ForumsArchiver implements Archiveable {
 
 		@Setter
 		private String modifiedBy;
+		
+		@Setter
+		private List<SimpleTopic> topics;
 
 		SimpleForum (DiscussionForum forum) {
 			this.title = forum.getTitle();
