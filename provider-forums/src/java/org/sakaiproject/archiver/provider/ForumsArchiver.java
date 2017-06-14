@@ -60,7 +60,7 @@ public class ForumsArchiver implements Archiveable {
 			archiveForum(forum, archiveId, siteId, toolId, includeStudentContent);
 
 			// Archive the attachments for this forum
-			archiveAttachments(forum.getAttachments(), "forum: " + forum.getTitle(), forum.getTitle() + "/forum-attachments/", archiveId,
+			archiveAttachments(forum.getAttachments(), forum.getTitle() + "/forum-attachments/", archiveId,
 					siteId, toolId);
 		}
 	}
@@ -94,8 +94,7 @@ public class ForumsArchiver implements Archiveable {
 			final String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
 
 			// Archive the attachments for this topic
-			final String errorTopicAttachment = "topic: " + topic.getTitle() + " in forum: " + forum.getTitle();
-			archiveAttachments(topic.getAttachments(), errorTopicAttachment, folderStructure + "/topic-attachments/", archiveId, siteId,
+			archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId,
 					toolId);
 
 			// Archive the messages within a topic, if we want student content
@@ -109,7 +108,7 @@ public class ForumsArchiver implements Archiveable {
 						final SimpleMessage topLevelMessage = new SimpleMessage(message);
 
 						// Set message replies
-						setMessageReplies(topLevelMessage, message, messages);
+						setMessageReplies(topLevelMessage, messages);
 
 						// Archive the messages
 						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(topLevelMessage).getBytes(),
@@ -124,9 +123,7 @@ public class ForumsArchiver implements Archiveable {
 						final Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topic.getId());
 						setAttachments(message, topicWithMessageAttachments.getMessages());
 
-						final String errorMessageAttachment = "message: " + message.getTitle() + " in topic: " + topic.getTitle()
-								+ " in forum: " + forum.getTitle();
-						archiveAttachments(message.getAttachments(), errorMessageAttachment,
+						archiveAttachments(message.getAttachments(),
 								folderStructure + "/topic-attachments/message-attachments/message-" + message.getId(), archiveId, siteId,
 								toolId);
 					}
@@ -143,33 +140,32 @@ public class ForumsArchiver implements Archiveable {
 	/**
 	 * Add any replies to each SimpleMessage object
 	 *
-	 * @param simpleTopMessage
-	 * @param topMessage
-	 * @param messages
+	 * @param simpleTopMessage The first message posted in a topic, as a SimpleMessage
+	 * @param messages The full list of messages for this topic
 	 */
-	private void setMessageReplies(final SimpleMessage simpleTopMessage, final Message topMessage, final List<Message> messages) {
+	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages) {
 
 		for (final Message message : messages) {
-			if (message.getInReplyTo() == topMessage) {
+			if ((message.getInReplyTo() != null) && (message.getInReplyTo().getId() == simpleTopMessage.getMessageId())) {
 				final List<SimpleMessage> replies = simpleTopMessage.getReplies();
 				final SimpleMessage thisMessage = new SimpleMessage(message);
 				replies.add(thisMessage);
 
 				// Recursively set the replies for this inner message
-				setMessageReplies(thisMessage, message, messages);
+				setMessageReplies(thisMessage, messages);
 			}
 		}
 	}
 
 	/**
 	 * Archive a list of attachments
-	 * 
+	 *
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
 	 */
-	private void archiveAttachments(final List<Attachment> attachments, final String errorDescription, final String subdir,
+	private void archiveAttachments(final List<Attachment> attachments, final String subdir,
 			final String archiveId, final String siteId, final String toolId) {
 		for (final Attachment attachment : attachments) {
 			try {
@@ -177,13 +173,15 @@ public class ForumsArchiver implements Archiveable {
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
 						attachment.getAttachmentName(), subdir);
 			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
-				log.error("Error getting attachment for {}", errorDescription);
+				log.error("Error getting attachment with ID: ", attachment.getId());
 				continue;
 			}
 		}
 	}
 
 	/**
+	 * From ForumEntityProviderImpl
+	 *
 	 * This is a dirty hack to set the attachments on the message. There doesn't seem to be an api for getting a single message with all
 	 * attachments. If you try and retrieve them after, hibernate throws a lazy exception.
 	 *
@@ -207,6 +205,7 @@ public class ForumsArchiver implements Archiveable {
 	private class SimpleMessage {
 
 		@Setter
+		@Getter
 		private Long messageId;
 
 		@Setter
@@ -370,7 +369,7 @@ public class ForumsArchiver implements Archiveable {
 		@Setter
 		private List<SimpleTopic> topics;
 
-		SimpleForum(final DiscussionForum forum) {
+		public SimpleForum(final DiscussionForum forum) {
 			this.title = forum.getTitle();
 			this.extendedDescription = forum.getExtendedDescription();
 			this.shortDescription = forum.getShortDescription();
