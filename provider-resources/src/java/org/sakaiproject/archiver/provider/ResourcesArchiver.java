@@ -1,21 +1,18 @@
 package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.entity.api.ResourceProperties;
-import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.ServerOverloadException;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -89,27 +86,11 @@ public class ResourcesArchiver implements Archiveable {
 
 		});
 
-		final String json = Jsonifier.toJson(metadata);
-		log.debug("Resources JSON: {} ", json);
+		final String metadataContents = Htmlifier.toHtml(metadata);
+		log.debug("Resources metadata: {} ", metadataContents);
 
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, json.getBytes(), "index.json");
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, metadataContents.getBytes(), "index.html");
 
-	}
-
-	/**
-	 * Get a list of students in the site, as uuids
-	 *
-	 * @param siteId
-	 * @return
-	 */
-	private List<String> getStudentUuids(final String siteId) {
-		try {
-			final Set<String> userIds = this.siteService.getSite(siteId).getUsersIsAllowed("dropbox.own");
-			return new ArrayList<>(userIds);
-		} catch (final IdUnusedException e) {
-			log.error("No users in site: {}", siteId);
-			return Collections.emptyList();
-		}
 	}
 
 	/**
