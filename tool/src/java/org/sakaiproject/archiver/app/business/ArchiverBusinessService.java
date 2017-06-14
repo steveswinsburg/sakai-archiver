@@ -3,6 +3,7 @@ package org.sakaiproject.archiver.app.business;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -119,6 +120,7 @@ public class ArchiverBusinessService {
 				}
 			});
 		}
+		Collections.sort(tools);
 
 		log.debug("Archiveable tools {}", tools);
 
