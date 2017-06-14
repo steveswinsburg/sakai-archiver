@@ -207,7 +207,7 @@ public class AssignmentArchiver implements Archiveable {
 				this.archiverService.archiveContent(archiveId, siteId, toolId, gradesSpreadsheet, "grades.xls");
 			}
 		} catch (IdUnusedException | PermissionException e) {
-			log.error("Error getting grades spreadsheet for site {} " + siteId);
+			log.error("Error getting grades spreadsheet for site {} ", siteId);
 		}
 	}
 
@@ -233,7 +233,7 @@ public class AssignmentArchiver implements Archiveable {
 			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName;
 		}
 
-		// Neither a user or group could be found, save anyway in folder "unknown"
+		// Neither a user or group could be found, use submitterId as folder name
 		log.error("Neither a user or group name could not be found for submitterId: {}", submitterId);
 		return assignment.getTitle() + "/" + submitterId + "/submission";
 	}
