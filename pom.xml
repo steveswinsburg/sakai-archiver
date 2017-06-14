@@ -32,6 +32,7 @@
 		<module>provider-assignments</module>
 		<module>provider-resources</module>
 		<module>provider-news</module>
+		<module>provider-forums</module>
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
 	</modules>
