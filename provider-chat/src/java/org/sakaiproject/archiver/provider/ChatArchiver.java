@@ -58,25 +58,30 @@ public class ChatArchiver implements Archiveable {
 			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(metadata).getBytes(),
 					chatChannel.getTitle() + " (metadata).json");
 
-			final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
+			// Only archive chat messages if we want to include student content
+			if (includeStudentContent) {
+				final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
 
-			// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
-			for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
+				// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
+				for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
 
-				try {
-					final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99, true);
+					try {
+						final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99,
+								true);
 
-					final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
+						final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
 
-					// Convert to JSON and save to file
-					final int rangeStart = start + 1;
-					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
-					this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(),
-							chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json", chatChannel.getTitle() + "(messages)");
+						// Convert to JSON and save to file
+						final int rangeStart = start + 1;
+						final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
+						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(),
+								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json",
+								chatChannel.getTitle() + "(messages)");
 
-				} catch (final PermissionException e) {
-					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
-					continue;
+					} catch (final PermissionException e) {
+						log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
+						continue;
+					}
 				}
 			}
 		}
@@ -113,7 +118,7 @@ public class ChatArchiver implements Archiveable {
 
 	/**
 	 * Build the archive item for an individual chat message
-	 * 
+	 *
 	 * @param message
 	 * @return
 	 */
@@ -138,7 +143,7 @@ public class ChatArchiver implements Archiveable {
 
 	/**
 	 * Helper to get the user associated with a chat message
-	 * 
+	 *
 	 * @param owner
 	 * @return user
 	 */
