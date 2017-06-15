@@ -35,6 +35,7 @@
 		<module>provider-forums</module>
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
+		<module>provider-testsandquizzes</module>
 	</modules>
 	
 	<dependencyManagement>
