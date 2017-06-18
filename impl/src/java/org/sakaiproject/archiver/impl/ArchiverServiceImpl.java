@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -83,18 +84,20 @@ public class ArchiverServiceImpl implements ArchiverService {
 		entity.setArchivePath(archivePath);
 		this.dao.update(entity);
 
-		// now archive all of the registered tools
 		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
-		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
-
-		// assuming no errors
 		Status status = Status.COMPLETE;
 
+		final List<String> customRegistrations = getCustomRegistrations();
+		toolsToArchive.addAll(customRegistrations);
+
+		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
+
+		// archive all registered and custom tools
 		for (final String toolId : toolsToArchive) {
 			final Archiveable archivable = registry.get(toolId);
 			if (archivable == null) {
 				log.error("No registered archiver for {}", toolId);
-				continue;
+				return;
 			}
 
 			log.info("Archiving {}", toolId);
@@ -291,6 +294,16 @@ public class ArchiverServiceImpl implements ArchiverService {
 		if (getExcludedExtensions().contains(extension)) {
 			throw new FileExtensionExcludedException();
 		}
+	}
+
+	/**
+	 * Get a list of custom registrations, ie those that start with {@link Archiveable#CUSTOM_PREFIX}
+	 *
+	 * @return
+	 */
+	private List<String> getCustomRegistrations() {
+		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
+		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
 	}
 
 }

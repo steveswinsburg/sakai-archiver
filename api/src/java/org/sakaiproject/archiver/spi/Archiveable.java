@@ -16,6 +16,11 @@ import org.sakaiproject.archiver.api.ArchiverService;
 public interface Archiveable {
 
 	/**
+	 * Prefix for custom services to use that are not necessarily associated with a tool
+	 */
+	final String CUSTOM_PREFIX = "archiver_custom_";
+
+	/**
 	 * Create the tool archive
 	 *
 	 * @param archiveId the id of the archive that this tool should use to send the content to
