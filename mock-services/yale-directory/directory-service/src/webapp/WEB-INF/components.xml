@@ -2,19 +2,13 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     
-    
-    
-    
     <bean id="edu.yale.its.amt.sakai.directory.YaleDirectoryService"
-          class="edu.yale.its.amt.sakai.directory.YaleDirectoryServiceImpl"
-          singleton="true">
+          class="edu.yale.its.amt.sakai.directory.YaleDirectoryServiceImpl">
     </bean>  
     
     <bean id="edu.yale.its.amt.sakai.directory.YalePhotoDirectoryService" 
-         class="edu.yale.its.amt.sakai.directory.YalePhotoDirectoryServiceImpl"
-         singleton="true">
+         class="edu.yale.its.amt.sakai.directory.YalePhotoDirectoryServiceImpl">
     </bean>
-    
     
 </beans>
 
