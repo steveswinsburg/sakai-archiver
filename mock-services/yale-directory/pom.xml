@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.sakaiproject.archiver</groupId>
+		<artifactId>archiver</artifactId>
+		<version>0.2-SNAPSHOT</version>
+	</parent>
+
+	<name>yale-directory</name>
+	<groupId>yale</groupId>
+	<artifactId>yale-directory-base</artifactId>
+	<version>10.4</version>
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>directory-api</module>
+		<module>directory-service</module>
+		<module>directory-shared</module>
+	</modules>
+
+</project>

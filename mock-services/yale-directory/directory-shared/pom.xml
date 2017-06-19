@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>yale-directory-base</artifactId>
+		<groupId>yale</groupId>
+		<version>10.4</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<name>Yale Directory Shared</name>
+	<groupId>yale</groupId>
+	<artifactId>directory-shared</artifactId>
+	<organization>
+		<name>Yale University</name>
+		<url>http://www.yale.edu/</url>
+	</organization>
+	<inceptionYear>2006</inceptionYear>
+	<packaging>jar</packaging>
+	<properties>
+		<deploy.target>jar</deploy.target>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>yale</groupId>
+			<artifactId>directory-api</artifactId>
+			<version>10.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>1.6.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<!-- Sakai K1 dependencies -->
+		<!-- -->
+		<dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>sakai-kernel-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>sakai-component-manager</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>sakai-kernel-util</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<!-- this version will conflict with Sakai 10. Don't deploy on Sakai 10. -->
+			<version>2.5</version>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<sourceDirectory>src/java</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/bundle</directory>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+				<excludes>
+					<exclude>**/web.xml</exclude>
+				</excludes>
+			</resource>
+		</resources>
+	</build>
+
+
+</project>
+

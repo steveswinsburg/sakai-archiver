@@ -35,7 +35,8 @@
 		<module>provider-forums</module>
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
-		<module>provider-testsandquizzes</module>
+		<module>provider-testsandquizzes</module>	
+		<!-- run with -Pinclude-custom to include custom modules -->
 	</modules>
 	
 	<dependencyManagement>
@@ -79,7 +80,9 @@
 		</contributor>
 	</contributors>
 	
-	<profiles>  
+	<profiles> 
+		
+		<!-- include this repo so that clean build enviroments can get the Sakai snapshots --> 
 		<profile>
 			<id>snapshots</id>
 			<activation>
@@ -101,6 +104,34 @@
 					</snapshots>
 				</repository>
 			</repositories>
+		</profile>
+		
+		<!-- build custom archiver providers? -->
+		<profile>
+			<id>include-custom</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>include-custom</name>
+				</property>
+			</activation>
+			<modules>
+				<module>provider-yale-photos</module>
+			</modules>
+		</profile>
+		
+		<!-- build any mock services? -->
+		<profile>
+			<id>include-mock-services</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>include-mock-services</name>
+				</property>
+			</activation>
+			<modules>
+				<module>mock-services</module>
+			</modules>
 		</profile>
 	</profiles>
 	
