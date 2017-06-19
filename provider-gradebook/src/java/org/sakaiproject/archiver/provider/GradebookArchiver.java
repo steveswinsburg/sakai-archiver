@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GradebookArchiver implements Archiveable {
 
-	private static final String GRADEBOOK_CLASSIC_TOOL = "sakai.gradebook";
+	private static final String GRADEBOOK_CLASSIC_TOOL = "sakai.gradebook.tool";
 	private static final String GRADEBOOKNG_TOOL = "sakai.gradebookng";
 
 	public void init() {
