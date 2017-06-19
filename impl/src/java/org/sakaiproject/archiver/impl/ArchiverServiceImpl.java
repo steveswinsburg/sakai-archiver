@@ -88,12 +88,17 @@ public class ArchiverServiceImpl implements ArchiverService {
 		Status status = Status.COMPLETE;
 
 		final List<String> customRegistrations = getCustomRegistrations();
-		toolsToArchive.addAll(customRegistrations);
+
+		final List<String> allRegistrations = new ArrayList<>();
+		allRegistrations.addAll(toolsToArchive);
+
+		// this needs to ensure it is tied to a tool. so needs some work in the archiverregistry
+		allRegistrations.addAll(customRegistrations);
 
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 
 		// archive all registered and custom tools
-		for (final String toolId : toolsToArchive) {
+		for (final String toolId : allRegistrations) {
 			final Archiveable archivable = registry.get(toolId);
 			if (archivable == null) {
 				log.error("No registered archiver for {}", toolId);

@@ -6,6 +6,7 @@
 		<groupId>org.sakaiproject.archiver</groupId>
 		<artifactId>archiver</artifactId>
 		<version>0.2-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<name>yale-directory</name>

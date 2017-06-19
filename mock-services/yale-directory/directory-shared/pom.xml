@@ -5,7 +5,6 @@
 		<artifactId>yale-directory-base</artifactId>
 		<groupId>yale</groupId>
 		<version>10.4</version>
-		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<name>Yale Directory Shared</name>
 	<groupId>yale</groupId>
@@ -52,26 +51,21 @@
 
 	</dependencies>
 	<build>
-		<sourceDirectory>src/java</sourceDirectory>
 		<resources>
 			<resource>
-				<directory>src/bundle</directory>
+				<directory>src/resources</directory>
 				<includes>
-					<include>**/*.properties</include>
+					<include>**.*</include>
 				</includes>
 			</resource>
 			<resource>
 				<directory>src/java</directory>
 				<includes>
-					<include>**/*.xml</include>
+					<include>**.xml</include>
 				</includes>
-				<excludes>
-					<exclude>**/web.xml</exclude>
-				</excludes>
 			</resource>
 		</resources>
 	</build>
-
 
 </project>
 

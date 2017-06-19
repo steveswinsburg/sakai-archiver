@@ -10,7 +10,7 @@
 
 	<name>Mock services for the archiver</name>
 	
-	<groupId>prg.sakaiproject.archiver</groupId>
+	<groupId>org.sakaiproject.archiver</groupId>
 	<artifactId>archiver-mock-services</artifactId>
 	<packaging>pom</packaging>
 	

@@ -20,16 +20,16 @@ public class YalePhotoDirectoryServiceImpl implements YalePhotoDirectoryService 
 	@Override
 	public byte[] loadPhotoFromCache(final String netId)
 			throws YalePhotoDirectoryServiceException {
-		final byte[] bytes = null;
-		final File sampleJpg = new File(getClass().getResource("/photo.jpg").getFile());
+
+		final File photoJpg = new File(getClass().getClassLoader().getResource("photo.jpg").getFile());
+
 		try {
-			final InputStream is = FileUtils.openInputStream(sampleJpg);
-			IOUtils.readFully(is, bytes);
+			final InputStream is = FileUtils.openInputStream(photoJpg);
+			return IOUtils.toByteArray(is);
 		} catch (final IOException e) {
 			e.printStackTrace();
+			return null;
 		}
-		return bytes;
-
 	}
 
 	@Override
