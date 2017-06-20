@@ -50,22 +50,7 @@
 		</dependency>
 
 	</dependencies>
-	<build>
-		<resources>
-			<resource>
-				<directory>src/resources</directory>
-				<includes>
-					<include>**.*</include>
-				</includes>
-			</resource>
-			<resource>
-				<directory>src/java</directory>
-				<includes>
-					<include>**.xml</include>
-				</includes>
-			</resource>
-		</resources>
-	</build>
+	<build />
 
 </project>
 
