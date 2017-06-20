@@ -6,7 +6,7 @@ import java.util.List;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.assignment.api.Assignment;
 import org.sakaiproject.assignment.api.AssignmentService;
 import org.sakaiproject.assignment.api.AssignmentSubmission;
@@ -77,7 +77,7 @@ public class AssignmentArchiver implements Archiveable {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleAssignment).getBytes(), "details.json",
+			this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleAssignment).getBytes(), "details.html",
 					assignment.getTitle());
 
 			// archive the attachments for the assignment
@@ -140,8 +140,8 @@ public class AssignmentArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(submissionData).getBytes(),
-						"submission.json", submissionSubdirs);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(submissionData).getBytes(),
+						"submission.html", submissionSubdirs);
 			}
 
 			// get the feedback, if this submission has been graded
@@ -159,7 +159,7 @@ public class AssignmentArchiver implements Archiveable {
 
 				// get other data associated with this feedback
 				final SimpleFeedback feedback = new SimpleFeedback(submission);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(feedback).getBytes(), "feedback.json",
+				this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
 						feedbackSubdirs);
 			}
 		}
