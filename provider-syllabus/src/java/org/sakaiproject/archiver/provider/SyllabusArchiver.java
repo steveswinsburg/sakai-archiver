@@ -10,7 +10,7 @@ import org.sakaiproject.api.app.syllabus.SyllabusManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -59,9 +59,9 @@ public class SyllabusArchiver implements Archiveable {
 		// Go through and archive each syllabus item
 		for (SyllabusData syllabus : syllabusSet) {
 			ArchiveItem archiveItem = createArchiveItem(syllabus);
-			String jsonArchiveItem = Jsonifier.toJson(archiveItem);
-			log.debug("Archive item metadata: " + jsonArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, jsonArchiveItem.getBytes(), archiveItem.getTitle() + ".json");
+			final String htmlArchiveItem = Htmlifier.toHtml(archiveItem);
+			log.debug("Archive item metadata: " + htmlArchiveItem);
+			this.archiverService.archiveContent(archiveId, siteId, toolId, htmlArchiveItem.getBytes(), archiveItem.getTitle() + ".html");
 
 			//get the attachments
 			Set<SyllabusAttachment> syllabusAttachments = this.syllabusManager.getSyllabusAttachmentsForSyllabusData(syllabus);
