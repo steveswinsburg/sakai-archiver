@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.provider;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.entity.api.ResourceProperties;
@@ -18,7 +16,6 @@ import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,10 +56,8 @@ public class ResourcesArchiver implements Archiveable {
 		final String collectionId = getSiteCollectionId(siteId);
 		final List<ContentResource> resources = this.contentHostingService.getAllResources(collectionId);
 
-		// TODO do we care about student uploaded files here?
+		// TODO do we care about controlling student uploaded files here?
 		// List<String> studentUuids = this.getStudentUuids(siteId);
-
-		final List<Metadata> metadata = new ArrayList<>();
 
 		// maintain a cache of display names for this archive run
 		final Map<String, String> userDisplayNames = new HashMap<>();
@@ -79,18 +74,11 @@ public class ResourcesArchiver implements Archiveable {
 
 			try {
 				this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, resource.getContent(), filename, subdirs);
-				metadata.add(createMetadata(resource, subdirs, filename, userDisplayNames.get(creatorUuid)));
 			} catch (final ServerOverloadException e) {
 				log.error("Error retrieving data for resource {}", resource.getUrl(true));
 			}
 
 		});
-
-		final String metadataContents = Htmlifier.toHtml(metadata);
-		log.debug("Resources metadata: {} ", metadataContents);
-
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, metadataContents.getBytes(), "index.html");
-
 	}
 
 	/**
@@ -167,48 +155,6 @@ public class ResourcesArchiver implements Archiveable {
 			log.debug("User {} could not be found, falling back to uuid", userUuid);
 		}
 		return userUuid;
-	}
-
-	/**
-	 * Create a Metadata object for this resource and other data
-	 *
-	 * @param resource
-	 * @param subdirs
-	 * @param filename
-	 * @param creatorDisplayName
-	 * @return
-	 */
-	private Metadata createMetadata(final ContentResource resource, final String[] subdirs, final String filename,
-			final String creatorDisplayName) {
-		final Metadata m = new Metadata();
-		m.setDir(String.join("/", subdirs));
-		m.setFilename(filename);
-		m.setCreator(creatorDisplayName);
-		m.setCreated(getCreationDate(resource));
-		return m;
-	}
-
-	/**
-	 * Metadata for a resource in the site
-	 */
-	public static class Metadata {
-
-		@Getter
-		@Setter
-		private String dir;
-
-		@Getter
-		@Setter
-		private String filename;
-
-		@Getter
-		@Setter
-		private String creator;
-
-		@Getter
-		@Setter
-		private String created;
-
 	}
 
 }
