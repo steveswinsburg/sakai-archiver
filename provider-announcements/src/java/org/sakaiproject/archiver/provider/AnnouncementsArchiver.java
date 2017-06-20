@@ -1,7 +1,6 @@
 package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.sakaiproject.announcement.api.AnnouncementMessage;
@@ -100,7 +99,7 @@ public class AnnouncementsArchiver implements Archiveable {
 		final ArchiveItem archiveItem = new ArchiveItem();
 		archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
 		archiveItem.setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
-		archiveItem.setCreatedOn(new Date(announcement.getHeader().getDate().getTime()));
+		archiveItem.setCreatedOn(announcement.getHeader().getDate().getDisplay());
 		archiveItem.setBody(announcement.getBody());
 
 		return archiveItem;
@@ -125,11 +124,8 @@ public class AnnouncementsArchiver implements Archiveable {
 
 		@Getter
 		@Setter
-		private Date createdOn;
+		private String createdOn;
 
-		@Getter
-		@Setter
-		private String channel;
 	}
 
 }
