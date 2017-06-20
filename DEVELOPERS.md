@@ -33,5 +33,6 @@ Use the methods in `org.sakaiproject.archiver.api.ArchiverService` within your s
 
 There is a helper utility `org.sakaiproject.archiver.util.Jsonifier#toJson(Object)` which you can throw objects at to get String (JSON) representations of objects back, and then you can send them over for archiving.
 
-
+## Custom builds
+Some archivers may require services not available to your development environment. To include mocks of these in your deployment use `-Pinclude-mock-services`.
 

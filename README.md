@@ -22,6 +22,10 @@ archiver.excluded.extensions=zip,gz,DS_Store
 ## Deployment
 By default, all archiver providers are deployed. However, each archiver provider can be deployed independently if required. Simply build the ones you require or edit the base `pom.xml` and look for the `<modules>` section.
 
+To include custom archivers, use `-Pinclude-custom`.
+
+See also ![DEVELOPERS.md](DEVELOPERS.md) for more information on custom builds.
+
 ## Permissions
 
 To access the archiver you must have the `site.upd` permission with in a site.
