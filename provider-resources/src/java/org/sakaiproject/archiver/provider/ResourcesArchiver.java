@@ -132,17 +132,6 @@ public class ResourcesArchiver implements Archiveable {
 	}
 
 	/**
-	 * Get the creation date of the file
-	 *
-	 * @param resource
-	 * @return
-	 */
-	private String getCreationDate(final ContentResource resource) {
-		final ResourceProperties props = resource.getProperties();
-		return props.getProperty(ResourceProperties.PROP_CREATION_DATE);
-	}
-
-	/**
 	 * Get the display name for a single user. Fall back to uuid if not found
 	 *
 	 * @param userUuid uuid to lookup
