@@ -68,23 +68,39 @@ public class AnnouncementsArchiver implements Archiveable {
 				log.debug("Announcement data: " + fileContents);
 				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents.getBytes(), archiveItem.getTitle() + ".html");
 
-				// get the attachments
-				for (final Reference attachment : announcement.getAnnouncementHeader().getAttachments()) {
-					byte[] attachmentBytes;
-					try {
-						attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-						this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
-								attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()),
-								archiveItem.getTitle() + " (attachments)");
-					} catch (ServerOverloadException | IdUnusedException | TypeException e) {
-						log.error("Error getting attachment for announcement: " + archiveItem.getTitle());
-						continue;
-					}
-
-				}
+				// archive the attachments
+				archiveAttachments(announcement.getAnnouncementHeader().getAttachments(), archiveItem.getTitle(), archiveId, siteId,
+						toolId);
 			}
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements");
+		}
+	}
+
+	/**
+	 * Archive the attachments associated with an announcement
+	 * 
+	 * @param attachments
+	 * @param title
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 * @throws PermissionException
+	 */
+	private void archiveAttachments(final List<Reference> attachments, final String title, final String archiveId, final String siteId,
+			final String toolId) throws PermissionException {
+
+		for (final Reference attachment : attachments) {
+			byte[] attachmentBytes;
+			try {
+				attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
+						attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()),
+						title + " (attachments)");
+			} catch (ServerOverloadException | IdUnusedException | TypeException e) {
+				log.error("Error getting attachment for announcement: " + title);
+				continue;
+			}
 		}
 	}
 
