@@ -83,7 +83,7 @@ public class ArchiveHistoryPage extends BasePage {
 	 */
 	private IModel<File> getFileModel(final Archive archive) {
 
-		final IModel<File> fileModel = new LoadableDetachableModel<File>() {
+		return new LoadableDetachableModel<File>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -96,7 +96,6 @@ public class ArchiveHistoryPage extends BasePage {
 				}
 			}
 		};
-		return fileModel;
 	}
 
 	/**
