@@ -100,7 +100,7 @@ public class SyllabusArchiver implements Archiveable {
 	/**
 	 * Simplified helper class to represent metadata for an individual syllabus item in a site
 	 */
-	public static class ArchiveItem {
+	private static class ArchiveItem {
 
 		@Getter
 		@Setter
