@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.provider;
 
-import java.util.Date;
 import java.util.Set;
 
 import org.sakaiproject.api.app.syllabus.SyllabusAttachment;
@@ -10,6 +9,7 @@ import org.sakaiproject.api.app.syllabus.SyllabusManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.util.Dateifier;
 import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -50,8 +50,12 @@ public class SyllabusArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		// Get syllabus
+		// Get syllabus for site
 		final SyllabusItem siteSyllabus = this.syllabusManager.getSyllabusItemByContextId(siteId);
+		if (siteSyllabus == null) {
+			log.error("No sullabus in site {}. The syllabus will not be archived.", siteId);
+			return;
+		}
 
 		// Get the data
 		final Set<SyllabusData> syllabusSet = this.syllabusManager.getSyllabiForSyllabusItem(siteSyllabus);
@@ -82,7 +86,7 @@ public class SyllabusArchiver implements Archiveable {
 
 	/**
 	 * Build the ArchiveItem for a syllabus item
-	 * 
+	 *
 	 * @param syllabus
 	 * @return the archive item to be saved
 	 */
@@ -90,8 +94,8 @@ public class SyllabusArchiver implements Archiveable {
 
 		final ArchiveItem archiveItem = new ArchiveItem();
 		archiveItem.setTitle(syllabus.getTitle());
-		archiveItem.setStartDate(syllabus.getStartDate());
-		archiveItem.setEndDate(syllabus.getEndDate());
+		archiveItem.setStartDate(Dateifier.toIso8601(syllabus.getStartDate()));
+		archiveItem.setEndDate(Dateifier.toIso8601(syllabus.getEndDate()));
 		archiveItem.setBody(syllabus.getAsset());
 
 		return archiveItem;
@@ -108,11 +112,11 @@ public class SyllabusArchiver implements Archiveable {
 
 		@Getter
 		@Setter
-		private Date startDate;
+		private String startDate;
 
 		@Getter
 		@Setter
-		private Date endDate;
+		private String endDate;
 
 		@Getter
 		@Setter
