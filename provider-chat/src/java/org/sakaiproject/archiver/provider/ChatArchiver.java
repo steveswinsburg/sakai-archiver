@@ -7,7 +7,7 @@ import java.util.List;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.chat2.model.ChatChannel;
 import org.sakaiproject.chat2.model.ChatManager;
 import org.sakaiproject.chat2.model.ChatMessage;
@@ -52,12 +52,6 @@ public class ChatArchiver implements Archiveable {
 
 		for (final ChatChannel chatChannel : chatChannels) {
 
-			// Save the metadata for this channel
-			final ChatChannelMetadata metadata = createChatChannelMetadata(chatChannel);
-
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(metadata).getBytes(),
-					chatChannel.getTitle() + " (metadata).json");
-
 			// Only archive chat messages if we want to include student content
 			if (includeStudentContent) {
 				final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
@@ -71,11 +65,11 @@ public class ChatArchiver implements Archiveable {
 
 						final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
 
-						// Convert to JSON and save to file
+						// Convert to HTML and save to file
 						final int rangeStart = start + 1;
 						final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(),
-								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json",
+						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(messagesToSave).getBytes(),
+								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").html",
 								chatChannel.getTitle() + "(messages)");
 
 					} catch (final PermissionException e) {
@@ -85,19 +79,6 @@ public class ChatArchiver implements Archiveable {
 				}
 			}
 		}
-	}
-
-	private ChatChannelMetadata createChatChannelMetadata(final ChatChannel chatChannel) {
-
-		final ChatChannelMetadata metadata = new ChatChannelMetadata();
-		metadata.setDateCreated(chatChannel.getCreationDate());
-		metadata.setStartDate(chatChannel.getStartDate());
-		metadata.setEndDate(chatChannel.getEndDate());
-		metadata.setTitle(chatChannel.getTitle());
-		metadata.setDescription(chatChannel.getDescription());
-		metadata.setId(chatChannel.getId());
-
-		return metadata;
 	}
 
 	/**
@@ -181,36 +162,5 @@ public class ChatArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String eid;
-
-	}
-
-	/**
-	 * Simplified helper class to represent the metadata for a chat channel
-	 */
-	private class ChatChannelMetadata {
-
-		@Getter
-		@Setter
-		private String title;
-
-		@Getter
-		@Setter
-		private String description;
-
-		@Getter
-		@Setter
-		private String id;
-
-		@Getter
-		@Setter
-		private Date dateCreated;
-
-		@Getter
-		@Setter
-		private Date startDate;
-
-		@Getter
-		@Setter
-		private Date endDate;
 	}
 }
