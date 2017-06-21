@@ -7,7 +7,7 @@ import java.util.List;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.chat2.model.ChatChannel;
 import org.sakaiproject.chat2.model.ChatManager;
 import org.sakaiproject.chat2.model.ChatMessage;
@@ -65,11 +65,11 @@ public class ChatArchiver implements Archiveable {
 
 						final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
 
-						// Convert to JSON and save to file
+						// Convert to HTML and save to file
 						final int rangeStart = start + 1;
 						final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(messagesToSave).getBytes(),
-								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").json",
+						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(messagesToSave).getBytes(),
+								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").html",
 								chatChannel.getTitle() + "(messages)");
 
 					} catch (final PermissionException e) {
@@ -162,6 +162,5 @@ public class ChatArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String eid;
-
 	}
 }
