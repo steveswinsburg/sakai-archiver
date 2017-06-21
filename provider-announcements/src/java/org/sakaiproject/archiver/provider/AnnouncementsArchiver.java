@@ -55,7 +55,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 			// Get the announcements for this site
 			final String channelRef = this.announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
-			final List<Message> announcements = new ArrayList<Message>();
+			final List<Message> announcements = new ArrayList<>();
 			announcements.addAll(this.announcementService.getMessages(channelRef, null, 0, true, false, false));
 
 			// Go through each announcement and save the data we are interested in
