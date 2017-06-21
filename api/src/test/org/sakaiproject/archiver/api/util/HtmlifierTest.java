@@ -21,7 +21,7 @@ public class HtmlifierTest {
 		final Person person = new Person("Bob Smith");
 		final String html = Htmlifier.toHtml(person);
 		assertTrue(html.contains("Bob Smith"));
-		assertTrue(html.contains("<td>phones</td><td>[]</td>"));
+		assertTrue(html.contains("<td>phones</td><td></td>"));
 	}
 
 	@Test
@@ -34,7 +34,7 @@ public class HtmlifierTest {
 
 		final String html = Htmlifier.toHtml(person);
 		assertTrue(html.contains("Bob Smith"));
-		assertTrue(html.contains("<td>phones</td><td>[213-555-1212]</td>"));
+		assertTrue(html.contains("<td>phones</td><td>213-555-1212</td>"));
 
 	}
 

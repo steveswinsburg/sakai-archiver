@@ -4,7 +4,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +62,7 @@ public class FormatHelper {
 
 	/**
 	 * Trim any .0 from a grade
-	 * 
+	 *
 	 * @param grade
 	 * @return
 	 */

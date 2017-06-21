@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
@@ -153,7 +153,7 @@ public class DropboxArchiver implements Archiveable {
 	 * @return
 	 */
 	private String[] prepend(final String element, final String[] array) {
-		return (String[]) ArrayUtils.add(array, 0, element);
+		return ArrayUtils.add(array, 0, element);
 	}
 
 	/**

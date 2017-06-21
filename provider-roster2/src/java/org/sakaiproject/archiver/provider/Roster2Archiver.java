@@ -3,7 +3,7 @@ package org.sakaiproject.archiver.provider;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;

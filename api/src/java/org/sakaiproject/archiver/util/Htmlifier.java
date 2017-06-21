@@ -1,22 +1,24 @@
 package org.sakaiproject.archiver.util;
 
-import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import java.util.List;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.builder.RecursiveToStringStyle;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * Utility to convert an object into a basic HTML representation.
  *
- * Leverages ReflectionToStringBuilder and adds some basic styling.
+ * Leverages {@link ReflectionToStringBuilder} and {@link RecursiveToStringStyle} and adds some basic styling.
  */
-public class Htmlifier extends ToStringStyle {
+public class Htmlifier extends RecursiveToStringStyle {
 
 	private static final long serialVersionUID = 1L;
 
 	private Htmlifier() {
 		setFieldSeparator("</td></tr>" + SystemUtils.LINE_SEPARATOR + "<tr><td>");
 
-		setContentStart("<table class=\"table table-bordered table-condensed\">" + SystemUtils.LINE_SEPARATOR +
+		setContentStart("<table class=\"table table-bordered table-condensed table-sm\">" + SystemUtils.LINE_SEPARATOR +
 				"<thead><tr><th>Field</th><th>Data</th></tr></thead>" +
 				"<tbody><tr><td>");
 
@@ -24,31 +26,43 @@ public class Htmlifier extends ToStringStyle {
 
 		setContentEnd("</td></tr>" + SystemUtils.LINE_SEPARATOR + "</tbody></table>");
 
-		setArrayContentDetail(true);
 		setUseShortClassName(true);
 		setUseClassName(false);
 		setUseIdentityHashCode(false);
-	}
+		setArrayContentDetail(true);
 
-	@Override
-	public void appendDetail(final StringBuffer buffer, final String fieldName, final Object value) {
-		if (value.getClass().getName().startsWith("java.lang")) {
-			super.appendDetail(buffer, fieldName, value);
-		} else {
-			buffer.append(ReflectionToStringBuilder.toString(value, this));
-		}
+		// remove the { and } around arrays
+		setArrayStart(null);
+		setArrayEnd(null);
+
 	}
 
 	/**
-	 * Serialise an object to HTML, with some styling
+	 * Serialise an object to HTML, with some styling.
 	 *
-	 * @param obj the object to serialise
+	 * @param object the object to serialise
 	 * @return a String of HTML
 	 */
 	public static String toHtml(final Object object) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(getHtmlStart());
 		sb.append(ReflectionToStringBuilder.toString(object, new Htmlifier()));
+		sb.append(getHtmlEnd());
+		return sb.toString();
+	}
+
+	/**
+	 * Serialise a list of objects to HTML, with some styling.
+	 *
+	 * @param objects the objects to serialise. Each one will get it's own rendering.
+	 * @return a String of HTML
+	 */
+	public static String toHtml(final List<?> objects) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(getHtmlStart());
+		objects.forEach(o -> {
+			sb.append(ReflectionToStringBuilder.toString(o, new Htmlifier()));
+		});
 		sb.append(getHtmlEnd());
 		return sb.toString();
 	}

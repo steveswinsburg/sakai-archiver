@@ -1,12 +1,12 @@
 package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.util.Dateifier;
 import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.chat2.model.ChatChannel;
 import org.sakaiproject.chat2.model.ChatManager;
@@ -48,34 +48,40 @@ public class ChatArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
+		if (!includeStudentContent) {
+			log.warn("Chat data cannot be archived without student content enabled");
+			return;
+		}
+
 		final List<ChatChannel> chatChannels = this.chatManager.getContextChannels(siteId, true);
 
 		for (final ChatChannel chatChannel : chatChannels) {
 
-			// Only archive chat messages if we want to include student content
-			if (includeStudentContent) {
-				final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
+			final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
 
-				// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
-				for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
+			// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
+			for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
 
-					try {
-						final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99,
-								true);
+				try {
+					final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99,
+							true);
 
-						final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
+					final List<SimpleChatMessage> messagesToSave = createArchiveItems(chatMessages);
 
-						// Convert to HTML and save to file
-						final int rangeStart = start + 1;
-						final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(messagesToSave).getBytes(),
-								chatChannel.getTitle() + "(" + rangeStart + "-" + rangeEnd + ").html",
-								chatChannel.getTitle() + "(messages)");
+					// Convert to HTML and save to file
+					final int rangeStart = start + 1;
+					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
 
-					} catch (final PermissionException e) {
-						log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
-						continue;
-					}
+					final String html = Htmlifier.toHtml(messagesToSave);
+					log.debug("Chat HTML: " + html);
+
+					this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
+							chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html",
+							chatChannel.getTitle());
+
+				} catch (final PermissionException e) {
+					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
+					continue;
 				}
 			}
 		}
@@ -108,16 +114,11 @@ public class ChatArchiver implements Archiveable {
 
 		final SimpleChatMessage simpleChatMessage = new SimpleChatMessage();
 		simpleChatMessage.setBody(message.getBody());
-		simpleChatMessage.setDate(message.getMessageDate());
+		simpleChatMessage.setDate(Dateifier.toIso8601(message.getMessageDate()));
 
 		final User user = getUser(message.getOwner());
-		if (user != null) {
-			simpleChatMessage.setOwner(user.getDisplayName());
-			simpleChatMessage.setEid(user.getEid());
-		} else {
-			simpleChatMessage.setOwner(message.getOwner());
-			simpleChatMessage.setEid(message.getOwner());
-		}
+		simpleChatMessage.setOwner((user != null) ? user.getDisplayName() : message.getOwner());
+		simpleChatMessage.setEid((user != null) ? user.getEid() : message.getOwner());
 
 		return simpleChatMessage;
 	}
@@ -137,7 +138,7 @@ public class ChatArchiver implements Archiveable {
 			return user;
 
 		} catch (final UserNotDefinedException e) {
-			log.error("Could not find user with userId: " + owner + ", uuid will be used in place of display name and eid.");
+			log.warn("Could not find user with userId: {}. Uuid will be used in place of display name and eid.", owner);
 		}
 		return null;
 	}
@@ -153,7 +154,7 @@ public class ChatArchiver implements Archiveable {
 
 		@Getter
 		@Setter
-		private Date date;
+		private String date;
 
 		@Getter
 		@Setter
@@ -162,5 +163,6 @@ public class ChatArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String eid;
+
 	}
 }

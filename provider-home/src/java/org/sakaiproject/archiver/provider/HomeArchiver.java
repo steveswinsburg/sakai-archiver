@@ -1,6 +1,6 @@
 package org.sakaiproject.archiver.provider;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
@@ -55,12 +55,12 @@ public class HomeArchiver implements Archiveable {
 
 	/**
 	 * Turn the description into HTML
-	 * 
+	 *
 	 * @param data
 	 * @return
 	 */
 	private String createHtmlFileContents(final String data) {
-		return StringEscapeUtils.unescapeHtml(data);
+		return StringEscapeUtils.unescapeHtml4(data);
 	}
 
 }
