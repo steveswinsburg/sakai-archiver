@@ -87,6 +87,16 @@ public class ArchiverBusinessService {
 	}
 
 	/**
+	 * Is the current user a super user?
+	 * 
+	 * @return
+	 */
+	public boolean isSuperUser() {
+		final User user = this.userDirectoryService.getCurrentUser();
+		return this.securityService.isSuperUser(user.getId());
+	}
+
+	/**
 	 * Get the user's preferred locale from the Sakai resource loader
 	 *
 	 * @return

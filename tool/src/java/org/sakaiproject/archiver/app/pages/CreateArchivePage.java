@@ -87,7 +87,16 @@ public class CreateArchivePage extends BasePage {
 		form.add(includeToolsView);
 
 		// include student data
-		final CheckBox includeStudentData = new CheckBox("includeStudentData", new PropertyModel<Boolean>(settings, "includeStudentData"));
+		// only if admin
+		final CheckBox includeStudentData = new CheckBox("includeStudentData", new PropertyModel<Boolean>(settings, "includeStudentData")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return CreateArchivePage.this.businessService.isSuperUser();
+			}
+		};
 		includeStudentData.setOutputMarkupId(true);
 		form.add(includeStudentData);
 

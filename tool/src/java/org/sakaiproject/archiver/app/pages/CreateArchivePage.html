@@ -25,20 +25,22 @@
 				</div>
 			</div>
 		</div>
-			
-		<h3><wicket:message key="heading.create.extra" /></h3>
-        
-        <!-- include student data -->
-        <div class="form-group">  
-			<div class="checkbox">
-				<label>
-					<input wicket:id="includeStudentData" type="checkbox" />
-					<span><wicket:message key="label.create.includestudentdata" /></span>
-				</label>
-			</div>
-		</div>
 		
-		<div class="col-xs-offset-1 ">
+		<wicket:enclosure child="includeStudentData">
+			<!-- include student data -->
+			<h3><wicket:message key="heading.create.extra" /></h3>
+        
+	        <div class="form-group">  
+				<div class="checkbox">
+					<label>
+						<input wicket:id="includeStudentData" type="checkbox" />
+						<span><wicket:message key="label.create.includestudentdata" /></span>
+					</label>
+				</div>
+			</div>
+		</wicket:enclosure>
+		
+		<div>
 			<input type="submit" class="btn btn-default" wicket:message="value:button.create" />
 		</div>
 		
