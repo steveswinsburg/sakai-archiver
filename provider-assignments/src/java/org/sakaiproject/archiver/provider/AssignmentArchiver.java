@@ -81,7 +81,8 @@ public class AssignmentArchiver implements Archiveable {
 					assignment.getTitle());
 
 			// archive the attachments for the assignment
-			archiveAttachments(assignment, archiveId, siteId, toolId);
+			final String attachmentDir = assignment.getTitle() + "/attachments";
+			archiveAttachments(assignment.getContent().getAttachments(), attachmentDir, archiveId, siteId, toolId);
 
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
@@ -91,25 +92,6 @@ public class AssignmentArchiver implements Archiveable {
 
 		// archive the grades spreadsheet for the site
 		archiveGradesSpreadsheet(archiveId, siteId, toolId);
-	}
-
-	/**
-	 * Get the attachments for this assignment, and archive them
-	 *
-	 * @param assignment
-	 * @param archiveId
-	 * @param siteId
-	 * @param toolId
-	 */
-	private void archiveAttachments(final Assignment assignment, final String archiveId, final String siteId, final String toolId) {
-		for (final Reference attachment : assignment.getContent().getAttachments()) {
-			try {
-				archiveAttachment(attachment, archiveId, siteId, toolId, assignment.getTitle() + "/attachments");
-			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
-				log.error("Error getting attachment for assignment: " + assignment.getTitle());
-				continue;
-			}
-		}
 	}
 
 	/**
@@ -126,17 +108,11 @@ public class AssignmentArchiver implements Archiveable {
 
 		for (final AssignmentSubmission submission : submissions) {
 
-			// get the attachments for this submission
-			final List<Reference> submissionAttachments = submission.getSubmittedAttachments();
 			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
 
-			for (final Reference attachment : submissionAttachments) {
-				try {
-					archiveAttachment(attachment, archiveId, siteId, toolId, submissionSubdirs);
-				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
-					log.error("Error getting submission attachment for assignment: " + assignment.getTitle());
-				}
-			}
+			// archive the attachments for this submission
+			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId, toolId);
+
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
@@ -146,21 +122,50 @@ public class AssignmentArchiver implements Archiveable {
 
 			// get the feedback, if this submission has been graded
 			if (submission.getGraded()) {
-				// get the attachments provided by the instructor when grading the submission
-				final List<Reference> feedbackAttachments = submission.getFeedbackAttachments();
-				final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
-				for (final Reference attachment : feedbackAttachments) {
-					try {
-						archiveAttachment(attachment, archiveId, siteId, toolId, feedbackSubdirs);
-					} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
-						log.error("Error getting feedback attachment for assignment: " + assignment.getTitle());
-					}
-				}
+				archiveFeedback(submission, assignment, archiveId, siteId, toolId);
+			}
+		}
+	}
 
-				// get other data associated with this feedback
-				final SimpleFeedback feedback = new SimpleFeedback(submission);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
-						feedbackSubdirs);
+	/**
+	 * Helper method to archive feedback for a submission
+	 *
+	 * @param submission
+	 * @param assignment
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 */
+	@SuppressWarnings("unchecked")
+	private void archiveFeedback(final AssignmentSubmission submission, final Assignment assignment, final String archiveId,
+			final String siteId, final String toolId) {
+
+		// archive the attachments provided by the instructor when grading the submission
+		final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
+		archiveAttachments(submission.getFeedbackAttachments(), feedbackSubdirs, archiveId, siteId, toolId);
+
+		// archive other data associated with this feedback
+		final SimpleFeedback feedback = new SimpleFeedback(submission);
+		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
+				feedbackSubdirs);
+	}
+
+	/**
+	 * Archive a list of attachments
+	 *
+	 * @param attachments
+	 * @param subdirs
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 */
+	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId,
+			final String toolId) {
+		for (final Reference attachment : attachments) {
+			try {
+				archiveAttachment(attachment, archiveId, siteId, toolId, subdirs);
+			} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
+				log.error("Error getting attachment: " + attachment.getId());
 			}
 		}
 	}
