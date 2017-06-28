@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.provider;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,7 +118,7 @@ public class AnnouncementsArchiver implements Archiveable {
 	 */
 	private void addToAttachmentList(final String attachmentName, final String attachmentLocation) {
 
-		final String attachmentHyperlink = "<li><a href=\"" + attachmentLocation + File.separator + attachmentName + "\">" + attachmentName
+		final String attachmentHyperlink = "<li><a href=\"" + attachmentLocation + "/" + attachmentName + "\">" + attachmentName
 				+ "</a></li>";
 		this.attachmentHyperlinksList = this.attachmentHyperlinksList + attachmentHyperlink;
 
