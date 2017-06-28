@@ -2,6 +2,7 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.component.api.ServerConfigurationService;
 
+import javafx.util.Duration;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,13 +46,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	public void init() {
 		log.info("ArchiverService started");
-	}
-
-	@Override
-	public boolean isArchiveInProgress(final String siteId) {
-
-		final ArchiveEntity entity = this.dao.getCurrent(siteId);
-		return (entity != null) ? true : false;
 	}
 
 	@Override
@@ -184,6 +179,17 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
 		return ArchiveMapper.toDtos(entities);
 	}
+	
+	@Override
+	public Archive getLatest(String siteId){
+		final ArchiveEntity entity = this.dao.getLatest(siteId);
+		if (entity == null) {
+			log.debug("No archive exists for siteId {}", siteId);
+			return null;
+		}
+
+		return ArchiveMapper.toDto(entity);
+	}
 
 	/**
 	 * Get base dir for all archives as configured in sakai.properties via <code>archiver.path</code>
@@ -310,5 +316,24 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
 	}
+	
+	/**
+	 * Checks if an archive is in progress for the given site.
+	 *
+	 * @return true/false
+	 */
+	private boolean isArchiveInProgress(final String siteId) {
+
+		final ArchiveEntity entity = this.dao.getLatest(siteId);
+		if(entity == null) {
+			return false;
+		}
+		if(entity.getStatus() == Status.STARTED){
+			return true;
+		}
+		return false;
+	}
+
+	
 
 }

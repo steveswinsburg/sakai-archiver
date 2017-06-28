@@ -13,7 +13,7 @@ public interface ArchiverPersistenceService {
 	 * @param userUuid
 	 * @return the persistent entity
 	 */
-	public ArchiveEntity create(String siteId, String userUuid);
+	ArchiveEntity create(String siteId, String userUuid);
 
 	/**
 	 * Update an existing archive
@@ -21,15 +21,15 @@ public interface ArchiverPersistenceService {
 	 * @param entity the entity with updated fields to be persisted
 	 * @return the updated entity
 	 */
-	public ArchiveEntity update(ArchiveEntity entity);
-
+	ArchiveEntity update(ArchiveEntity entity);
+	
 	/**
-	 * Get the current archive for the given site. Return null if none exists or is not currently active.
+	 * Get the latest archive for the given site. Return null if none exists
 	 *
 	 * @param siteId
 	 * @return
 	 */
-	public ArchiveEntity getCurrent(String siteId);
+	ArchiveEntity getLatest(String siteId);
 
 	/**
 	 * Get an archive by its id. Returns null if none exists by that id.
@@ -37,7 +37,7 @@ public interface ArchiverPersistenceService {
 	 * @param archiveId the id to lookup the archive for
 	 * @return
 	 */
-	public ArchiveEntity getByArchiveId(String archiveId);
+	ArchiveEntity getByArchiveId(String archiveId);
 
 	/**
 	 * Get a list of archives by the associated siteId ordered by date descending
@@ -45,6 +45,6 @@ public interface ArchiverPersistenceService {
 	 * @param siteId the id to lookup the archives for
 	 * @return List of {@link ArchiveEntity} or empty list if none exist for the site
 	 */
-	public List<ArchiveEntity> getBySiteId(String siteId);
+	List<ArchiveEntity> getBySiteId(String siteId);
 
 }

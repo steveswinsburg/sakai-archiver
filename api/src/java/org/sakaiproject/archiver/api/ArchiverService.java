@@ -18,13 +18,6 @@ import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 public interface ArchiverService {
 
 	/**
-	 * Checks if an archive is in progress for the given site.
-	 *
-	 * @return true/false
-	 */
-	boolean isArchiveInProgress(final String siteId);
-
-	/**
 	 * Start creating an archive for this site.
 	 *
 	 * @param siteId siteId to archive
@@ -72,6 +65,14 @@ public interface ArchiverService {
 	 * @throws {@ArchiveNotFoundException} if no archive can be found by that archiveId
 	 */
 	Archive getArchive(final String archiveId) throws ArchiveNotFoundException;
+	
+	/**
+	 * Get the latest archive for the given siteId
+	 *
+	 * @param siteId the siteId to get the archive for
+	 * @return the {@link Archive} dto or null if none;
+	 */
+	Archive getLatest(final String siteId);
 
 	/**
 	 * Get a list of archives for the given site

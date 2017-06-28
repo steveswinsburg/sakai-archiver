@@ -53,18 +53,14 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		log.debug("saved: " + entity.getId());
 		return entity;
 	}
-
+	
 	@Override
-	public ArchiveEntity getCurrent(final String siteId) {
-
-		// TODO look at status instead
-
+	public ArchiveEntity getLatest(final String siteId) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
 		criteria.add(Restrictions.eq("siteId", siteId));
-		criteria.add(Restrictions.isNull("endDate"));
-		// TODO catch exception if there is more than one for whatever reason, and deal with it.
+		criteria.addOrder(Order.desc("endDate"));
+		criteria.setMaxResults(1);
 		return (ArchiveEntity) criteria.uniqueResult();
-
 	}
 
 	@Override

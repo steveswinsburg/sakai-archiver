@@ -1,6 +1,9 @@
 package org.sakaiproject.archiver.app.business;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.sakaiproject.archiver.api.ArchiverService;
+import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveSite;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
@@ -88,7 +92,7 @@ public class ArchiverBusinessService {
 
 	/**
 	 * Is the current user a super user?
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isSuperUser() {
@@ -142,13 +146,41 @@ public class ArchiverBusinessService {
 	}
 
 	/**
-	 * Checks if an archive is running for the current site. Wrapper for {@link ArchiverService#isArchiveInProgress(String)}
+	 * Checks if an archive is running for the current site.
 	 *
 	 * @return true/false
 	 */
 	public boolean isArchiveInProgress() {
 		final String siteId = getCurrentSiteId();
-		return this.archiverService.isArchiveInProgress(siteId);
+
+		final Archive archive = this.archiverService.getLatest(siteId);
+		if (archive != null && archive.getStatus() == Status.STARTED) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if an archive was recently completed for the current site. Recent is defined as last 30 seconds.
+	 *
+	 * @return
+	 */
+	public boolean isArchiveRecentlyCompleted() {
+		final String siteId = getCurrentSiteId();
+		final Archive archive = this.archiverService.getLatest(siteId);
+		if (archive != null && archive.getStatus() == Status.COMPLETE) {
+			// check if difference between now and the finish date is less than 2 minutes
+
+			final LocalDateTime archiveEndDate = archive.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+			final LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+
+			final long difference = ChronoUnit.SECONDS.between(archiveEndDate, now);
+			if (difference <= 120) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -221,7 +253,7 @@ public class ArchiverBusinessService {
 
 	/**
 	 * Find sites matching the search string
-	 * 
+	 *
 	 * @param search search string
 	 * @return
 	 */
