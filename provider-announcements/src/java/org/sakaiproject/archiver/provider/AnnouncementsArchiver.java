@@ -103,7 +103,7 @@ public class AnnouncementsArchiver implements Archiveable {
 		final Element table = doc.select("table").first();
 		final Element lastRow = table.select("tr").last();
 		lastRow.appendElement("tr");
-		lastRow.append("<tr><td>Attachments</td><td><ul></ul></td></tr>");
+		lastRow.append("<td>Attachments</td><td><ul></ul></td>");
 		final Elements attachmentsList = doc.select("ul");
 		attachmentsList.append(this.attachmentHyperlinksList);
 
@@ -112,7 +112,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 	/**
 	 * Append each attachment as a hyperlink list item to the final attachments html string
-	 * 
+	 *
 	 * @param attachmentName
 	 * @param attachmentLocation
 	 */
