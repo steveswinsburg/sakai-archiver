@@ -13,7 +13,7 @@ import org.sakaiproject.util.ResourceLoader;
  */
 public class I18n {
 
-	private static final String BASE_NAME = "org.sakaiproject.archiver.app.ArchiverApplication";
+	private static final String BASE_NAME = "org.sakaiproject.archiver.provider.export";
 
 	private I18n() {
 	}
