@@ -1,6 +1,15 @@
 package org.sakaiproject.archiver.provider;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
@@ -47,10 +56,15 @@ public class HomeArchiver implements Archiveable {
 			return;
 		}
 
+		// get the html for the home frame
 		final String description = site.getHtmlDescription();
-		final String fileContents = createHtmlFileContents(description);
+		final String originalHtml = createHtmlFileContents(description);
 
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), "index.html");
+		// archive any images, alter html to point to the archived images
+		final String finalHtml = archiveImages(originalHtml, archiveId, siteId, toolId);
+
+		// archive the home frame html
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, finalHtml.getBytes(), "index.html");
 	}
 
 	/**
@@ -61,6 +75,72 @@ public class HomeArchiver implements Archiveable {
 	 */
 	private String createHtmlFileContents(final String data) {
 		return StringEscapeUtils.unescapeHtml4(data);
+	}
+
+	/**
+	 * Archive images that are in the home frame and alter the home frame html to point to these locally saved images
+	 *
+	 * @param originalHtml
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 * @return updated html
+	 */
+	private String archiveImages(final String originalHtml, final String archiveId, final String siteId, final String toolId) {
+
+		final Document doc = Jsoup.parse(originalHtml);
+		final List<Element> imageElements = doc.select("img");
+
+		for (final Element e : imageElements) {
+			try {
+
+				// get the image bytes
+				final String imageSource = e.absUrl("src");
+				final byte[] bytes = Jsoup.connect(imageSource).ignoreContentType(true).execute().bodyAsBytes();
+
+				// get the file name
+				final String filename = getFileName(imageSource);
+
+				// set a maximum image width
+				e.attr("style", "max-width: 100%");
+				e.attr("height", "auto");
+
+				// archive the image
+				this.archiverService.archiveContent(archiveId, siteId, toolId, bytes, filename, "/images");
+
+				// change the src for this image in the html
+				e.attr("src", "images/" + filename);
+
+			} catch (final IOException e1) {
+				log.debug("Error when saving image from src: " + e.absUrl("src"));
+				continue;
+			}
+		}
+
+		return doc.html();
+	}
+
+	/**
+	 * Assign a filename for this image.
+	 *
+	 * If there is a file extension in the url, the filename will be the text from the last backslash to the file extension. Otherwise, a
+	 * random UUID will be assigned.
+	 *
+	 * @param imageSource url string
+	 * @return filename string
+	 */
+	private String getFileName(final String imageSource) {
+		final Pattern pattern = Pattern.compile(
+				"/([^\\/]*\\.png)|([^\\/]*\\.jpeg)|([^\\/]*\\.tif)|([^\\/]*\\.jpg)|([^\\/]*\\.gif)|([^\\/]*\\.bmp)|([^\\/]*\\.svg)");
+		final Matcher matcher = pattern.matcher(imageSource);
+		String filename;
+		if (matcher.find()) {
+			filename = matcher.group();
+		} else { // none of the file extensions tested were present in the url
+			filename = UUID.randomUUID().toString();
+		}
+
+		return filename;
 	}
 
 }

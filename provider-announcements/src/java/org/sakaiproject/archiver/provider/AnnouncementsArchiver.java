@@ -3,6 +3,10 @@ package org.sakaiproject.archiver.provider;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.sakaiproject.announcement.api.AnnouncementMessage;
 import org.sakaiproject.announcement.api.AnnouncementService;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
@@ -48,6 +52,8 @@ public class AnnouncementsArchiver implements Archiveable {
 	@Setter
 	private ContentHostingService contentHostingService;
 
+	private String attachmentHyperlinksList = "";
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
@@ -62,15 +68,24 @@ public class AnnouncementsArchiver implements Archiveable {
 			for (final Message message : announcements) {
 				final AnnouncementMessage announcement = (AnnouncementMessage) message;
 
-				// Save this announcement
 				final ArchiveItem archiveItem = createArchiveItem(announcement);
-				final String fileContents = Htmlifier.toHtml(archiveItem);
+
+				// archive the attachments for this announcement
+				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
+				archiveAttachments(attachments, archiveItem.getTitle(), archiveId, siteId,
+						toolId);
+
+				// convert to html and append any attachments
+				String fileContents = Htmlifier.toHtml(archiveItem);
+
+				if (attachments.size() > 0) {
+					fileContents = includeAttachmentsInHtml(fileContents);
+				}
+
+				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
 				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents.getBytes(), archiveItem.getTitle() + ".html");
 
-				// archive the attachments
-				archiveAttachments(announcement.getAnnouncementHeader().getAttachments(), archiveItem.getTitle(), archiveId, siteId,
-						toolId);
 			}
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements");
@@ -78,8 +93,40 @@ public class AnnouncementsArchiver implements Archiveable {
 	}
 
 	/**
+	 * Add attachment links to the last row of the table
+	 *
+	 * @param fileContents
+	 * @return updated fileContents string
+	 */
+	private String includeAttachmentsInHtml(final String fileContents) {
+		final Document doc = Jsoup.parse(fileContents);
+		final Element table = doc.select("table").first();
+		final Element lastRow = table.select("tr").last();
+		lastRow.appendElement("tr");
+		lastRow.append("<td>Attachments</td><td><ul></ul></td>");
+		final Elements attachmentsList = doc.select("ul");
+		attachmentsList.append(this.attachmentHyperlinksList);
+
+		return doc.html();
+	}
+
+	/**
+	 * Append each attachment as a hyperlink list item to the final attachments html string
+	 *
+	 * @param attachmentName
+	 * @param attachmentLocation
+	 */
+	private void addToAttachmentList(final String attachmentName, final String attachmentLocation) {
+
+		final String attachmentHyperlink = "<li><a href=\"" + attachmentLocation + "/" + attachmentName + "\">" + attachmentName
+				+ "</a></li>";
+		this.attachmentHyperlinksList = this.attachmentHyperlinksList + attachmentHyperlink;
+
+	}
+
+	/**
 	 * Archive the attachments associated with an announcement
-	 * 
+	 *
 	 * @param attachments
 	 * @param title
 	 * @param archiveId
@@ -94,9 +141,12 @@ public class AnnouncementsArchiver implements Archiveable {
 			byte[] attachmentBytes;
 			try {
 				attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+				final String attachmentName = attachment.getProperties()
+						.getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
-						attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()),
-						title + " (attachments)");
+						attachmentName, title + " (attachments)");
+				addToAttachmentList(attachmentName, title + " (attachments)");
+
 			} catch (ServerOverloadException | IdUnusedException | TypeException e) {
 				log.error("Error getting attachment for announcement: " + title);
 				continue;
