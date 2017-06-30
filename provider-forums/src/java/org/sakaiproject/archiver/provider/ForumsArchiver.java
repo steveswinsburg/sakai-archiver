@@ -1,7 +1,6 @@
 package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.sakaiproject.api.app.messageforums.Attachment;
@@ -13,7 +12,8 @@ import org.sakaiproject.api.app.messageforums.ui.DiscussionForumManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Jsonifier;
+import org.sakaiproject.archiver.util.Dateifier;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -133,7 +133,7 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(simpleForum).getBytes(), "forum-metadata.json",
+		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleForum).getBytes(), "forum-metadata.html",
 				forum.getTitle());
 	}
 
@@ -215,7 +215,7 @@ public class ForumsArchiver implements Archiveable {
 		private String body;
 
 		@Setter
-		private Date lastModified;
+		private String lastModified;
 
 		@Setter
 		private String authoredBy;
@@ -227,7 +227,7 @@ public class ForumsArchiver implements Archiveable {
 		private Long replyTo;
 
 		@Setter
-		private Date createdOn;
+		private String createdOn;
 
 		@Setter
 		private boolean isDraft;
@@ -247,12 +247,12 @@ public class ForumsArchiver implements Archiveable {
 			this.messageId = message.getId();
 			this.title = message.getTitle();
 			this.body = message.getBody();
-			this.lastModified = message.getModified();
+			this.lastModified = Dateifier.toIso8601(message.getModified());
 			this.authoredBy = message.getAuthor();
 			this.authorId = message.getAuthorId();
 			this.isDraft = message.getDraft();
 			this.isDeleted = message.getDeleted();
-			this.createdOn = message.getCreated();
+			this.createdOn = Dateifier.toIso8601(message.getCreated());
 			this.modifiedBy = message.getModifiedBy();
 
 			final Message parent = message.getInReplyTo();
@@ -274,13 +274,13 @@ public class ForumsArchiver implements Archiveable {
 		private String title;
 
 		@Setter
-		private Date createdDate;
+		private String createdDate;
 
 		@Setter
 		private String creator;
 
 		@Setter
-		private Date modifiedDate;
+		private String modifiedDate;
 
 		@Setter
 		private String modifier;
@@ -295,17 +295,17 @@ public class ForumsArchiver implements Archiveable {
 		private String assocGradebookItemName;
 
 		@Setter
-		private Date openDate;
+		private String openDate;
 
 		@Setter
-		private Date closeDate;
+		private String closeDate;
 
 		public SimpleTopic(final DiscussionTopic topic) {
 			this.topicId = topic.getId();
 			this.title = topic.getTitle();
-			this.createdDate = topic.getCreated();
+			this.createdDate = Dateifier.toIso8601(topic.getCreated());
 			this.creator = topic.getCreatedBy();
-			this.modifiedDate = topic.getModified();
+			this.modifiedDate = Dateifier.toIso8601(topic.getModified());
 			this.modifier = topic.getModifiedBy();
 			this.isLocked = topic.getLocked();
 			this.isPostFirst = topic.getPostFirst();
@@ -313,8 +313,8 @@ public class ForumsArchiver implements Archiveable {
 
 			// if availability is restricted, get open and close dates
 			if (topic.getAvailabilityRestricted()) {
-				this.openDate = topic.getOpenDate();
-				this.closeDate = topic.getCloseDate();
+				this.openDate = Dateifier.toIso8601(topic.getOpenDate());
+				this.closeDate = Dateifier.toIso8601(topic.getCloseDate());
 			}
 		}
 	}
@@ -343,16 +343,16 @@ public class ForumsArchiver implements Archiveable {
 		private Boolean isPostFirst;
 
 		@Setter
-		private Date createdDate;
+		private String createdDate;
 
 		@Setter
 		private String createdBy;
 
 		@Setter
-		private Date openDate;
+		private String openDate;
 
 		@Setter
-		private Date closeDate;
+		private String closeDate;
 
 		@Setter
 		private String assocGradebookItemName;
@@ -361,7 +361,7 @@ public class ForumsArchiver implements Archiveable {
 		private Boolean isDraft;
 
 		@Setter
-		private Date modifiedDate;
+		private String modifiedDate;
 
 		@Setter
 		private String modifiedBy;
@@ -376,17 +376,17 @@ public class ForumsArchiver implements Archiveable {
 			this.isLocked = forum.getLocked();
 			this.isModerated = forum.getModerated();
 			this.isPostFirst = forum.getPostFirst();
-			this.createdDate = forum.getCreated();
+			this.createdDate = Dateifier.toIso8601(forum.getCreated());
 			this.createdBy = forum.getCreatedBy();
 			this.assocGradebookItemName = forum.getDefaultAssignName();
 			this.isDraft = forum.getDraft();
-			this.modifiedDate = forum.getModified();
+			this.modifiedDate = Dateifier.toIso8601(forum.getModified());
 			this.modifiedBy = forum.getModifiedBy();
 
 			// if availability is restricted, get open and close dates
 			if (forum.getAvailabilityRestricted()) {
-				this.openDate = forum.getOpenDate();
-				this.closeDate = forum.getCloseDate();
+				this.openDate = Dateifier.toIso8601(forum.getOpenDate());
+				this.closeDate = Dateifier.toIso8601(forum.getCloseDate());
 			}
 		}
 	}
