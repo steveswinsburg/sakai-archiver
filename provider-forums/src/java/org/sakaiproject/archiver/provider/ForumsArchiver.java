@@ -12,7 +12,6 @@ import org.sakaiproject.api.app.messageforums.ui.DiscussionForumManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Dateifier;
 import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -20,7 +19,6 @@ import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.exception.ServerOverloadException;
 import org.sakaiproject.exception.TypeException;
 
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,14 +57,11 @@ public class ForumsArchiver implements Archiveable {
 			// Archive the forum, including topics (and messages if includeStudentContent is true)
 			archiveForum(forum, archiveId, siteId, toolId, includeStudentContent);
 
-			// Archive the attachments for this forum
-			archiveAttachments(forum.getAttachments(), forum.getTitle() + "/forum-attachments/", archiveId,
-					siteId, toolId);
 		}
 	}
 
 	/**
-	 * Archive the topics within a forum
+	 * Archive the forum and its topics, messages and attachments
 	 *
 	 * @param forum
 	 * @param archiveId
@@ -95,7 +90,8 @@ public class ForumsArchiver implements Archiveable {
 
 			// Archive the attachments for this topic
 			archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId,
-					toolId);
+					toolId, simpleTopic);
+			finaliseAttachmentsHtml(simpleTopic);
 
 			// Archive the messages within a topic, if we want student content
 			if (includeStudentContent) {
@@ -107,29 +103,27 @@ public class ForumsArchiver implements Archiveable {
 					if (message.getInReplyTo() == null) {
 						final SimpleMessage topLevelMessage = new SimpleMessage(message);
 
-						// Set message replies
-						setMessageReplies(topLevelMessage, messages);
+						// Set message replies and archive the attachments for each message
+						setMessageReplies(topLevelMessage, messages, folderStructure, archiveId, siteId, toolId, topic.getId());
+
+						// Archive the attachments for the top level message
+						if (message.getHasAttachments()) {
+							addAttachmentsToMessage(message, topLevelMessage, folderStructure, archiveId, siteId, toolId, topic.getId());
+							finaliseAttachmentsHtml(topLevelMessage);
+						}
 
 						// Archive the messages
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Jsonifier.toJson(topLevelMessage).getBytes(),
-								message.getTitle() + ".json", folderStructure);
-					}
-
-					// Archive the attachments for this message
-					if (message.getHasAttachments()) {
-
-						// It is unfortunately necessary to get the attachments for a message by first getting the topic populated with
-						// the message attachments, and adding the attachments to the message. See doc on setAttachments method.
-						final Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topic.getId());
-						setAttachments(message, topicWithMessageAttachments.getMessages());
-
-						archiveAttachments(message.getAttachments(),
-								folderStructure + "/topic-attachments/message-attachments/message-" + message.getId(), archiveId, siteId,
-								toolId);
+						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(topLevelMessage).getBytes(),
+								message.getTitle() + ".html", folderStructure);
 					}
 				}
 			}
 		}
+
+		// Archive the attachments for this forum
+		archiveAttachments(forum.getAttachments(), forum.getTitle() + "/forum-attachments/", archiveId,
+				siteId, toolId, simpleForum);
+		finaliseAttachmentsHtml(simpleForum);
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
@@ -142,19 +136,54 @@ public class ForumsArchiver implements Archiveable {
 	 *
 	 * @param simpleTopMessage The first message posted in a topic, as a SimpleMessage
 	 * @param messages The full list of messages for this topic
+	 * @param toolId
+	 * @param siteId
+	 * @param archiveId
+	 * @param folderStructure
 	 */
-	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages) {
+	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages, final String folderStructure,
+			final String archiveId, final String siteId, final String toolId, final Long topicId) {
 
 		for (final Message message : messages) {
+			// if this message is in reply to the top message
 			if ((message.getInReplyTo() != null) && (message.getInReplyTo().getId() == simpleTopMessage.getMessageId())) {
 				final List<SimpleMessage> replies = simpleTopMessage.getReplies();
 				final SimpleMessage thisMessage = new SimpleMessage(message);
 				replies.add(thisMessage);
 
+				// Archive the attachments for this message
+				// This has to be done here since we need to set the attachments html string for each message as the attachments are saved
+				if (message.getHasAttachments()) {
+					addAttachmentsToMessage(message, thisMessage, folderStructure, archiveId, siteId, toolId, topicId);
+				}
 				// Recursively set the replies for this inner message
-				setMessageReplies(thisMessage, messages);
+				setMessageReplies(thisMessage, messages, folderStructure, archiveId, siteId, toolId, topicId);
+
 			}
 		}
+	}
+
+	/**
+	 * Add the attachments to the passed in message, since they are not already attached. See doc on setAttachments().
+	 *
+	 * @param message
+	 * @param simpleMessage
+	 * @param folderStructure
+	 * @param archiveId
+	 * @param siteId
+	 * @param toolId
+	 * @param topicId
+	 */
+	@SuppressWarnings("unchecked")
+	private void addAttachmentsToMessage(final Message message, final SimpleMessage simpleMessage, final String folderStructure,
+			final String archiveId, final String siteId, final String toolId, final Long topicId) {
+		final Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topicId);
+		setAttachments(message, topicWithMessageAttachments.getMessages());
+
+		archiveAttachments(message.getAttachments(),
+				folderStructure + "/topic-attachments/message-attachments/message-" + message.getId() + "/", archiveId, siteId,
+				toolId, simpleMessage);
+		finaliseAttachmentsHtml(simpleMessage);
 	}
 
 	/**
@@ -164,14 +193,17 @@ public class ForumsArchiver implements Archiveable {
 	 * @param archiveId
 	 * @param siteId
 	 * @param toolId
+	 * @param simpleArchiveItem the object that the attachmentHtml needs to be updated for (SimpleMessage, SimpleTopic or SimpleForum)
 	 */
 	private void archiveAttachments(final List<Attachment> attachments, final String subdir,
-			final String archiveId, final String siteId, final String toolId) {
+			final String archiveId, final String siteId, final String toolId, final SimpleArchiveItem simpleArchiveItem) {
 		for (final Attachment attachment : attachments) {
 			try {
 				final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getAttachmentId()).getContent();
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
 						attachment.getAttachmentName(), subdir);
+				// update the attachments HTML string, so there is a link to this attachment in the html file
+				addToAttachmentsHtml(subdir, attachment.getAttachmentName(), simpleArchiveItem);
 			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
 				log.error("Error getting attachment with ID: ", attachment.getId());
 				continue;
@@ -200,14 +232,35 @@ public class ForumsArchiver implements Archiveable {
 	}
 
 	/**
+	 * Set the html string that contains a list of attachment hyperlinks
+	 *
+	 * @param attachmentLocation
+	 * @param attachmentName
+	 * @param simpleArchiveItem
 	 */
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
+			final SimpleArchiveItem simpleArchiveItem) {
+
+		String attachmentHyperlink;
+		if (simpleArchiveItem instanceof SimpleMessage) {
+			attachmentHyperlink = "<li><a href=\"../../../" + attachmentLocation + attachmentName + "\">" + attachmentName
+					+ "</a></li>";
+		} else {
+			attachmentHyperlink = "<li><a href=\"../" + attachmentLocation + attachmentName + "\">" + attachmentName
+					+ "</a></li>";
 		}
 
+		simpleArchiveItem.setAttachments(simpleArchiveItem.getAttachments() + attachmentHyperlink);
 	}
 
 	/**
+	 * Finalise the attachments html string by surrounding it by unordered list tags
+	 *
+	 * @param simpleArchiveItem
 	 */
+	private void finaliseAttachmentsHtml(final SimpleArchiveItem simpleArchiveItem) {
 
+		simpleArchiveItem.setAttachments("<ul style=\"list-style: none;padding-left:0;\">" + simpleArchiveItem.getAttachments() + "</ul>");
 
 	}
 }
