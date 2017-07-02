@@ -127,7 +127,7 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleForum).getBytes(), "forum-metadata.html",
+		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleForum).getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
 	}
 
