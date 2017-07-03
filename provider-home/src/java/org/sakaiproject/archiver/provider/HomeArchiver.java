@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.spi.EnhancedArchiveable;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
@@ -18,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 12.0
  */
 @Slf4j
-public class HomeArchiver implements Archiveable {
+public class HomeArchiver implements EnhancedArchiveable {
 
 	private static final String TOOL_ID = "sakai.iframe.site";
 
@@ -61,6 +62,21 @@ public class HomeArchiver implements Archiveable {
 	 */
 	private String createHtmlFileContents(final String data) {
 		return StringEscapeUtils.unescapeHtml4(data);
+	}
+
+	@Override
+	public String getToolId() {
+		return TOOL_ID;
+	}
+
+	@Override
+	public String getLinkedToolId() {
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return "Home";
 	}
 
 }
