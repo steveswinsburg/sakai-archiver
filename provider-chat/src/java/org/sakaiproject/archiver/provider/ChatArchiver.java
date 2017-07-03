@@ -80,7 +80,7 @@ public class ChatArchiver implements Archiveable {
 							chatChannel.getTitle());
 
 				} catch (final PermissionException e) {
-					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle());
+					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle(), e);
 					continue;
 				}
 			}
