@@ -68,6 +68,20 @@ public class Htmlifier extends RecursiveToStringStyle {
 	}
 
 	/**
+	 * Add html start and end to a html body string
+	 * 
+	 * @param htmlBody
+	 * @return
+	 */
+	public static String toHtml(final String htmlBody) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(getHtmlStart());
+		sb.append(htmlBody);
+		sb.append(getHtmlEnd());
+		return sb.toString();
+	}
+
+	/**
 	 * Gets the HTML to startup the HTML document. Uses bootstrap for a bit of bling.
 	 *
 	 * @return
