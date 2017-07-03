@@ -20,6 +20,7 @@ import org.sakaiproject.archiver.app.model.ArchiveSite;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -187,14 +188,15 @@ public class ArchiverBusinessService {
 	 * Start a new archive for the current site and initiated by the current user
 	 *
 	 * @param settings the settings for this archive, from the UI
-	 * @throws ArchiveAlreadyInProgressException
 	 *
 	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
 	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
 	 * @throws {@link ArchiveInitialisationException} if the archive could not be initialised
+	 * @throws {@link ArchiveCompletionException} if the archive could not be completed properly
 	 */
 	public void createArchive(final ArchiveSettings settings)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException {
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException {
 
 		log.debug("settings: " + settings);
 

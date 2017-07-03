@@ -2,7 +2,6 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
@@ -35,7 +35,6 @@ import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.component.api.ServerConfigurationService;
 
-import javafx.util.Duration;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +53,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Override
 	public void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException {
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException {
 
 		// validate
 		final List<String> toolsToArchive = Arrays.asList(toolIds);
@@ -83,9 +83,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 		entity.setArchivePath(archivePath);
 		this.dao.update(entity);
 
-		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
-		final Status status = Status.COMPLETE;
-
 		final List<String> customRegistrations = getCustomRegistrations();
 
 		final List<String> allRegistrations = new ArrayList<>();
@@ -96,7 +93,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 
-		final ExecutorService executor = Executors.newSingleThreadExecutor();
+		final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+
+		final List<Future<Status>> futures = new ArrayList<>();
 
 		// archive all registered and custom tools
 		for (final String toolId : allRegistrations) {
@@ -106,33 +105,46 @@ public class ArchiverServiceImpl implements ArchiverService {
 				return;
 			}
 
-			log.info("Archiving {}", toolId);
-
 			final Callable<Status> task = () -> {
-			    try {
+
+				log.info("Archiving {}", toolId);
+
+				try {
 					archivable.archive(archiveId, siteId, toolId, includeStudentData);
-			        return Status.STARTED;
-			    } catch (final RuntimeException e) {
-					log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+					return Status.STARTED;
+				} catch (final RuntimeException e) {
+					log.error(
+							"A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
 							siteId, toolId, e);
 					return Status.INCOMPLETE;
 				}
 			};
 
-			//Future<Status> future = executor.submit(task);
+			// non blocking invocation
+			futures.add(taskExecutor.submit(task));
 		}
+		taskExecutor.shutdown();
 
+		// spin up another executor for the finalise to use
+		final ExecutorService finaliseExecutor = Executors.newSingleThreadExecutor();
+		final Callable<Void> finaliseTask = () -> {
 
+			log.debug("Waiting for all archiving threads to finish...");
 
-		executor.shutdown();
+			Status status = Status.COMPLETE;
+			for (final Future<Status> future : futures) {
+				// wait for each to finish and check the status
+				status = future.get();
+			}
 
-		//we need to return here so the UI can update.
-		//do we need another thread to check if this one is finished?
-        executor.isTerminated()
+			log.debug("All archiving threads are complete, finalising the archive.");
 
+			finalise(entity, status);
+			return null;
+		};
 
-
-		//finalise(entity, status);
+		finaliseExecutor.submit(finaliseTask);
+		finaliseExecutor.shutdown();
 	}
 
 	@Override
@@ -271,7 +283,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	/**
 	 * Finalise an archiving record with the specified status.
 	 *
-	 * Note that the status could be overridden if an error occurs in finalising the archive.
+	 * Note that the passed in status could be overridden if an error occurs in finalising the archive.
 	 *
 	 * @param entity the {@link ArchiveEntity} tracking this archive
 	 * @param status the {@link Status} to set
