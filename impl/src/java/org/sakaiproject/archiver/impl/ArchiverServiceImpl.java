@@ -9,6 +9,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -80,7 +84,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		this.dao.update(entity);
 
 		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
-		Status status = Status.COMPLETE;
+		final Status status = Status.COMPLETE;
 
 		final List<String> customRegistrations = getCustomRegistrations();
 
@@ -92,6 +96,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 
+		final ExecutorService executor = Executors.newSingleThreadExecutor();
+
 		// archive all registered and custom tools
 		for (final String toolId : allRegistrations) {
 			final Archiveable archivable = registry.get(toolId);
@@ -102,17 +108,31 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 			log.info("Archiving {}", toolId);
 
-			try {
-				archivable.archive(archiveId, siteId, toolId, includeStudentData);
-			} catch (final RuntimeException e) {
-				// TODO rethrow as a checked exception which the UI can deal with
-				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
-						siteId, toolId, e);
-				status = Status.INCOMPLETE;
-			}
+			final Callable<Status> task = () -> {
+			    try {
+					archivable.archive(archiveId, siteId, toolId, includeStudentData);
+			        return Status.STARTED;
+			    } catch (final RuntimeException e) {
+					log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+							siteId, toolId, e);
+					return Status.INCOMPLETE;
+				}
+			};
+
+			//Future<Status> future = executor.submit(task);
 		}
 
-		finalise(entity, status);
+
+
+		executor.shutdown();
+
+		//we need to return here so the UI can update.
+		//do we need another thread to check if this one is finished?
+        executor.isTerminated()
+
+
+
+		//finalise(entity, status);
 	}
 
 	@Override
@@ -179,9 +199,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
 		return ArchiveMapper.toDtos(entities);
 	}
-	
+
 	@Override
-	public Archive getLatest(String siteId){
+	public Archive getLatest(final String siteId) {
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
 		if (entity == null) {
 			log.debug("No archive exists for siteId {}", siteId);
@@ -316,7 +336,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
 	}
-	
+
 	/**
 	 * Checks if an archive is in progress for the given site.
 	 *
@@ -325,15 +345,13 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private boolean isArchiveInProgress(final String siteId) {
 
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
-		if(entity == null) {
+		if (entity == null) {
 			return false;
 		}
-		if(entity.getStatus() == Status.STARTED){
+		if (entity.getStatus() == Status.STARTED) {
 			return true;
 		}
 		return false;
 	}
-
-	
 
 }
