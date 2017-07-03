@@ -62,15 +62,24 @@ public class AnnouncementsArchiver implements Archiveable {
 			for (final Message message : announcements) {
 				final AnnouncementMessage announcement = (AnnouncementMessage) message;
 
-				// Save this announcement
-				final ArchiveItem archiveItem = createArchiveItem(announcement);
-				final String fileContents = Htmlifier.toHtml(archiveItem);
-				log.debug("Announcement data: " + fileContents);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents.getBytes(), archiveItem.getTitle() + ".html");
+				final SimpleAnnouncement simpleAnnouncement = new SimpleAnnouncement(announcement);
 
-				// archive the attachments
-				archiveAttachments(announcement.getAnnouncementHeader().getAttachments(), archiveItem.getTitle(), archiveId, siteId,
+				// archive the attachments for this announcement
+				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
+				archiveAttachments(attachments, simpleAnnouncement, archiveId, siteId,
 						toolId);
+				if (attachments.size() > 0) {
+					finaliseAttachmentsHtml(simpleAnnouncement);
+				}
+
+				// convert to html
+				final String fileContents = Htmlifier.toHtml(simpleAnnouncement);
+
+				// Save this announcement
+				log.debug("Announcement data: " + fileContents);
+				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents.getBytes(),
+						simpleAnnouncement.getTitle() + ".html");
+
 			}
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements");
@@ -79,7 +88,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 	/**
 	 * Archive the attachments associated with an announcement
-	 * 
+	 *
 	 * @param attachments
 	 * @param title
 	 * @param archiveId
@@ -87,44 +96,58 @@ public class AnnouncementsArchiver implements Archiveable {
 	 * @param toolId
 	 * @throws PermissionException
 	 */
-	private void archiveAttachments(final List<Reference> attachments, final String title, final String archiveId, final String siteId,
+	private void archiveAttachments(final List<Reference> attachments, final SimpleAnnouncement simpleAnnouncement, final String archiveId,
+			final String siteId,
 			final String toolId) throws PermissionException {
 
 		for (final Reference attachment : attachments) {
 			byte[] attachmentBytes;
 			try {
 				attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
+				final String attachmentName = attachment.getProperties()
+						.getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
-						attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()),
-						title + " (attachments)");
+						attachmentName, simpleAnnouncement.getTitle() + " (attachments)");
+				addToAttachmentsHtml(simpleAnnouncement.getTitle() + " (attachments)/", attachmentName, simpleAnnouncement);
+
 			} catch (ServerOverloadException | IdUnusedException | TypeException e) {
-				log.error("Error getting attachment for announcement: " + title);
+				log.error("Error getting attachment for announcement: " + simpleAnnouncement.getTitle());
 				continue;
 			}
 		}
 	}
 
 	/**
-	 * Build the ArchiveItem for an announcement
+	 * Set the html string that contains a list of attachment hyperlinks
 	 *
-	 * @param announcement
-	 * @return the archive item to be saved
+	 * @param attachmentLocation
+	 * @param attachmentName
+	 * @param simpleArchiveItem
 	 */
-	private ArchiveItem createArchiveItem(final AnnouncementMessage announcement) {
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
+			final SimpleAnnouncement simpleAnnouncement) {
 
-		final ArchiveItem archiveItem = new ArchiveItem();
-		archiveItem.setTitle(announcement.getAnnouncementHeader().getSubject());
-		archiveItem.setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
-		archiveItem.setCreatedOn(announcement.getHeader().getDate().getDisplay());
-		archiveItem.setBody(announcement.getBody());
+		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + attachmentName + "\">" + attachmentName
+				+ "</a></li>";
+		simpleAnnouncement.setAttachments(simpleAnnouncement.getAttachments() + attachmentHyperlink);
+	}
 
-		return archiveItem;
+	/**
+	 * Finalise the attachments html string by surrounding it by unordered list tags
+	 *
+	 * @param simpleArchiveItem
+	 */
+	private void finaliseAttachmentsHtml(final SimpleAnnouncement simpleAnnouncement) {
+
+		simpleAnnouncement
+				.setAttachments("<ul style=\"list-style: none;padding-left:0;\">" + simpleAnnouncement.getAttachments() + "</ul>");
+
 	}
 
 	/**
 	 * Simplified helper class to represent individual announcement in a site
 	 */
-	private class ArchiveItem {
+	private class SimpleAnnouncement {
 
 		@Getter
 		@Setter
@@ -141,6 +164,17 @@ public class AnnouncementsArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String createdOn;
+
+		@Getter
+		@Setter
+		private String attachments = "";
+
+		public SimpleAnnouncement(final AnnouncementMessage announcement) {
+			setTitle(announcement.getAnnouncementHeader().getSubject());
+			setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
+			setCreatedOn(announcement.getHeader().getDate().getDisplay());
+			setBody(announcement.getBody());
+		}
 
 	}
 

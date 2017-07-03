@@ -4,6 +4,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 
 import java.util.Date;
 import java.util.UUID;
@@ -14,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.archiver.api.Status;
+import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 
@@ -27,7 +31,7 @@ public class ArchiverServiceImplTest {
 	private ArchiverServiceImpl impl;
 
 	@Test
-	public final void should_returnTrue_when_ArchiveIsInProgress() {
+	public final void should_returnArchive_when_ArchiveExistsForSite() {
 		final String archiveId = UUID.randomUUID().toString();
 		final String siteId = UUID.randomUUID().toString();
 		final String userUuid = UUID.randomUUID().toString();
@@ -38,17 +42,18 @@ public class ArchiverServiceImplTest {
 
 		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate, status, zipPath);
 
-		when(this.dao.getCurrent(anyString())).thenReturn(entity);
-		final boolean result = this.impl.isArchiveInProgress(anyString());
-		assertTrue("Archive should be in progress", result);
+		when(this.dao.getLatest(anyString())).thenReturn(entity);
+		Archive archive = this.impl.getLatest(anyString());
+		
+		assertNotNull("Archive should be in progress", archive);
 	}
 
 	@Test
-	public final void should_returnFalse_when_ArchiveIsNotInProgress() {
+	public final void should_returnNull_when_ArchiveNotStartedForSite() {
 
-		when(this.dao.getCurrent(anyString())).thenReturn(null);
-		final boolean result = this.impl.isArchiveInProgress(anyString());
-		assertFalse("Archive should not be in progress", result);
+		when(this.dao.getLatest(anyString())).thenReturn(null);		
+		Archive archive = this.impl.getLatest(anyString());
+		assertNull("Archive should be in progress", archive);
 	}
 
 }

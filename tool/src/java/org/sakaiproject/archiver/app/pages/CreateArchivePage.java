@@ -2,6 +2,10 @@ package org.sakaiproject.archiver.app.pages;
 
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -10,6 +14,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.util.time.Duration;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
@@ -27,6 +32,17 @@ public class CreateArchivePage extends BasePage {
 	@Override
 	public void onInitialize() {
 		super.onInitialize();
+
+		// status banner
+		final WebMarkupContainer statusContainer = new WebMarkupContainer("statusContainer");
+		statusContainer.setOutputMarkupId(true);
+		final Label statusBanner = new Label("statusBanner");
+		statusBanner.setOutputMarkupId(true);
+		statusContainer.add(statusBanner);
+		add(statusContainer);
+
+		// set initial state of the status banner in case n archive is currently running when they come to the page
+		updateStatusBanner(statusBanner, getArchiveStatus());
 
 		// form model
 		final ArchiveSettings settings = new ArchiveSettings();
@@ -51,7 +67,7 @@ public class CreateArchivePage extends BasePage {
 
 				try {
 					CreateArchivePage.this.businessService.createArchive(formSettings);
-					success(getString("archive.started"));
+					updateStatusBanner(statusBanner, Status.IN_PROGRESS);
 				} catch (final ToolsNotSpecifiedException e) {
 					error(getString("archive.error.notools"));
 				} catch (final ArchiveAlreadyInProgressException e) {
@@ -114,6 +130,68 @@ public class CreateArchivePage extends BasePage {
 		};
 		add(noToolsError);
 
+		// archive status banner, refresh behaviour
+		statusContainer.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(2)) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onPostProcessTarget(final AjaxRequestTarget target) {
+				final Status archiveStatus = getArchiveStatus();
+				updateStatusBanner(statusBanner, archiveStatus);
+			}
+		});
+
+	}
+
+	/**
+	 * Update status banner based on current status
+	 *
+	 * @param label
+	 * @param status
+	 */
+	private void updateStatusBanner(final Label label, final Status status) {
+
+		System.out.println("status: " + status);
+
+		if (status == Status.NONE) {
+			label.setVisible(false);
+		}
+		if (status == Status.IN_PROGRESS) {
+			label.setDefaultModel(new ResourceModel("archive.status.inprogress"));
+			label.add(AttributeModifier.replace("class", "messageSuccess"));
+			label.setVisible(true);
+		}
+		if (status == Status.RECENTLY_COMPLETED) {
+			label.setDefaultModel(new ResourceModel("archive.status.recentlycompleted"));
+			label.add(AttributeModifier.replace("class", "messageWarning"));
+			label.setVisible(true);
+		}
+		label.setEscapeModelStrings(false);
+	}
+
+	/**
+	 * Get the status of the archive for this site, if any
+	 *
+	 * @return
+	 */
+	private Status getArchiveStatus() {
+		if (this.businessService.isArchiveInProgress()) {
+			return Status.IN_PROGRESS;
+		} else if (this.businessService.isArchiveRecentlyCompleted()) {
+			return Status.RECENTLY_COMPLETED;
+		} else {
+			return Status.NONE;
+		}
+	}
+
+	/**
+	 * Status for an archive so we can style accordingly
+	 *
+	 */
+	private enum Status {
+		IN_PROGRESS,
+		RECENTLY_COMPLETED,
+		NONE;
 	}
 
 }
