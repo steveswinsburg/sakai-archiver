@@ -13,6 +13,7 @@ import org.jsoup.nodes.Element;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
@@ -117,7 +118,7 @@ public class HomeArchiver implements Archiveable {
 			}
 		}
 
-		return doc.html();
+		return Htmlifier.toHtml(doc.body().toString());
 	}
 
 	/**
