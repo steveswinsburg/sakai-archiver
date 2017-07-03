@@ -110,7 +110,7 @@ public class HomeArchiver implements Archiveable {
 				this.archiverService.archiveContent(archiveId, siteId, toolId, bytes, filename, "/images");
 
 				// change the src for this image in the html
-				e.attr("src", "images" + filename);
+				e.attr("src", "images/" + filename);
 
 			} catch (final IOException e1) {
 				log.debug("Error when saving image from src: " + e.absUrl("src"));
