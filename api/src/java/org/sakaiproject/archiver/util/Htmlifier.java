@@ -43,9 +43,9 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 * @param object the object to serialise
 	 * @return a String of HTML
 	 */
-	public static String toHtml(final Object object) {
+	public static String toHtml(final Object object, final String siteDetails) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(getHtmlStart());
+		sb.append(getHtmlStart(siteDetails));
 		sb.append(ReflectionToStringBuilder.toString(object, new Htmlifier()));
 		sb.append(getHtmlEnd());
 		return sb.toString();
@@ -57,9 +57,9 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 * @param objects the objects to serialise. Each one will get it's own rendering.
 	 * @return a String of HTML
 	 */
-	public static String toHtml(final List<?> objects) {
+	public static String toHtml(final List<?> objects, final String siteDetails) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(getHtmlStart());
+		sb.append(getHtmlStart(siteDetails));
 		objects.forEach(o -> {
 			sb.append(ReflectionToStringBuilder.toString(o, new Htmlifier()));
 		});
@@ -69,13 +69,13 @@ public class Htmlifier extends RecursiveToStringStyle {
 
 	/**
 	 * Add html start and end to a html body string
-	 * 
+	 *
 	 * @param htmlBody
 	 * @return
 	 */
-	public static String toHtml(final String htmlBody) {
+	public static String toHtml(final String htmlBody, final String siteDetails) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(getHtmlStart());
+		sb.append(getHtmlStart(siteDetails));
 		sb.append(htmlBody);
 		sb.append(getHtmlEnd());
 		return sb.toString();
@@ -86,7 +86,7 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 *
 	 * @return
 	 */
-	private static String getHtmlStart() {
+	private static String getHtmlStart(final String siteDetails) {
 
 		final StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html>");
@@ -99,6 +99,7 @@ public class Htmlifier extends RecursiveToStringStyle {
 		sb.append("<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css\">");
 		sb.append("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js\"></script>");
 		sb.append("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
+		sb.append("<h4 align=\"center\">" + siteDetails + "</h4>");
 		sb.append("</head>");
 		sb.append("<body>");
 		sb.append("<div class=\"container\">");
