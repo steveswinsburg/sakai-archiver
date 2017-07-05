@@ -10,7 +10,7 @@ import org.hibernate.criterion.Restrictions;
 import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
-import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,7 +53,7 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		log.debug("saved: " + entity.getId());
 		return entity;
 	}
-	
+
 	@Override
 	public ArchiveEntity getLatest(final String siteId) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
