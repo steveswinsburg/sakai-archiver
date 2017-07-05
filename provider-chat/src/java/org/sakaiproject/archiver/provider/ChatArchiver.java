@@ -118,7 +118,6 @@ public class ChatArchiver implements Archiveable {
 
 		final User user = getUser(message.getOwner());
 		simpleChatMessage.setOwner((user != null) ? user.getDisplayName() : message.getOwner());
-		simpleChatMessage.setEid((user != null) ? user.getEid() : message.getOwner());
 
 		return simpleChatMessage;
 	}
@@ -159,10 +158,5 @@ public class ChatArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String owner;
-
-		@Getter
-		@Setter
-		private String eid;
-
 	}
 }
