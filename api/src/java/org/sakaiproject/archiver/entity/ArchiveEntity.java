@@ -24,6 +24,8 @@ import lombok.ToString;
 /**
  * Persistent entity for the archive records
  *
+ * For 10.4 these annotations are unused. See ArchiveEntity.hbm.xml instead.
+ * 
  * @since 12.0
  * @author Steve Swinsburg (steve.swinsburg@gmail.com)
  */

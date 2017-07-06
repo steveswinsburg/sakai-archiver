@@ -6,11 +6,11 @@
 	<!--  setup our annotated entities with hibernate -->
  	<bean id="org.sakaiproject.archiver.persistence.entities"
         class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
-        <property name="annotatedClasses">
-            <list>
-                <value>org.sakaiproject.archiver.entity.ArchiveEntity</value>
-            </list>
-        </property>
+		<property name="mappingResources">
+			<list>
+				<value>org/sakaiproject/archiver/entity/ArchiveEntity.hbm.xml</value>
+			</list>
+		</property>
     </bean>
     
     <!--  wire up the persistence service with hibernate -->

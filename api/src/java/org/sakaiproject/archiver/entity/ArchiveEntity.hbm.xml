@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="org.sakaiproject.archiver.entity">
+
+	<class name="ArchiveEntity" table="archiver_archives">
+	
+	    <id name="id" column="id" length="36">
+	    		<generator class="uuid" />
+	    </id>
+	
+		<property name="siteId" column="site_id" length="50" not-null="true" />
+		<property name="userUuid" column="user_uuid" length="50" not-null="true" />
+		<property name="settings" column="settings" type="clob" />
+		<property name="status" column="status" type="org.hibernate.type.EnumType" />
+		<property name="archivePath" column="archive_path" length="2000" not-null="true" />
+		<property name="zipPath" column="zip_path" length="2000" not-null="true" />		
+		<property name="startDate" column="start_date" type="timestamp" />
+		<property name="endDate" column="end_date" type="timestamp" />	
+		
+	 </class>
+
+</hibernate-mapping>
