@@ -9,7 +9,6 @@ import org.sakaiproject.api.app.syllabus.SyllabusManager;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
-import org.sakaiproject.archiver.util.Dateifier;
 import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -94,8 +93,6 @@ public class SyllabusArchiver implements Archiveable {
 
 		final ArchiveItem archiveItem = new ArchiveItem();
 		archiveItem.setTitle(syllabus.getTitle());
-		archiveItem.setStartDate(Dateifier.toIso8601(syllabus.getStartDate()));
-		archiveItem.setEndDate(Dateifier.toIso8601(syllabus.getEndDate()));
 		archiveItem.setBody(syllabus.getAsset());
 
 		return archiveItem;
@@ -109,14 +106,6 @@ public class SyllabusArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String title;
-
-		@Getter
-		@Setter
-		private String startDate;
-
-		@Getter
-		@Setter
-		private String endDate;
 
 		@Getter
 		@Setter
