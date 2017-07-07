@@ -66,12 +66,12 @@ public class ArchiveEntity implements Serializable {
 
 	@Getter
 	@Setter
-	@Column(name = "archivePath", length = 2000, nullable = true)
+	@Column(name = "archive_path", length = 2000, nullable = true)
 	private String archivePath;
 
 	@Getter
 	@Setter
-	@Column(name = "zipPath", length = 2000, nullable = true)
+	@Column(name = "zip_path", length = 2000, nullable = true)
 	private String zipPath;
 
 	@Getter
