@@ -3,17 +3,48 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!--  setup our annotated entities with hibernate -->
+	<!--  setup the entities with hibernate -->
  	<bean id="org.sakaiproject.archiver.persistence.entities"
         class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
+        
+        <!--  Sakai 10 compatible -->
 		<property name="mappingResources">
 			<list>
 				<value>org/sakaiproject/archiver/entity/ArchiveEntity.hbm.xml</value>
 			</list>
 		</property>
+		
+		<!--  Sakai 12 compatible -->
+		<!--
+		<property name="annotatedClasses">
+            <list>
+                <value>org.sakaiproject.archiver.entity.ArchiveEntity</value>
+            </list>
+        </property>
+        -->
+		
     </bean>
     
-    <!--  wire up the persistence service with hibernate -->
+    <!-- persistence service wiring. Sakai 10 compatible. -->
+	<bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceServiceImpl"
+    	class="org.sakaiproject.archiver.persistence.impl.ArchiverPersistenceServiceImpl"
+    	init-method="init">
+		<property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory" />
+	</bean>
+	
+	<bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceService"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">		
+		<property name="transactionManager" ref="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager" />
+		<property name="target" ref="org.sakaiproject.archiver.persistence.ArchiverPersistenceServiceImpl" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+    
+    <!-- persistence service wiring. Sakai 12 compatible. -->
+    <!--  
 	<bean id="org.sakaiproject.archiver.persistence.ArchiverPersistenceService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 		<property name="transactionManager">
 			<ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager" />
@@ -31,6 +62,7 @@
 			</props>
 		</property>
 	</bean>
+	-->
  
 
 	<bean id="org.sakaiproject.archiver.api.ArchiverService"
