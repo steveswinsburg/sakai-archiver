@@ -10,7 +10,7 @@
 	
 		<property name="siteId" column="site_id" length="50" not-null="true" />
 		<property name="userUuid" column="user_uuid" length="50" not-null="true" />
-		<property name="settings" column="settings" type="clob" />
+		<property name="settings" column="settings" type="materialized_clob" />
 		
 		<property name="status" column="status">
     			<type name="org.hibernate.type.EnumType">
