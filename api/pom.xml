@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>Sakai Archiver API</name>
 	<groupId>org.sakaiproject.archiver</groupId>
@@ -8,50 +9,53 @@
 	<packaging>jar</packaging>
 
 	<properties>
-    	<deploy.target>shared</deploy.target>
-  	</properties>
-  	
+		<deploy.target>shared</deploy.target>
+	</properties>
+
 	<parent>
 		<groupId>org.sakaiproject.archiver</groupId>
 		<artifactId>archiver</artifactId>
-	    <version>0.2-SNAPSHOT</version>
+		<version>0.2-SNAPSHOT</version>
 	</parent>
 
-  	<dependencies>
-   		<dependency>
+	<dependencies>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.sakaiproject.kernel</groupId>
-            <artifactId>sakai-kernel-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-      		<groupId>org.hibernate</groupId>
-      		<artifactId>hibernate-core</artifactId>
-      		<scope>provided</scope>
-    	</dependency>
-    	<dependency>
-      		<groupId>com.google.code.gson</groupId>
-      		<artifactId>gson</artifactId>
-      		<version>2.8.0</version>
-      		<scope>provided</scope>
-    	</dependency>
-    	<dependency>
-        	<groupId>org.apache.commons</groupId>
-        	<artifactId>commons-lang3</artifactId>
-        	<scope>provided</scope>
+		<dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>sakai-kernel-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
-		
-      	<dependency>
-        	<groupId>commons-io</groupId>
-        	<artifactId>commons-io</artifactId>
-        	<scope>test</scope>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<scope>provided</scope>
 		</dependency>
-    	<dependency>
-        	<groupId>junit</groupId>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -61,20 +65,20 @@
 			<version>1.3</version>
 			<scope>test</scope>
 		</dependency>
-	    
-	</dependencies>
-	
-	 <build>
-      <resources>
-         <resource>
-            <directory>${basedir}/src/resources</directory>
-            <includes>
-               <include>**/*.xml</include>
-            </includes>
-            <filtering>false</filtering>
-         </resource>
-      </resources>
-   </build>
 
-	 
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>${basedir}/src/resources</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+	</build>
+
+
 </project>

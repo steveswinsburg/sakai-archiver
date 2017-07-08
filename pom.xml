@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.sakaiproject</groupId>
 		<artifactId>master</artifactId>
-		<version>12-SNAPSHOT</version>
+		<version>10.4</version>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,6 +23,7 @@
 		<module>tool</module>
 		<module>deploy</module>
 		<module>provider-syllabus</module>
+		<!--
 		<module>provider-webcontent</module>
 		<module>provider-gradebook</module>
 		<module>provider-home</module>
@@ -36,6 +37,7 @@
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
 		<module>provider-testsandquizzes</module>	
+		-->
 		<!-- run with -Pinclude-custom to include custom modules -->
 	</modules>
 	
@@ -62,6 +64,16 @@
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<optimize>true</optimize>
+					<debug>true</debug>
+				</configuration>
+          	</plugin>
 		</plugins>
 	</build>
 	
@@ -133,6 +145,53 @@
 				<module>mock-services</module>
 			</modules>
 		</profile>
+		
+		<!-- compatibility -->
+		<profile>
+			<id>compat</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>compat</name>
+				</property>
+			</activation>
+			
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                		<version>3.5</version>
+                		<scope>provided</scope>
+                	</dependency>
+					<dependency>
+						<groupId>org.projectlombok</groupId>
+						<artifactId>lombok</artifactId>
+						<version>1.16.8</version>
+						<scope>provided</scope>
+					</dependency>
+					<dependency>
+						<groupId>commons-io</groupId>
+						<artifactId>commons-io</artifactId>
+						<version>2.5</version>
+						<scope>provided</scope>
+					</dependency>
+					<dependency>
+						<groupId>org.slf4j</groupId>
+        				<artifactId>slf4j-api</artifactId>
+						<version>1.7.21</version>
+        				<scope>provided</scope>
+					</dependency>
+					<dependency>
+						<groupId>org.slf4j</groupId>
+        				<artifactId>slf4j-log4j12</artifactId>
+						<version>1.7.21</version>
+        				<scope>provided</scope>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+		</profile>
+		
 	</profiles>
 	
 </project>
