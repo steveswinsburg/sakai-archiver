@@ -36,3 +36,11 @@ There is a helper utility `org.sakaiproject.archiver.util.Jsonifier#toJson(Objec
 ## Custom builds
 Some archivers may require services not available to your development environment. To include mocks of these in your deployment use `-Pinclude-mock-services`.
 
+To include the custom tools, use `-Pinclude-custom`;
+
+## 10.4 compatibility
+The compat/10.4 branch must be built with `-Pcompat`.
+
+## CI support
+Since CI servers start with a clean slate for each build, the CI server has to include `-Psnapshots`.
+
