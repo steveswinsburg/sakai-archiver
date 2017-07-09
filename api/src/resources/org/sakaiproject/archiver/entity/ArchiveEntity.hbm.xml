@@ -10,19 +10,19 @@
 	
 		<property name="siteId" column="site_id" length="50" not-null="true" />
 		<property name="userUuid" column="user_uuid" length="50" not-null="true" />
-		<property name="settings" column="settings" type="materialized_clob" />
+		<property name="settings" column="settings" type="materialized_clob" not-null="false" />
 		
-		<property name="status" column="status">
+		<property name="status" column="status" not-null="false">
     			<type name="org.hibernate.type.EnumType">
         			<param name="enumClass">org.sakaiproject.archiver.api.Status</param>
         			<param name="useNamed">true</param>
     			</type>
 		</property>
 		
-		<property name="archivePath" column="archive_path" length="2000" not-null="true" />
-		<property name="zipPath" column="zip_path" length="2000" not-null="true" />		
-		<property name="startDate" column="start_date" type="timestamp" />
-		<property name="endDate" column="end_date" type="timestamp" />	
+		<property name="archivePath" column="archive_path" length="2000" not-null="false" />
+		<property name="zipPath" column="zip_path" length="2000" not-null="false" />		
+		<property name="startDate" column="start_date" type="timestamp" not-null="false"/>
+		<property name="endDate" column="end_date" type="timestamp" not-null="false"/>	
 		
 	 </class>
 
