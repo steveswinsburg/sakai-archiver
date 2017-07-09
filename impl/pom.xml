@@ -38,13 +38,13 @@
 			<artifactId>spring-tx</artifactId>
 		</dependency>
 		<dependency>
-        	<groupId>commons-io</groupId>
-        	<artifactId>commons-io</artifactId>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 		</dependency>
 		<dependency>
-        	<groupId>org.apache.commons</groupId>
-        	<artifactId>commons-lang3</artifactId>
-        	<scope>provided</scope>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
@@ -59,17 +59,17 @@
 			<artifactId>sakai-kernel-util</artifactId>
 		</dependency>
 		<dependency>
-        	<groupId>org.projectlombok</groupId>
-        	<artifactId>lombok</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
 		</dependency>
-		
+
 		<dependency>
-    		<groupId>org.mockito</groupId>
-    		<artifactId>mockito-all</artifactId>
-    		<version>1.10.19</version>
-    		<scope>test</scope>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build />
