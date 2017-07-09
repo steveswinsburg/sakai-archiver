@@ -21,7 +21,7 @@
 		
 		<property name="archivePath" column="archive_path" length="2000" not-null="false" />
 		<property name="zipPath" column="zip_path" length="2000" not-null="false" />		
-		<property name="startDate" column="start_date" type="timestamp" not-null="false"/>
+		<property name="startDate" column="start_date" type="timestamp" not-null="true"/>
 		<property name="endDate" column="end_date" type="timestamp" not-null="false"/>	
 		
 	 </class>
