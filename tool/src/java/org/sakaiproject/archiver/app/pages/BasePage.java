@@ -90,8 +90,6 @@ public class BasePage extends WebPage {
 		this.feedbackPanel = new RichFeedbackPanel("feedback");
 		add(this.feedbackPanel);
 
-		isArchiveInProgress();
-
 	}
 
 	/**
@@ -159,15 +157,6 @@ public class BasePage extends WebPage {
 		final Locale locale = this.businessService.getUserPreferredLocale();
 		log.debug("User preferred locale: " + locale);
 		getSession().setLocale(locale);
-	}
-
-	/**
-	 * Sets the feedback panel message that an archive is in progress
-	 */
-	private void isArchiveInProgress() {
-		if (this.businessService.isArchiveInProgress()) {
-			info("Archive is in progress");
-		}
 	}
 
 }

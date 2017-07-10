@@ -36,17 +36,12 @@
 	<bean id="org.sakaiproject.archiver.api.ArchiverService"
     	class="org.sakaiproject.archiver.impl.ArchiverServiceImpl"
     	init-method="init">
-   
-   <!--  
- 		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
-        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
-        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
-		
-		-->
-   	
-   		<property name="dao" ref="org.sakaiproject.archiver.persistence.ArchiverPersistenceService" />
-   		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
-    </bean>
+		<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+		<property name="dao" ref="org.sakaiproject.archiver.persistence.ArchiverPersistenceService" />
+		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
+	</bean>
 
 	
 

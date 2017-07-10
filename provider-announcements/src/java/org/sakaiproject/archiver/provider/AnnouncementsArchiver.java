@@ -82,7 +82,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 			}
 		} catch (final PermissionException e) {
-			log.error("Failed to get announcements");
+			log.error("Failed to get announcements", e);
 		}
 	}
 
