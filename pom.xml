@@ -23,22 +23,19 @@
 		<module>tool</module>
 		<module>deploy</module>
 		<module>provider-syllabus</module>
-		<!--
 		<module>provider-webcontent</module>
-		<module>provider-gradebook</module>
+		<!--<module>provider-gradebook</module>-->
 		<module>provider-home</module>
 		<module>provider-chat</module>
 		<module>provider-announcements</module>
 		<module>provider-dropbox</module>
-		<module>provider-assignments</module>
+		<!--<module>provider-assignments</module>-->
 		<module>provider-resources</module>
 		<module>provider-news</module>
 		<module>provider-forums</module>
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
-		<module>provider-testsandquizzes</module>	
-		-->
-		<!-- run with -Pinclude-custom to include custom modules -->
+		<!--<module>provider-testsandquizzes</module>-->
 	</modules>
 	
 	<dependencyManagement>
