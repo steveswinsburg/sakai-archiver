@@ -403,8 +403,8 @@ public class AssignmentArchiver implements Archiveable {
 		@Setter
 		private String gradeScaleMaxPoints;
 
-		@Setter
-		private String submissionType;
+		// @Setter
+		// private String submissionType;
 
 		@Setter
 		private String modelAnswerText;
@@ -451,8 +451,8 @@ public class AssignmentArchiver implements Archiveable {
 			// Get content related fields
 			if (a.getContent() != null) {
 				this.instructions = a.getContent().getInstructions();
-				this.gradeScale = a.getContent().getTypeOfGradeString();
-				this.submissionType = a.getContent().getTypeOfSubmissionString();
+				this.gradeScale = a.getContent().getTypeOfGradeString(a.getContent().getTypeOfGrade());
+				// this.submissionType = a.getContent().getTypeOfSubmissionString(a.getContent().getTypeOfSubmission());
 
 				// if grade scale is "points", get the maximum points allowed
 				this.gradeScaleMaxPoints = a.getContent().getMaxGradePointDisplay();

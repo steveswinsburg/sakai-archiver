@@ -29,7 +29,7 @@
 		<module>provider-chat</module>
 		<module>provider-announcements</module>
 		<module>provider-dropbox</module>
-		<!--<module>provider-assignments</module>-->
+		<module>provider-assignments</module>
 		<module>provider-resources</module>
 		<module>provider-news</module>
 		<module>provider-forums</module>
