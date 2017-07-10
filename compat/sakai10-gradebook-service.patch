@@ -1,0 +1,122 @@
+Index: api/pom.xml
+===================================================================
+--- api/pom.xml	(revision 325978)
++++ api/pom.xml	(working copy)
+@@ -17,4 +17,12 @@
+     <properties>
+         <deploy.target>shared</deploy.target>
+     </properties>
++    
++    <dependencies>
++    		<dependency>
++        		<groupId>commons-lang</groupId>
++        		<artifactId>commons-lang</artifactId>
++        		<scope>provided</scope>
++		</dependency>    
++    </dependencies>
+ </project>
+Index: api/src/java/org/sakaiproject/service/gradebook/shared/GradebookService.java
+===================================================================
+--- api/src/java/org/sakaiproject/service/gradebook/shared/GradebookService.java	(revision 325978)
++++ api/src/java/org/sakaiproject/service/gradebook/shared/GradebookService.java	(working copy)
+@@ -835,5 +835,23 @@
+ 	 * @return
+ 	 */
+ 	public String getAverageCourseGrade(String gradebookUid);
++	
++	/**
++     * Get the course grade for a student
++     * 
++     * @param gradebookUid
++     * @param userUuid uuid of the user
++     * @return The {@link CourseGrade} for the student
++     */
++	CourseGrade getCourseGradeForStudent(String gradebookUid, String userUuid);
++	
++	 /**
++     * Get the course grade for a list of students
++     * 
++     * @param gradebookUid
++     * @param userUuids uuids of the users
++     * @return a Map of {@link CourseGrade} for the students. Key is the student uuid.
++     */
++	Map<String,CourseGrade> getCourseGradeForStudents(String gradebookUid, List<String> userUuids);
+ 
+ }
+Index: impl/src/java/org/sakaiproject/component/gradebook/GradebookServiceHibernateImpl.java
+===================================================================
+--- impl/src/java/org/sakaiproject/component/gradebook/GradebookServiceHibernateImpl.java	(revision 325978)
++++ impl/src/java/org/sakaiproject/component/gradebook/GradebookServiceHibernateImpl.java	(working copy)
+@@ -3046,4 +3046,72 @@
+ 	    return courseGradeLetter;
+ 	}
+ 	
++	@Override
++	public org.sakaiproject.service.gradebook.shared.CourseGrade getCourseGradeForStudent(final String gradebookUid,
++			final String userUuid) {
++		return getCourseGradeForStudents(gradebookUid, Collections.singletonList(userUuid)).get(userUuid);
++	}
++
++	@Override
++	public Map<String, org.sakaiproject.service.gradebook.shared.CourseGrade> getCourseGradeForStudents(final String gradebookUid,
++			final List<String> userUuids) {
++
++		final Map<String, org.sakaiproject.service.gradebook.shared.CourseGrade> rval = new HashMap<String, org.sakaiproject.service.gradebook.shared.CourseGrade>();
++
++		try {
++			final Gradebook gradebook = getGradebook(gradebookUid);
++
++			// if not released, and not instructor or TA, don't do any work
++			// note that this will return a course grade for Instructor and TA even if not released, see SAK-30119
++			if (!gradebook.isCourseGradeDisplayed() && !(currentUserHasEditPerm(gradebookUid) || currentUserHasGradingPerm(gradebookUid))) {
++				return rval;
++			}
++
++			final List<Assignment> assignments = getAssignmentsCounted(gradebook.getId());
++			final GradeMapping gradeMap = gradebook.getSelectedGradeMapping();
++
++			// this takes care of drop/keep scores
++			final List<CourseGradeRecord> gradeRecords = getPointsEarnedCourseGradeRecords(getCourseGrade(gradebook.getId()), userUuids);
++
++			for (final CourseGradeRecord gr : gradeRecords) {
++
++				final org.sakaiproject.service.gradebook.shared.CourseGrade cg = new org.sakaiproject.service.gradebook.shared.CourseGrade();
++
++				// ID of the course grade item
++				cg.setId(gr.getCourseGrade().getId());
++
++				// set entered grade
++				cg.setEnteredGrade(gr.getEnteredGrade());
++
++				// set date recorded
++				cg.setDateRecorded(gr.getDateRecorded());
++
++				if (!assignments.isEmpty()) {
++
++					// calculated grade
++					// may be null if no grade entries to calculate
++					final Double calculatedGrade = gr.getAutoCalculatedGrade();
++					if (calculatedGrade != null) {
++						cg.setCalculatedGrade(calculatedGrade.toString());
++					}
++
++					// mapped grade
++					// NOTE: any incorrect mappings here are likely caused by the comparator not catering for the characters in the gradeMap
++					// string
++					final String mappedGrade = gradeMap.getGrade(calculatedGrade);
++					cg.setMappedGrade(mappedGrade);
++
++					// points
++					cg.setPointsEarned(gr.getPointsEarned()); // synonymous with gradeRecord.getCalculatedPointsEarned()
++					cg.setTotalPointsPossible(gr.getTotalPointsPossible());
++
++				}
++				rval.put(gr.getStudentId(), cg);
++			}
++		} catch (final Exception e) {
++			log.error("Error in getCourseGradeForStudents", e);
++		}
++		return rval;
++	}
++	
+ }
