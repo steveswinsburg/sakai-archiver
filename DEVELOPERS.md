@@ -39,10 +39,13 @@ Some archivers may require services not available to your development environmen
 To include the custom tools, use `-Pinclude-custom`;
 
 ## 10.4 compatibility
-The compat/10.4 branch must be built with `-Pcompat`.
 
-Note that this will also deploy new/updated versions of some libraries to Tomcat. You *must* ensure the following libraries are removed from Tomcat's shared classloader:
-* commons-io-2.0.1.jar
+Use the `compat/10.4` branch, and note the following:
+
+* All patches in the `compat` directory must be applied to your base Sakai code before building.
+* The compat/10.4 branch must be built with `-Pcompat`.
+    Note that this will also deploy new/updated versions of some libraries to Tomcat. You *must* ensure the following libraries are removed from Tomcat's shared classloader:
+        * commons-io-2.0.1.jar
 
 ## CI support
 Since CI servers start with a clean slate for each build, the CI server has to include `-Psnapshots`.
