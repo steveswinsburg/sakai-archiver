@@ -2,7 +2,6 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +30,6 @@ import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.component.api.ServerConfigurationService;
 
-import javafx.util.Duration;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -179,9 +177,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
 		return ArchiveMapper.toDtos(entities);
 	}
-	
+
 	@Override
-	public Archive getLatest(String siteId){
+	public Archive getLatest(final String siteId) {
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
 		if (entity == null) {
 			log.debug("No archive exists for siteId {}", siteId);
@@ -325,15 +323,13 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private boolean isArchiveInProgress(final String siteId) {
 
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
-		if(entity == null) {
+		if (entity == null) {
 			return false;
 		}
-		if(entity.getStatus() == Status.STARTED){
+		if (entity.getStatus() == Status.STARTED) {
 			return true;
 		}
 		return false;
 	}
-
-	
 
 }
