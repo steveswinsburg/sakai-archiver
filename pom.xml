@@ -44,8 +44,14 @@
 			<dependency>
 				<groupId>org.sakaiproject.archiver</groupId>
 				<artifactId>archiver-api</artifactId>
-				<version>0.2-SNAPSHOT</version>
+				<version>${project.version}</version>
 				<scope>provided</scope>
+			</dependency>
+			<dependency>
+		    	<groupId>org.jsoup</groupId>
+		    	<artifactId>jsoup</artifactId>
+		    	<version>1.10.3</version>
+		    	<scope>compile</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

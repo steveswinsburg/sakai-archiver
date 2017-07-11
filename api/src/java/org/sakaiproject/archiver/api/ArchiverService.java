@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -28,9 +29,11 @@ public interface ArchiverService {
 	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
 	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
 	 * @throws {@link ArchiveInitialisationException} if the archive could not be initialised
+	 * @throws {@link ArchiveCompletionException} if the archive could not be completed properly
 	 */
 	void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException;
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException;
 
 	/**
 	 * Tools can call this to add content of a file into the archive
@@ -65,7 +68,7 @@ public interface ArchiverService {
 	 * @throws {@ArchiveNotFoundException} if no archive can be found by that archiveId
 	 */
 	Archive getArchive(final String archiveId) throws ArchiveNotFoundException;
-	
+
 	/**
 	 * Get the latest archive for the given siteId
 	 *

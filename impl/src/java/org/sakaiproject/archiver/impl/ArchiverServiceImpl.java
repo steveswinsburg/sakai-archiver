@@ -8,6 +8,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -20,6 +24,7 @@ import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
@@ -28,7 +33,12 @@ import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
+import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.tool.api.Session;
+import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.user.api.User;
+import org.sakaiproject.user.api.UserDirectoryService;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,13 +52,23 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Setter
 	private ServerConfigurationService serverConfigurationService;
 
+	@Setter
+	private UserDirectoryService userDirectoryService;
+
+	@Setter
+	private SessionManager sessionManager;
+
+	@Setter
+	private AuthzGroupService authzGroupService;
+
 	public void init() {
 		log.info("ArchiverService started");
 	}
 
 	@Override
 	public void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException {
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException {
 
 		// validate
 		final List<String> toolsToArchive = Arrays.asList(toolIds);
@@ -77,9 +97,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 		entity.setArchivePath(archivePath);
 		this.dao.update(entity);
 
-		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
-		Status status = Status.COMPLETE;
-
 		final List<String> customRegistrations = getCustomRegistrations();
 
 		final List<String> allRegistrations = new ArrayList<>();
@@ -90,6 +107,12 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 
+		final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+
+		final List<Future<Status>> futures = new ArrayList<>();
+
+		final User currentUser = this.userDirectoryService.getCurrentUser();
+
 		// archive all registered and custom tools
 		for (final String toolId : allRegistrations) {
 			final Archiveable archivable = registry.get(toolId);
@@ -98,19 +121,51 @@ public class ArchiverServiceImpl implements ArchiverService {
 				return;
 			}
 
-			log.info("Archiving {}", toolId);
+			final Callable<Status> task = () -> {
 
-			try {
-				archivable.archive(archiveId, siteId, toolId, includeStudentData);
-			} catch (final RuntimeException e) {
-				// TODO rethrow as a checked exception which the UI can deal with
-				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
-						siteId, toolId, e);
-				status = Status.INCOMPLETE;
-			}
+				log.info("Archiving {}", toolId);
+
+				injectUser(currentUser);
+
+				try {
+					archivable.archive(archiveId, siteId, toolId, includeStudentData);
+					return Status.COMPLETE;
+				} catch (final Exception e) {
+					log.error(
+							"An exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+							siteId, toolId, e);
+					return Status.INCOMPLETE;
+				}
+			};
+
+			// non blocking invocation
+			futures.add(taskExecutor.submit(task));
 		}
+		taskExecutor.shutdown();
 
-		finalise(entity, status);
+		// spin up another executor for the finalise to use
+		final ExecutorService finaliseExecutor = Executors.newSingleThreadExecutor();
+		final Callable<Void> finaliseTask = () -> {
+
+			log.debug("Waiting for all archiving threads to finish...");
+
+			// TODO this should be a list of statuses as the last one could be ok but one of them failed and it will remain at STARTED.
+			// Also means we can do better reporting
+			Status status = Status.COMPLETE;
+			for (final Future<Status> future : futures) {
+				// wait for each to finish and check the status
+				status = future.get();
+			}
+
+			log.debug("All archiving threads are complete, finalising the archive.");
+
+			finalise(entity, status);
+
+			return null;
+		};
+
+		finaliseExecutor.submit(finaliseTask);
+		finaliseExecutor.shutdown();
 	}
 
 	@Override
@@ -249,7 +304,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	/**
 	 * Finalise an archiving record with the specified status.
 	 *
-	 * Note that the status could be overridden if an error occurs in finalising the archive.
+	 * Note that the passed in status could be overridden if an error occurs in finalising the archive.
 	 *
 	 * @param entity the {@link ArchiveEntity} tracking this archive
 	 * @param status the {@link Status} to set
@@ -314,7 +369,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
 		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
 	}
-	
+
 	/**
 	 * Checks if an archive is in progress for the given site.
 	 *
@@ -332,4 +387,33 @@ public class ArchiverServiceImpl implements ArchiverService {
 		return false;
 	}
 
+	/**
+	 * Inject user into the session so that Sakai permission checks will be happy
+	 *
+	 * @param user hte user to inject into the session
+	 *
+	 * @throws ArchiveInitialisationException if the archive could not
+	 */
+	private void injectUser(final User user) throws ArchiveInitialisationException {
+
+		if (user == null) {
+			throw new ArchiveInitialisationException("Archive session could not be updated. Archiver cannot be run.");
+		}
+
+		Session session = this.sessionManager.getCurrentSession();
+		if (session == null) {
+			session = this.sessionManager.startSession();
+		}
+
+		log.debug("Injecting session {} with user {}", session.getId(), user.getEid());
+
+		session.setUserId(user.getId());
+		session.setActive();
+		this.sessionManager.setCurrentSession(session);
+
+		// TODO is this line strictly necessary?
+		this.authzGroupService.refreshUser(user.getId());
+
+		log.debug("Session ready");
+	}
 }

@@ -10,4 +10,8 @@ public class ArchiveInitialisationException extends Exception {
 		super(message, e);
 	}
 
+	public ArchiveInitialisationException(final String message) {
+		super(message);
+	}
+
 }

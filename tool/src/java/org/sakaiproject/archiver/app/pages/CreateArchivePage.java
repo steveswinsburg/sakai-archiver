@@ -18,6 +18,7 @@ import org.apache.wicket.util.time.Duration;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 
@@ -41,7 +42,7 @@ public class CreateArchivePage extends BasePage {
 		statusContainer.add(statusBanner);
 		add(statusContainer);
 
-		// set initial state of the status banner in case n archive is currently running when they come to the page
+		// set initial state of the status banner in case an archive is currently running when they come to the page
 		updateStatusBanner(statusBanner, getArchiveStatus());
 
 		// form model
@@ -71,10 +72,11 @@ public class CreateArchivePage extends BasePage {
 				} catch (final ToolsNotSpecifiedException e) {
 					error(getString("archive.error.notools"));
 				} catch (final ArchiveAlreadyInProgressException e) {
-					error(getString("archive.error.existing"));
+					// error(getString("archive.error.existing"));
 				} catch (final ArchiveInitialisationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					error(getString("archive.error.starting"));
+				} catch (final ArchiveCompletionException e) {
+					error(getString("archive.error.completing"));
 				}
 
 			}
@@ -150,8 +152,6 @@ public class CreateArchivePage extends BasePage {
 	 * @param status
 	 */
 	private void updateStatusBanner(final Label label, final Status status) {
-
-		System.out.println("status: " + status);
 
 		if (status == Status.NONE) {
 			label.setVisible(false);
