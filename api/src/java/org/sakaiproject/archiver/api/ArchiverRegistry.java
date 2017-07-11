@@ -1,5 +1,7 @@
 package org.sakaiproject.archiver.api;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,10 +21,10 @@ public class ArchiverRegistry {
 
 	private static ArchiverRegistry instance;
 
-	// holds the map of toolId to service class
+	// holds the map of toolId to service classes for that toolId
 	// must be thread safe
 	@Getter
-	private final Map<String, Archiveable> registry = new ConcurrentHashMap<>();
+	private final Map<String, List<Archiveable>> registry = new ConcurrentHashMap<>();
 
 	private ArchiverRegistry() {
 		// no instances
@@ -41,18 +43,20 @@ public class ArchiverRegistry {
 	}
 
 	/**
-	 * Register an {@link Archiveable} service for a toolId
+	 * Register an {@link Archiveable} service for a toolId.
+	 *
+	 * Multiple archiver services can call this for the same toolId if they share something in common.
+	 *
+	 * Normally they would also have the same 'name' field but they don't have to.
 	 *
 	 * @param toolId the toolId to register this archiver for
 	 * @param archiveable the service to register
 	 */
 	public synchronized void register(final String toolId, final Archiveable archiveable) {
-		if (isRegistered(toolId)) {
-			log.warn("ArchiverRegistry already contains a registration for {}", toolId);
-		} else {
-			this.registry.put(toolId, archiveable);
-			log.info("Added registration for {} as {}", toolId, archiveable.getClass().getCanonicalName());
-		}
+		final List<Archiveable> registrations = this.registry.getOrDefault(toolId, new ArrayList<>());
+		registrations.add(archiveable);
+		this.registry.put(toolId, registrations);
+		log.info("Added registration for {} as {}", toolId, archiveable.getClass().getCanonicalName());
 	}
 
 	/**
@@ -65,6 +69,13 @@ public class ArchiverRegistry {
 			log.info("Unregistering {}", toolId);
 			this.registry.remove(toolId);
 		}
+	}
+
+	/**
+	 * Unregister all {@link Archiveable} services
+	 */
+	protected synchronized void unregisterAll() {
+		getRegistry().keySet().forEach(toolId -> unregister(toolId));
 	}
 
 	/**

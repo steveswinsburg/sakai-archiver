@@ -12,7 +12,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -97,15 +96,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		entity.setArchivePath(archivePath);
 		this.dao.update(entity);
 
-		final List<String> customRegistrations = getCustomRegistrations();
-
-		final List<String> allRegistrations = new ArrayList<>();
-		allRegistrations.addAll(toolsToArchive);
-
-		// this needs to ensure it is tied to a tool. so needs some work in the archiverregistry
-		allRegistrations.addAll(customRegistrations);
-
-		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
+		final Map<String, List<Archiveable>> registry = ArchiverRegistry.getInstance().getRegistry();
 
 		final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
 
@@ -113,34 +104,39 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 		final User currentUser = this.userDirectoryService.getCurrentUser();
 
-		// archive all registered and custom tools
-		for (final String toolId : allRegistrations) {
-			final Archiveable archivable = registry.get(toolId);
-			if (archivable == null) {
-				log.error("No registered archiver for {}", toolId);
+		// archive the requested toolIds
+		for (final String toolId : toolsToArchive) {
+			final List<Archiveable> archiveables = registry.get(toolId);
+			if (archiveables == null || archiveables.isEmpty()) {
+				log.error("No registered archivers for {}", toolId);
 				return;
 			}
 
-			final Callable<Status> task = () -> {
+			for (final Archiveable archiveable : archiveables) {
 
-				log.info("Archiving {}", toolId);
+				final Callable<Status> task = () -> {
 
-				injectUser(currentUser);
+					log.info("Archiving {} with provider {}", toolId, archiveable.getClass().getCanonicalName());
 
-				try {
-					archivable.archive(archiveId, siteId, toolId, includeStudentData);
-					return Status.COMPLETE;
-				} catch (final Exception e) {
-					log.error(
-							"An exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
-							siteId, toolId, e);
-					return Status.INCOMPLETE;
-				}
-			};
+					injectUser(currentUser);
 
-			// non blocking invocation
-			futures.add(taskExecutor.submit(task));
+					try {
+						archiveable.archive(archiveId, siteId, includeStudentData);
+						return Status.COMPLETE;
+					} catch (final Exception e) {
+						log.error(
+								"An exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+								siteId, toolId, e);
+						return Status.INCOMPLETE;
+					}
+				};
+
+				// non blocking invocation
+				futures.add(taskExecutor.submit(task));
+
+			}
 		}
+
 		taskExecutor.shutdown();
 
 		// spin up another executor for the finalise to use
@@ -358,16 +354,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 		if (getExcludedExtensions().contains(extension)) {
 			throw new FileExtensionExcludedException();
 		}
-	}
-
-	/**
-	 * Get a list of custom registrations, ie those that start with {@link Archiveable#CUSTOM_PREFIX}
-	 *
-	 * @return
-	 */
-	private List<String> getCustomRegistrations() {
-		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
-		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
 	}
 
 	/**
