@@ -35,6 +35,10 @@ import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.entity.api.ResourceProperties;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.user.api.User;
@@ -60,6 +64,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Setter
 	private AuthzGroupService authzGroupService;
+
+	@Setter
+	private SiteService siteService;
 
 	public void init() {
 		log.info("ArchiverService started");
@@ -415,5 +422,26 @@ public class ArchiverServiceImpl implements ArchiverService {
 		this.authzGroupService.refreshUser(user.getId());
 
 		log.debug("Session ready");
+	}
+
+	@Override
+	public String getSiteHeader(final String siteId, final String toolId) {
+
+		try {
+			final Site site = this.siteService.getSite(siteId);
+			final String siteTitle = site.getTitle();
+			final ResourceProperties props = site.getProperties();
+			final String term = (String) props.get(Site.PROP_SITE_TERM);
+			if (term != null) {
+				return String.format("%s (%s): %s", siteTitle, term, toolId);
+			} else {
+				return String.format("%s: %s", siteTitle, toolId);
+			}
+
+		} catch (final IdUnusedException e) {
+			// this should never occur
+			log.debug("Site could not be found. Header could not be created", e);
+			return "";
+		}
 	}
 }

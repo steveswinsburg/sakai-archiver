@@ -85,4 +85,15 @@ public interface ArchiverService {
 	 */
 	List<Archive> getArchives(final String siteId);
 
+	/**
+	 * Get a heading for the top of the html file, in the form: "Site name (session): Tool"
+	 *
+	 * For example: "MATH1013 (Semester 2): Assignments"
+	 *
+	 * @param siteId
+	 * @param toolId
+	 * @return
+	 */
+	String getSiteHeader(String siteId, String toolId);
+
 }
