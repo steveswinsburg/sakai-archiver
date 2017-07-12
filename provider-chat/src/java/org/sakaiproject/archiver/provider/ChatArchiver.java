@@ -72,7 +72,8 @@ public class ChatArchiver implements Archiveable {
 					final int rangeStart = start + 1;
 					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
 
-					final String html = Htmlifier.toHtml(messagesToSave);
+					final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(messagesToSave),
+							this.archiverService.getSiteHeader(siteId, toolId));
 					log.debug("Chat HTML: " + html);
 
 					this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),

@@ -73,7 +73,8 @@ public class AnnouncementsArchiver implements Archiveable {
 				}
 
 				// convert to html
-				final String fileContents = Htmlifier.toHtml(simpleAnnouncement);
+				final String fileContents = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAnnouncement),
+						this.archiverService.getSiteHeader(siteId, toolId));
 
 				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
