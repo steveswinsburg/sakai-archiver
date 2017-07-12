@@ -77,7 +77,8 @@ public class AssignmentArchiver implements Archiveable {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment), getSiteHeader(siteId, toolId));
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
+					this.archiverService.getSiteHeader(siteId, toolId));
 			this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "details.html",
 					assignment.getTitle());
 
@@ -93,10 +94,6 @@ public class AssignmentArchiver implements Archiveable {
 
 		// archive the grades spreadsheet for the site
 		archiveGradesSpreadsheet(archiveId, siteId, toolId);
-	}
-
-	public String getSiteHeader(final String siteId, final String toolId) {
-		return this.archiverService.getSiteHeader(siteId, toolId);
 	}
 
 	/**
@@ -121,7 +118,8 @@ public class AssignmentArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData), getSiteHeader(siteId, toolId));
+				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
+						this.archiverService.getSiteHeader(siteId, toolId));
 				this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
 						"submission.html", submissionSubdirs);
 			}
@@ -152,7 +150,7 @@ public class AssignmentArchiver implements Archiveable {
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), getSiteHeader(siteId, toolId));
+		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, toolId));
 		this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "feedback.html",
 				feedbackSubdirs);
 	}
