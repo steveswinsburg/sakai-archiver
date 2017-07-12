@@ -71,7 +71,7 @@ public class Htmlifier extends RecursiveToStringStyle {
 	}
 
 	/**
-	 * Add html start and end to a html body string
+	 * Add HTML start and end to a HTML body string
 	 *
 	 * @param htmlBody
 	 * @return
@@ -84,8 +84,14 @@ public class Htmlifier extends RecursiveToStringStyle {
 		return sb.toString();
 	}
 
+	/**
+	 * Add a site header to the provided HTML
+	 * 
+	 * @param html
+	 * @param heading
+	 * @return
+	 */
 	public static String addSiteHeader(final String html, final String heading) {
-		// TODO Use Jsoup to add a header to the very top of the body
 		final Document doc = Jsoup.parse(html);
 		final Elements divs = doc.select("div");
 		divs.first().prepend("<h2 align=\"center\">" + heading + "</h2>");

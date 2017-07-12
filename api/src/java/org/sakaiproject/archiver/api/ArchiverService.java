@@ -90,6 +90,8 @@ public interface ArchiverService {
 	 *
 	 * For example: "MATH1013 (Semester 2): Assignments"
 	 *
+	 * If there is no session it will be excluded, i.e. "Site name: Tool"
+	 *
 	 * @param siteId
 	 * @param toolId
 	 * @return
