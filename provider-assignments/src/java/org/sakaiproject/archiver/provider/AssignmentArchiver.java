@@ -39,10 +39,6 @@ public class AssignmentArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.assignment.grades";
 
-	private static final String TOOL_NAME = "Assignments";
-
-	private static String archiveHeading;
-
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
@@ -75,16 +71,14 @@ public class AssignmentArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
 
-		setArchiveHeading(siteId);
-
 		final List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
 		for (final Assignment assignment : assignments) {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleAssignment, archiveHeading).getBytes(),
-					"details.html",
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment), getSiteHeader(siteId, toolId));
+			this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "details.html",
 					assignment.getTitle());
 
 			// archive the attachments for the assignment
@@ -101,9 +95,8 @@ public class AssignmentArchiver implements Archiveable {
 		archiveGradesSpreadsheet(archiveId, siteId, toolId);
 	}
 
-	private void setArchiveHeading(final String siteId) {
-		final String siteName = this.siteService.getSiteDisplay(siteId);
-		AssignmentArchiver.archiveHeading = siteName + " - " + TOOL_NAME;
+	public String getSiteHeader(final String siteId, final String toolId) {
+		return this.archiverService.getSiteHeader(siteId, toolId);
 	}
 
 	/**
@@ -128,8 +121,8 @@ public class AssignmentArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, toolId,
-						Htmlifier.toHtml(submissionData, AssignmentArchiver.archiveHeading).getBytes(),
+				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData), getSiteHeader(siteId, toolId));
+				this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
 						"submission.html", submissionSubdirs);
 			}
 
@@ -159,8 +152,8 @@ public class AssignmentArchiver implements Archiveable {
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		this.archiverService.archiveContent(archiveId, siteId, toolId,
-				Htmlifier.toHtml(feedback, AssignmentArchiver.archiveHeading).getBytes(), "feedback.html",
+		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), getSiteHeader(siteId, toolId));
+		this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "feedback.html",
 				feedbackSubdirs);
 	}
 
