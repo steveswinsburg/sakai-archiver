@@ -43,16 +43,16 @@ public class ArchiverRegistry {
 	}
 
 	/**
-	 * Register an {@link Archiveable} service for a toolId.
+	 * Register an {@link Archiveable} service
 	 *
 	 * Multiple archiver services can call this for the same toolId if they share something in common.
 	 *
 	 * Normally they would also have the same 'name' field but they don't have to.
 	 *
-	 * @param toolId the toolId to register this archiver for
 	 * @param archiveable the service to register
 	 */
-	public synchronized void register(final String toolId, final Archiveable archiveable) {
+	public synchronized void register(final Archiveable archiveable) {
+		final String toolId = archiveable.getToolId();
 		final List<Archiveable> registrations = this.registry.getOrDefault(toolId, new ArrayList<>());
 		registrations.add(archiveable);
 		this.registry.put(toolId, registrations);
@@ -66,7 +66,7 @@ public class ArchiverRegistry {
 	 */
 	public synchronized void unregister(final String toolId) {
 		if (isRegistered(toolId)) {
-			log.info("Unregistering {}", toolId);
+			log.info("Unregistering services for {}", toolId);
 			this.registry.remove(toolId);
 		}
 	}

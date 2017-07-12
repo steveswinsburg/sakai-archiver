@@ -40,22 +40,25 @@ public interface ArchiverService {
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param siteId that this archive is for
+	 * @param dirName the name of the directory where the content should be archived to
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 */
-	void archiveContent(final String archiveId, final String siteId, byte[] content, String filename);
+	void archiveContent(final String archiveId, final String siteId, final String dirName, byte[] content, String filename);
 
 	/**
 	 * Tools can call this to add content of a file into the archive, with an optional set of subdirectory
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param siteId that this archive is for
+	 * @param dirName the name of the directory where the content should be archived to
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 * @param subdirectories the subdirectories within the archive where the file will be written. Do not include any path separator, these
 	 *            will be added automatically.
 	 */
-	void archiveContent(final String archiveId, final String siteId, byte[] content, String filename, final String... subdirectories);
+	void archiveContent(final String archiveId, final String siteId, final String dirName, byte[] content, String filename,
+			final String... subdirectories);
 
 	/**
 	 * Get an archive for the given archiveId

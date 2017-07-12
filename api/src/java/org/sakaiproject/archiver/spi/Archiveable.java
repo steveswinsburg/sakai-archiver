@@ -22,24 +22,20 @@ public interface Archiveable {
 	 * @param siteId the id of the site to get data for
 	 * @param includeStudentContent if student content (if applicable for the tool) should be included in the archive.
 	 */
-	void archive(String archiveId, String siteId, String toolId, boolean includeStudentContent);
+	void archive(String archiveId, String siteId, boolean includeStudentContent);
 
 	/**
 	 * The toolId for this provider
 	 *
 	 * @return the toolid
 	 */
-	default String getToolId() {
-		return "other";
-	}
+	String getToolId();
 
 	/**
 	 * The human readable name to be used for the directory within the archive
 	 *
 	 * @return the name
 	 */
-	default String getName() {
-		return getToolId();
-	}
+	String getName();
 
 }

@@ -26,8 +26,8 @@ public class ArchiverRegistryTest {
 	public void should_register_when_archiveableSupplied() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final Archiveable archiveable1 = new ExampleArchiveable(this.name1);
-		registry.register(this.toolId1, archiveable1);
+		final Archiveable archiveable1 = new ExampleArchiveable(this.toolId1, this.name1);
+		registry.register(archiveable1);
 
 		final List<Archiveable> registered = registry.getRegistry().get(this.toolId1);
 
@@ -38,14 +38,14 @@ public class ArchiverRegistryTest {
 	public void should_supplement_when_archiveableSuppliedWithSameToolId() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final Archiveable archiveable1 = new ExampleArchiveable(this.name1);
-		registry.register(this.toolId1, archiveable1);
+		final Archiveable archiveable1 = new ExampleArchiveable(this.toolId1, this.name1);
+		registry.register(archiveable1);
 
-		final Archiveable archiveable2 = new ExampleArchiveable(this.name1);
-		registry.register(this.toolId1, archiveable2);
+		final Archiveable archiveable2 = new ExampleArchiveable(this.toolId1, this.name1);
+		registry.register(archiveable2);
 
-		final Archiveable archiveable3 = new ExampleArchiveable(this.name2);
-		registry.register(this.toolId1, archiveable3);
+		final Archiveable archiveable3 = new ExampleArchiveable(this.toolId1, this.name2);
+		registry.register(archiveable3);
 
 		final List<Archiveable> registered = registry.getRegistry().get(this.toolId1);
 
@@ -59,8 +59,8 @@ public class ArchiverRegistryTest {
 	public void should_unregister_when_toolIdSupplied() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final ExampleArchiveable archiveable1 = new ExampleArchiveable(this.name1);
-		registry.register(this.toolId1, archiveable1);
+		final ExampleArchiveable archiveable1 = new ExampleArchiveable(this.toolId1, this.name1);
+		registry.register(archiveable1);
 		registry.unregister(this.toolId1);
 
 		final ExampleArchiveable registered = (ExampleArchiveable) registry.getRegistry().get(this.toolId1);
@@ -70,15 +70,27 @@ public class ArchiverRegistryTest {
 
 	protected class ExampleArchiveable implements Archiveable {
 
-		String name;
+		private final String name;
+		private final String toolId;
 
-		public ExampleArchiveable(final String name) {
+		public ExampleArchiveable(final String toolId, final String name) {
+			this.toolId = toolId;
 			this.name = name;
 		}
 
 		@Override
-		public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+		public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 			// do nothing
+		}
+
+		@Override
+		public String getToolId() {
+			return this.toolId;
+		}
+
+		@Override
+		public String getName() {
+			return this.name;
 		}
 
 	}
