@@ -29,14 +29,25 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AnnouncementsArchiver implements Archiveable {
 
-	private static final String ANNOUNCEMENTS_TOOL = "sakai.announcements";
+	private static final String TOOL_ID = "sakai.announcements";
+	private static final String TOOL_NAME = "Announcements";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(ANNOUNCEMENTS_TOOL, this);
+		ArchiverRegistry.getInstance().register(this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(ANNOUNCEMENTS_TOOL);
+		ArchiverRegistry.getInstance().unregister(TOOL_ID);
+	}
+
+	@Override
+	public String getToolId() {
+		return TOOL_ID;
+	}
+
+	@Override
+	public String getName() {
+		return TOOL_NAME;
 	}
 
 	@Setter
@@ -49,7 +60,7 @@ public class AnnouncementsArchiver implements Archiveable {
 	private ContentHostingService contentHostingService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		try {
 
@@ -67,7 +78,7 @@ public class AnnouncementsArchiver implements Archiveable {
 				// archive the attachments for this announcement
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
 				archiveAttachments(attachments, simpleAnnouncement, archiveId, siteId,
-						toolId);
+						getName());
 				if (attachments.size() > 0) {
 					finaliseAttachmentsHtml(simpleAnnouncement);
 				}
@@ -77,7 +88,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
-				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents.getBytes(),
+				this.archiverService.archiveContent(archiveId, siteId, getName(), fileContents.getBytes(),
 						simpleAnnouncement.getTitle() + ".html");
 
 			}
