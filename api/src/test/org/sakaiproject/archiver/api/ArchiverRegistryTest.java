@@ -2,7 +2,10 @@ package org.sakaiproject.archiver.api;
 
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
+import java.util.List;
+
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.archiver.spi.Archiveable;
 
@@ -10,40 +13,51 @@ public class ArchiverRegistryTest {
 
 	String toolId1 = "my.tool.1";
 	String toolId2 = "my.tool.2";
+	String toolId3 = "my.tool.3";
+
+	@Before
+	public void clearRegistry() {
+		ArchiverRegistry.getInstance().unregisterAll();
+	}
 
 	@Test
 	public void should_register_when_archiveableSupplied() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final ExampleArchiveable archiveable1 = new ExampleArchiveable(1);
+		final Archiveable archiveable1 = new ExampleArchiveable();
 		registry.register(this.toolId1, archiveable1);
 
-		final ExampleArchiveable registered = (ExampleArchiveable) registry.getRegistry().get(this.toolId1);
+		final List<Archiveable> registered = registry.getRegistry().get(this.toolId1);
 
-		Assert.assertThat("Archiveables are not identical", registered, samePropertyValuesAs(archiveable1));
+		Assert.assertThat("Archiveables are not identical", registered.get(0), samePropertyValuesAs(archiveable1));
 	}
 
 	@Test
-	public void should_notRegisterAgain_when_archiveableAlreadyRegistered() {
+	public void should_supplement_when_archiveableSuppliedWithSameToolId() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final ExampleArchiveable archiveable1 = new ExampleArchiveable(1);
+		final Archiveable archiveable1 = new ExampleArchiveable();
 		registry.register(this.toolId1, archiveable1);
 
-		final ExampleArchiveable archiveable2 = new ExampleArchiveable(2);
+		final Archiveable archiveable2 = new ExampleArchiveable();
 		registry.register(this.toolId1, archiveable2);
 
-		final ExampleArchiveable registered = (ExampleArchiveable) registry.getRegistry().get(this.toolId1);
+		final Archiveable archiveable3 = new ExampleArchiveable();
+		registry.register(this.toolId1, archiveable3);
 
-		Assert.assertThat("Registry contained an overwritten impl", registered, samePropertyValuesAs(archiveable1));
+		final List<Archiveable> registered = registry.getRegistry().get(this.toolId1);
+
+		Assert.assertThat("Archiveables are not identical", registered.get(0), samePropertyValuesAs(archiveable1));
+		Assert.assertThat("Archiveables are not identical", registered.get(1), samePropertyValuesAs(archiveable2));
+		Assert.assertThat("Archiveables are not identical", registered.get(2), samePropertyValuesAs(archiveable3));
 
 	}
 
 	@Test
-	public void should_unregister_when_toolIdSpplied() {
+	public void should_unregister_when_toolIdSupplied() {
 		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
 
-		final ExampleArchiveable archiveable1 = new ExampleArchiveable(1);
+		final ExampleArchiveable archiveable1 = new ExampleArchiveable();
 		registry.register(this.toolId1, archiveable1);
 		registry.unregister(this.toolId1);
 
@@ -54,20 +68,12 @@ public class ArchiverRegistryTest {
 
 	protected class ExampleArchiveable implements Archiveable {
 
-		// something to distinguish them
-		private final long id;
-
-		public ExampleArchiveable(final long id) {
-			this.id = id;
+		public ExampleArchiveable() {
 		}
 
 		@Override
-		public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+		public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 			// do nothing
-		}
-
-		public long getId() {
-			return this.id;
 		}
 
 	}

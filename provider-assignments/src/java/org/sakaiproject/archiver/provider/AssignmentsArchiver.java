@@ -35,9 +35,10 @@ import lombok.extern.slf4j.Slf4j;
  * Implementation of {@link Archiveable} for the assignment tool
  */
 @Slf4j
-public class AssignmentArchiver implements Archiveable {
+public class AssignmentsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.assignment.grades";
+	private static final String TOOL_NAME = "Assignments";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -69,7 +70,7 @@ public class AssignmentArchiver implements Archiveable {
 	private AssignmentSupplementItemService assignmentSupplementItemService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
@@ -78,22 +79,21 @@ public class AssignmentArchiver implements Archiveable {
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
 			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
-					this.archiverService.getSiteHeader(siteId, toolId));
-			this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "details.html",
-					assignment.getTitle());
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "details.html", assignment.getTitle());
 
 			// archive the attachments for the assignment
 			final String attachmentDir = assignment.getTitle() + "/attachments";
-			archiveAttachments(assignment.getContent().getAttachments(), attachmentDir, archiveId, siteId, toolId);
+			archiveAttachments(assignment.getContent().getAttachments(), attachmentDir, archiveId, siteId);
 
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
-				archiveSubmissions(assignment, archiveId, siteId, toolId);
+				archiveSubmissions(assignment, archiveId, siteId);
 			}
 		}
 
 		// archive the grades spreadsheet for the site
-		archiveGradesSpreadsheet(archiveId, siteId, toolId);
+		archiveGradesSpreadsheet(archiveId, siteId);
 	}
 
 	/**
@@ -102,10 +102,9 @@ public class AssignmentArchiver implements Archiveable {
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
-	private void archiveSubmissions(final Assignment assignment, final String archiveId, final String siteId, final String toolId) {
+	private void archiveSubmissions(final Assignment assignment, final String archiveId, final String siteId) {
 		final List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
 
 		for (final AssignmentSubmission submission : submissions) {
@@ -113,20 +112,19 @@ public class AssignmentArchiver implements Archiveable {
 			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
 
 			// archive the attachments for this submission
-			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId, toolId);
+			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId);
 
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
 				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
-						this.archiverService.getSiteHeader(siteId, toolId));
-				this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
-						"submission.html", submissionSubdirs);
+						this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "submission.html", submissionSubdirs);
 			}
 
 			// get the feedback, if this submission has been graded
 			if (submission.getGraded()) {
-				archiveFeedback(submission, assignment, archiveId, siteId, toolId);
+				archiveFeedback(submission, assignment, archiveId, siteId);
 			}
 		}
 	}
@@ -138,21 +136,19 @@ public class AssignmentArchiver implements Archiveable {
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
 	private void archiveFeedback(final AssignmentSubmission submission, final Assignment assignment, final String archiveId,
-			final String siteId, final String toolId) {
+			final String siteId) {
 
 		// archive the attachments provided by the instructor when grading the submission
 		final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
-		archiveAttachments(submission.getFeedbackAttachments(), feedbackSubdirs, archiveId, siteId, toolId);
+		archiveAttachments(submission.getFeedbackAttachments(), feedbackSubdirs, archiveId, siteId);
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, toolId));
-		this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "feedback.html",
-				feedbackSubdirs);
+		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, TOOL_ID));
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "feedback.html", feedbackSubdirs);
 	}
 
 	/**
@@ -162,13 +158,11 @@ public class AssignmentArchiver implements Archiveable {
 	 * @param subdirs
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 */
-	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId,
-			final String toolId) {
+	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId) {
 		for (final Reference attachment : attachments) {
 			try {
-				archiveAttachment(attachment, archiveId, siteId, toolId, subdirs);
+				archiveAttachment(attachment, archiveId, siteId, subdirs);
 			} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 				log.error("Error getting attachment: " + attachment.getId());
 			}
@@ -181,17 +175,16 @@ public class AssignmentArchiver implements Archiveable {
 	 * @param attachment
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
-	 * @param title
+	 * @param subdir
 	 * @throws ServerOverloadException
 	 * @throws PermissionException
 	 * @throws IdUnusedException
 	 * @throws TypeException
 	 */
-	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String toolId,
-			final String subdir) throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
+	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir)
+			throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
 				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
 	}
 
@@ -200,9 +193,8 @@ public class AssignmentArchiver implements Archiveable {
 	 *
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 */
-	private void archiveGradesSpreadsheet(final String archiveId, final String siteId, final String toolId) {
+	private void archiveGradesSpreadsheet(final String archiveId, final String siteId) {
 
 		// Note: The AssignmentService contains a method 'gradesSpreadsheetReference' but this cannot be used in this context.
 		// GradeSheetExporter#getGradesSpreadsheet will not accept that format.
@@ -214,7 +206,7 @@ public class AssignmentArchiver implements Archiveable {
 
 			gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(spreadsheetReference);
 			if (gradesSpreadsheet != null) {
-				this.archiverService.archiveContent(archiveId, siteId, toolId, gradesSpreadsheet, "grades.xls");
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, gradesSpreadsheet, "grades.xls");
 			}
 		} catch (IdUnusedException | PermissionException e) {
 			log.error("Error getting grades spreadsheet for site {} ", siteId);
@@ -464,16 +456,16 @@ public class AssignmentArchiver implements Archiveable {
 			}
 
 			// Supplement Items
-			final AssignmentModelAnswerItem assignmentModelAnswerItem = AssignmentArchiver.this.assignmentSupplementItemService
+			final AssignmentModelAnswerItem assignmentModelAnswerItem = AssignmentsArchiver.this.assignmentSupplementItemService
 					.getModelAnswer(a.getId());
 			if (assignmentModelAnswerItem != null) {
 				this.modelAnswerText = assignmentModelAnswerItem.getText();
 			}
-			final AssignmentNoteItem assignmentNoteItem = AssignmentArchiver.this.assignmentSupplementItemService.getNoteItem(a.getId());
+			final AssignmentNoteItem assignmentNoteItem = AssignmentsArchiver.this.assignmentSupplementItemService.getNoteItem(a.getId());
 			if (assignmentNoteItem != null) {
 				this.privateNoteText = assignmentNoteItem.getNote();
 			}
-			final AssignmentAllPurposeItem assignmentAllPurposeItem = AssignmentArchiver.this.assignmentSupplementItemService
+			final AssignmentAllPurposeItem assignmentAllPurposeItem = AssignmentsArchiver.this.assignmentSupplementItemService
 					.getAllPurposeItem(a.getId());
 			if (assignmentAllPurposeItem != null) {
 				this.allPurposeItemText = assignmentAllPurposeItem.getText();

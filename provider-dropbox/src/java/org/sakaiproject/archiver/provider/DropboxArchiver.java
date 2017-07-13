@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DropboxArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.dropbox";
+	private static final String TOOL_NAME = "Dropbox";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -56,7 +57,7 @@ public class DropboxArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		if (!includeStudentContent) {
 			log.warn("Dropbox cannot be archived without student content enabled");
@@ -76,7 +77,8 @@ public class DropboxArchiver implements Archiveable {
 				final String[] subdirs = prepend(studentName, getSubDirs(siteId, studentUuid, resource));
 
 				try {
-					this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, resource.getContent(), getFilename(resource), subdirs);
+					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, resource.getContent(), getFilename(resource),
+							subdirs);
 				} catch (final ServerOverloadException e) {
 					log.error("Error retrieving data for resource {}", resource.getUrl(true));
 				}

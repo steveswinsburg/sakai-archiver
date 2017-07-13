@@ -16,19 +16,12 @@ import org.sakaiproject.archiver.api.ArchiverService;
 public interface Archiveable {
 
 	/**
-	 * Prefix for custom services to use that are not necessarily associated with a tool
-	 */
-	final String CUSTOM_PREFIX = "archiver_custom_";
-
-	/**
 	 * Create the tool archive
 	 *
 	 * @param archiveId the id of the archive that this tool should use to send the content to
 	 * @param siteId the id of the site to get data for
-	 * @param tooLid the well known id of the tool to get the content for. Useful if the same {@link Archiveable} is registered for multiple
-	 *            tools
 	 * @param includeStudentContent if student content (if applicable for the tool) should be included in the archive.
 	 */
-	void archive(String archiveId, String siteId, String toolId, boolean includeStudentContent);
+	void archive(String archiveId, String siteId, boolean includeStudentContent);
 
 }

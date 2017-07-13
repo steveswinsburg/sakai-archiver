@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WebContentArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.iframe";
+	private static final String TOOL_NAME = "Web Content";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -41,14 +42,14 @@ public class WebContentArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String url = t.getPlacementConfig().getProperty("source");
 			final String filename = t.getTitle();
 			final String fileContents = createUrlFileContents(url);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), filename + ".url");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(), filename + ".url");
 		});
 
 	}

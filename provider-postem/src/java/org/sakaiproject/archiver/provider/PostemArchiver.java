@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PostemArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.postem";
+	private static final String TOOL_NAME = "PostEm";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -54,7 +55,7 @@ public class PostemArchiver implements Archiveable {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<Gradebook> gradebooks = new ArrayList<>(
 				this.postemGradebookManager.getGradebooksByContext(siteId, Gradebook.SORT_BY_TITLE, true));
@@ -64,7 +65,7 @@ public class PostemArchiver implements Archiveable {
 			final String filename = getFileName(gradebook);
 
 			if (ArrayUtils.isNotEmpty(fileContents)) {
-				this.archiverService.archiveContent(archiveId, siteId, toolId, fileContents, filename);
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents, filename);
 			}
 
 		});
