@@ -39,21 +39,11 @@ public class SyllabusArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
 		ArchiverRegistry.getInstance().unregister(TOOL_ID);
-	}
-
-	@Override
-	public String getToolId() {
-		return TOOL_ID;
-	}
-
-	@Override
-	public String getName() {
-		return TOOL_NAME;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -75,7 +65,7 @@ public class SyllabusArchiver implements Archiveable {
 			final ArchiveItem archiveItem = createArchiveItem(syllabus);
 			final String htmlArchiveItem = Htmlifier.toHtml(archiveItem);
 			log.debug("Archive item metadata: " + htmlArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, getName(), htmlArchiveItem.getBytes(), archiveItem.getTitle() + ".html");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, htmlArchiveItem.getBytes(), archiveItem.getTitle() + ".html");
 
 			// get the attachments
 			final Set<SyllabusAttachment> syllabusAttachments = this.syllabusManager.getSyllabusAttachmentsForSyllabusData(syllabus);
@@ -84,7 +74,7 @@ public class SyllabusArchiver implements Archiveable {
 				byte[] syllabusAttachmentBytes;
 				try {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
-					this.archiverService.archiveContent(archiveId, siteId, getName(), syllabusAttachmentBytes, syllabusAttachment.getName(),
+					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, syllabusAttachmentBytes, syllabusAttachment.getName(),
 							syllabus.getTitle() + " (attachments)");
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting syllabus attachment " + syllabusAttachment.getName() + " in syllabus " + syllabus.getTitle());

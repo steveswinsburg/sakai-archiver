@@ -28,21 +28,11 @@ public class WebContentArchiver implements Archiveable {
 	private static final String TOOL_NAME = "Web Content";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
 		ArchiverRegistry.getInstance().unregister(TOOL_ID);
-	}
-
-	@Override
-	public String getToolId() {
-		return TOOL_ID;
-	}
-
-	@Override
-	public String getName() {
-		return TOOL_NAME;
 	}
 
 	@Setter
@@ -59,7 +49,7 @@ public class WebContentArchiver implements Archiveable {
 			final String url = t.getPlacementConfig().getProperty("source");
 			final String filename = t.getTitle();
 			final String fileContents = createUrlFileContents(url);
-			this.archiverService.archiveContent(archiveId, siteId, getName(), fileContents.getBytes(), filename + ".url");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(), filename + ".url");
 		});
 
 	}

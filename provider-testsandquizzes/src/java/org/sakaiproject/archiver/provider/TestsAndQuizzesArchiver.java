@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TestsAndQuizzesArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.samigo.tool";
+	private static final String TOOL_NAME = "Tests and Quizzes";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -38,7 +39,7 @@ public class TestsAndQuizzesArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 	}
 

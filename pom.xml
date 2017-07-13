@@ -35,7 +35,11 @@
 		<module>provider-forums</module>
 		<module>provider-postem</module>
 		<module>provider-roster2</module>
+		
+		<!--
 		<module>provider-testsandquizzes</module>	
+		-->
+	
 		<!-- run with -Pinclude-custom to include custom modules -->
 	</modules>
 	

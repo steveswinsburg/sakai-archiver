@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HomeArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.iframe.site";
+	private static final String TOOL_NAME = "Home";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -47,7 +48,7 @@ public class HomeArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		Site site;
 		try {
@@ -62,10 +63,10 @@ public class HomeArchiver implements Archiveable {
 		final String originalHtml = createHtmlFileContents(description);
 
 		// archive any images, alter html to point to the archived images
-		final String finalHtml = archiveImages(originalHtml, archiveId, siteId, toolId);
+		final String finalHtml = archiveImages(originalHtml, archiveId, siteId);
 
 		// archive the home frame html
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, finalHtml.getBytes(), "index.html");
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalHtml.getBytes(), "index.html");
 	}
 
 	/**
@@ -84,10 +85,9 @@ public class HomeArchiver implements Archiveable {
 	 * @param originalHtml
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 * @return updated html
 	 */
-	private String archiveImages(final String originalHtml, final String archiveId, final String siteId, final String toolId) {
+	private String archiveImages(final String originalHtml, final String archiveId, final String siteId) {
 
 		final Document doc = Jsoup.parse(originalHtml);
 		final List<Element> imageElements = doc.select("img");
@@ -107,7 +107,7 @@ public class HomeArchiver implements Archiveable {
 				e.attr("height", "auto");
 
 				// archive the image
-				this.archiverService.archiveContent(archiveId, siteId, toolId, bytes, filename, "/images");
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, bytes, filename, "/images");
 
 				// change the src for this image in the html
 				e.attr("src", "images/" + filename);

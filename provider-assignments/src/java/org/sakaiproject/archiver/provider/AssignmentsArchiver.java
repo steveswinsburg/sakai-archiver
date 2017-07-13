@@ -41,21 +41,11 @@ public class AssignmentsArchiver implements Archiveable {
 	private static final String TOOL_NAME = "Assignments";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
 		ArchiverRegistry.getInstance().unregister(TOOL_ID);
-	}
-
-	@Override
-	public String getToolId() {
-		return TOOL_ID;
-	}
-
-	@Override
-	public String getName() {
-		return TOOL_NAME;
 	}
 
 	@Setter
@@ -88,7 +78,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, getName(), Htmlifier.toHtml(simpleAssignment).getBytes(), "details.html",
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(simpleAssignment).getBytes(), "details.html",
 					assignment.getTitle());
 
 			// archive the attachments for the assignment
@@ -126,7 +116,7 @@ public class AssignmentsArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, getName(), Htmlifier.toHtml(submissionData).getBytes(),
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(submissionData).getBytes(),
 						"submission.html", submissionSubdirs);
 			}
 
@@ -155,7 +145,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		this.archiverService.archiveContent(archiveId, siteId, getName(), Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
 				feedbackSubdirs);
 	}
 
@@ -192,7 +182,7 @@ public class AssignmentsArchiver implements Archiveable {
 	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir)
 			throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, getName(), attachmentBytes,
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
 				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
 	}
 
@@ -214,7 +204,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 			gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(spreadsheetReference);
 			if (gradesSpreadsheet != null) {
-				this.archiverService.archiveContent(archiveId, siteId, getName(), gradesSpreadsheet, "grades.xls");
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, gradesSpreadsheet, "grades.xls");
 			}
 		} catch (IdUnusedException | PermissionException e) {
 			log.error("Error getting grades spreadsheet for site {} ", siteId);

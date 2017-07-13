@@ -33,7 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class YalePhotosArchiver implements Archiveable {
 
-	private static final String TOOL_ID = CUSTOM_PREFIX + "yalephotos";
+	// register this with the same ID as the
+	private static final String TOOL_ID = "sakai.site.roster2";
+	private static final String TOOL_NAME = "Roster";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -56,7 +58,7 @@ public class YalePhotosArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		if (!includeStudentContent) {
 			log.warn("Student photos cannot be archived without student content enabled");
@@ -82,7 +84,7 @@ public class YalePhotosArchiver implements Archiveable {
 			try {
 				final byte[] photo = this.photoService.loadPhotoFromCache(eid);
 				final String filename = getStudentName(eid, studentNames) + ".jpg";
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, photo, filename);
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, photo, filename);
 			} catch (final YalePhotoDirectoryServiceException e) {
 				log.error("Error getting photo for {}, the export will be incomplete", e);
 			}

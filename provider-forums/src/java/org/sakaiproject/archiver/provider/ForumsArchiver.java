@@ -29,9 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ForumsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.forums";
-
-	@Setter
-	protected DiscussionForumManager forumManager;
+	private static final String TOOL_NAME = "Forums";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -42,6 +40,9 @@ public class ForumsArchiver implements Archiveable {
 	}
 
 	@Setter
+	private DiscussionForumManager forumManager;
+
+	@Setter
 	private ContentHostingService contentHostingService;
 
 	@Setter
@@ -49,13 +50,13 @@ public class ForumsArchiver implements Archiveable {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<DiscussionForum> forums = this.forumManager.getDiscussionForumsWithTopics(siteId);
 
 		for (final DiscussionForum forum : forums) {
 			// Archive the forum, including topics (and messages if includeStudentContent is true)
-			archiveForum(forum, archiveId, siteId, toolId, includeStudentContent);
+			archiveForum(forum, archiveId, siteId, includeStudentContent);
 
 		}
 	}
@@ -66,10 +67,9 @@ public class ForumsArchiver implements Archiveable {
 	 * @param forum
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 */
 	@SuppressWarnings("unchecked")
-	private void archiveForum(final DiscussionForum forum, final String archiveId, final String siteId, final String toolId,
+	private void archiveForum(final DiscussionForum forum, final String archiveId, final String siteId,
 			final boolean includeStudentContent) {
 
 		// Set up the simple forum object
@@ -89,8 +89,7 @@ public class ForumsArchiver implements Archiveable {
 			final String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
 
 			// Archive the attachments for this topic
-			archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId,
-					toolId, simpleTopic);
+			archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId, simpleTopic);
 			finaliseAttachmentsHtml(simpleTopic);
 
 			// Archive the messages within a topic, if we want student content
@@ -104,16 +103,16 @@ public class ForumsArchiver implements Archiveable {
 						final SimpleMessage topLevelMessage = new SimpleMessage(message);
 
 						// Set message replies and archive the attachments for each message
-						setMessageReplies(topLevelMessage, messages, folderStructure, archiveId, siteId, toolId, topic.getId());
+						setMessageReplies(topLevelMessage, messages, folderStructure, archiveId, siteId, topic.getId());
 
 						// Archive the attachments for the top level message
 						if (message.getHasAttachments()) {
-							addAttachmentsToMessage(message, topLevelMessage, folderStructure, archiveId, siteId, toolId, topic.getId());
+							addAttachmentsToMessage(message, topLevelMessage, folderStructure, archiveId, siteId, topic.getId());
 							finaliseAttachmentsHtml(topLevelMessage);
 						}
 
 						// Archive the messages
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(topLevelMessage).getBytes(),
+						this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(topLevelMessage).getBytes(),
 								message.getTitle() + ".html", folderStructure);
 					}
 				}
@@ -122,12 +121,13 @@ public class ForumsArchiver implements Archiveable {
 
 		// Archive the attachments for this forum
 		archiveAttachments(forum.getAttachments(), forum.getTitle() + "/forum-attachments/", archiveId,
-				siteId, toolId, simpleForum);
+				siteId, simpleForum);
 		finaliseAttachmentsHtml(simpleForum);
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleForum).getBytes(), forum.getTitle() + ".html",
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(simpleForum).getBytes(),
+				forum.getTitle() + ".html",
 				forum.getTitle());
 	}
 
@@ -136,13 +136,12 @@ public class ForumsArchiver implements Archiveable {
 	 *
 	 * @param simpleTopMessage The first message posted in a topic, as a SimpleMessage
 	 * @param messages The full list of messages for this topic
-	 * @param toolId
 	 * @param siteId
 	 * @param archiveId
 	 * @param folderStructure
 	 */
 	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages, final String folderStructure,
-			final String archiveId, final String siteId, final String toolId, final Long topicId) {
+			final String archiveId, final String siteId, final Long topicId) {
 
 		for (final Message message : messages) {
 			// if this message is in reply to the top message
@@ -154,10 +153,10 @@ public class ForumsArchiver implements Archiveable {
 				// Archive the attachments for this message
 				// This has to be done here since we need to set the attachments html string for each message as the attachments are saved
 				if (message.getHasAttachments()) {
-					addAttachmentsToMessage(message, thisMessage, folderStructure, archiveId, siteId, toolId, topicId);
+					addAttachmentsToMessage(message, thisMessage, folderStructure, archiveId, siteId, topicId);
 				}
 				// Recursively set the replies for this inner message
-				setMessageReplies(thisMessage, messages, folderStructure, archiveId, siteId, toolId, topicId);
+				setMessageReplies(thisMessage, messages, folderStructure, archiveId, siteId, topicId);
 
 			}
 		}
@@ -171,18 +170,17 @@ public class ForumsArchiver implements Archiveable {
 	 * @param folderStructure
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 * @param topicId
 	 */
 	@SuppressWarnings("unchecked")
 	private void addAttachmentsToMessage(final Message message, final SimpleMessage simpleMessage, final String folderStructure,
-			final String archiveId, final String siteId, final String toolId, final Long topicId) {
+			final String archiveId, final String siteId, final Long topicId) {
 		final Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topicId);
 		setAttachments(message, topicWithMessageAttachments.getMessages());
 
 		archiveAttachments(message.getAttachments(),
 				folderStructure + "/topic-attachments/message-attachments/message-" + message.getId() + "/", archiveId, siteId,
-				toolId, simpleMessage);
+				simpleMessage);
 		finaliseAttachmentsHtml(simpleMessage);
 	}
 
@@ -192,15 +190,14 @@ public class ForumsArchiver implements Archiveable {
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
-	 * @param toolId
 	 * @param simpleArchiveItem the object that the attachmentHtml needs to be updated for (SimpleMessage, SimpleTopic or SimpleForum)
 	 */
 	private void archiveAttachments(final List<Attachment> attachments, final String subdir,
-			final String archiveId, final String siteId, final String toolId, final SimpleArchiveItem simpleArchiveItem) {
+			final String archiveId, final String siteId, final SimpleArchiveItem simpleArchiveItem) {
 		for (final Attachment attachment : attachments) {
 			try {
 				final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getAttachmentId()).getContent();
-				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
 						attachment.getAttachmentName(), subdir);
 				// update the attachments HTML string, so there is a link to this attachment in the html file
 				addToAttachmentsHtml(subdir, attachment.getAttachmentName(), simpleArchiveItem);

@@ -26,14 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChatArchiver implements Archiveable {
 
-	private static final String CHAT_TOOL = "sakai.chat";
+	private static final String TOOL_ID = "sakai.chat";
+	private static final String TOOL_NAME = "Chat";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(CHAT_TOOL, this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(CHAT_TOOL);
+		ArchiverRegistry.getInstance().unregister(TOOL_ID);
 	}
 
 	@Setter
@@ -46,7 +47,7 @@ public class ChatArchiver implements Archiveable {
 	private UserDirectoryService userDirectoryService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		if (!includeStudentContent) {
 			log.warn("Chat data cannot be archived without student content enabled");
@@ -75,7 +76,7 @@ public class ChatArchiver implements Archiveable {
 					final String html = Htmlifier.toHtml(messagesToSave);
 					log.debug("Chat HTML: " + html);
 
-					this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
+					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(),
 							chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html",
 							chatChannel.getTitle());
 

@@ -33,21 +33,11 @@ public class AnnouncementsArchiver implements Archiveable {
 	private static final String TOOL_NAME = "Announcements";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(this);
+		ArchiverRegistry.getInstance().register(TOOL_ID, this);
 	}
 
 	public void destroy() {
 		ArchiverRegistry.getInstance().unregister(TOOL_ID);
-	}
-
-	@Override
-	public String getToolId() {
-		return TOOL_ID;
-	}
-
-	@Override
-	public String getName() {
-		return TOOL_NAME;
 	}
 
 	@Setter
@@ -78,7 +68,7 @@ public class AnnouncementsArchiver implements Archiveable {
 				// archive the attachments for this announcement
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
 				archiveAttachments(attachments, simpleAnnouncement, archiveId, siteId,
-						getName());
+						TOOL_NAME);
 				if (attachments.size() > 0) {
 					finaliseAttachmentsHtml(simpleAnnouncement);
 				}
@@ -88,7 +78,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
-				this.archiverService.archiveContent(archiveId, siteId, getName(), fileContents.getBytes(),
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(),
 						simpleAnnouncement.getTitle() + ".html");
 
 			}

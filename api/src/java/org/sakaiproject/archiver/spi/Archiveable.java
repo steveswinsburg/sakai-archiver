@@ -24,18 +24,4 @@ public interface Archiveable {
 	 */
 	void archive(String archiveId, String siteId, boolean includeStudentContent);
 
-	/**
-	 * The toolId for this provider
-	 *
-	 * @return the toolid
-	 */
-	String getToolId();
-
-	/**
-	 * The human readable name to be used for the directory within the archive
-	 *
-	 * @return the name
-	 */
-	String getName();
-
 }
