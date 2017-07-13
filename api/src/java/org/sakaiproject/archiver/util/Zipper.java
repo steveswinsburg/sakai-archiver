@@ -27,10 +27,10 @@ public class Zipper {
 	 * @throws IOException
 	 * @throws ZipWriteException
 	 */
-	public static String zipDirectory(final File directory) throws IOException, ZipWriteException {
+	public static String zipDirectory(final File directory, final String name) throws IOException, ZipWriteException {
 
 		// create path to zip
-		final File zipFile = new File(directory.getParent(), directory.getName() + ".zip");
+		final File zipFile = new File(directory.getParent(), name + ".zip");
 
 		final Path p = Files.createFile(Paths.get(zipFile.getCanonicalPath()));
 		try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
