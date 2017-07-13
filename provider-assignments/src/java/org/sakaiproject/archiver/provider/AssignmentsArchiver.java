@@ -78,8 +78,9 @@ public class AssignmentsArchiver implements Archiveable {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(simpleAssignment).getBytes(), "details.html",
-					assignment.getTitle());
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "details.html", assignment.getTitle());
 
 			// archive the attachments for the assignment
 			final String attachmentDir = assignment.getTitle() + "/attachments";
@@ -116,8 +117,9 @@ public class AssignmentsArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(submissionData).getBytes(),
-						"submission.html", submissionSubdirs);
+				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
+						this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "submission.html", submissionSubdirs);
 			}
 
 			// get the feedback, if this submission has been graded
@@ -145,8 +147,8 @@ public class AssignmentsArchiver implements Archiveable {
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
-				feedbackSubdirs);
+		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, TOOL_ID));
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "feedback.html", feedbackSubdirs);
 	}
 
 	/**

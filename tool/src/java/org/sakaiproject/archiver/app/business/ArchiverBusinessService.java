@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.app.model.ArchiveSettings;
@@ -112,7 +113,8 @@ public class ArchiverBusinessService {
 	}
 
 	/**
-	 * Gets a list of the tools that have been configured in sakai.properties and are added to the current site
+	 * Gets a list of the tools that have been configured in sakai.properties and are added to the current site and are registered with the
+	 * archiver.
 	 *
 	 * @return list of {@link ArchiveableTool}s. May be empty.
 	 */
@@ -120,14 +122,15 @@ public class ArchiverBusinessService {
 
 		final List<ArchiveableTool> tools = new ArrayList<>();
 
-		final String[] toolIds = this.serverConfigurationService.getStrings("archiver.tools");
+		final List<String> toolIds = new ArrayList<>(ArchiverRegistry.getInstance().getRegistry().keySet());
+		toolIds.retainAll(Arrays.asList(this.serverConfigurationService.getStrings("archiver.tools")));
 
-		if (toolIds != null) {
+		if (!toolIds.isEmpty()) {
 
 			final String siteId = getCurrentSiteId();
 			final Set<String> toolsInSite = getToolIdsForSite(siteId);
 
-			Arrays.asList(toolIds).forEach(toolId -> {
+			toolIds.forEach(toolId -> {
 				if (toolsInSite.contains(toolId)) {
 					final Tool t = this.toolManager.getTool(toolId);
 					if (t != null) {

@@ -63,7 +63,8 @@ public class SyllabusArchiver implements Archiveable {
 		// Go through and archive each syllabus item
 		for (final SyllabusData syllabus : syllabusSet) {
 			final ArchiveItem archiveItem = createArchiveItem(syllabus);
-			final String htmlArchiveItem = Htmlifier.toHtml(archiveItem);
+			final String htmlArchiveItem = Htmlifier.addSiteHeader(Htmlifier.toHtml(archiveItem),
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("Archive item metadata: " + htmlArchiveItem);
 			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, htmlArchiveItem.getBytes(), archiveItem.getTitle() + ".html");
 

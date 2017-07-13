@@ -5,6 +5,9 @@ import java.util.List;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 /**
  * Utility to convert an object into a basic HTML representation.
@@ -68,8 +71,8 @@ public class Htmlifier extends RecursiveToStringStyle {
 	}
 
 	/**
-	 * Add html start and end to a html body string
-	 * 
+	 * Add HTML start and end to a HTML body string
+	 *
 	 * @param htmlBody
 	 * @return
 	 */
@@ -79,6 +82,20 @@ public class Htmlifier extends RecursiveToStringStyle {
 		sb.append(htmlBody);
 		sb.append(getHtmlEnd());
 		return sb.toString();
+	}
+
+	/**
+	 * Add a site header to the provided HTML
+	 * 
+	 * @param html
+	 * @param heading
+	 * @return
+	 */
+	public static String addSiteHeader(final String html, final String heading) {
+		final Document doc = Jsoup.parse(html);
+		final Elements divs = doc.select("div");
+		divs.first().prepend("<h2 align=\"center\">" + heading + "</h2>");
+		return doc.html();
 	}
 
 	/**

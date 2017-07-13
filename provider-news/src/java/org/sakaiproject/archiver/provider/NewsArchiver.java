@@ -52,7 +52,8 @@ public class NewsArchiver implements Archiveable {
 		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String filename = t.getTitle();
-			final String fileContents = createNewsFileContents(t);
+			final String fileContents = Htmlifier.addSiteHeader(createNewsFileContents(t),
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(), filename + ".html");
 		});
 
