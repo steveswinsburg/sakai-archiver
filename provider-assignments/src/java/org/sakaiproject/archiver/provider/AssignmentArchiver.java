@@ -77,7 +77,9 @@ public class AssignmentArchiver implements Archiveable {
 
 			// archive the assignment data
 			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleAssignment).getBytes(), "details.html",
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
+					this.archiverService.getSiteHeader(siteId, toolId));
+			this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "details.html",
 					assignment.getTitle());
 
 			// archive the attachments for the assignment
@@ -116,7 +118,9 @@ public class AssignmentArchiver implements Archiveable {
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
 				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(submissionData).getBytes(),
+				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
+						this.archiverService.getSiteHeader(siteId, toolId));
+				this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(),
 						"submission.html", submissionSubdirs);
 			}
 
@@ -146,7 +150,8 @@ public class AssignmentArchiver implements Archiveable {
 
 		// archive other data associated with this feedback
 		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(feedback).getBytes(), "feedback.html",
+		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, toolId));
+		this.archiverService.archiveContent(archiveId, siteId, toolId, html.getBytes(), "feedback.html",
 				feedbackSubdirs);
 	}
 

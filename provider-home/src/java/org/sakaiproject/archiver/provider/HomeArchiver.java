@@ -62,7 +62,10 @@ public class HomeArchiver implements Archiveable {
 		final String originalHtml = createHtmlFileContents(description);
 
 		// archive any images, alter html to point to the archived images
-		final String finalHtml = archiveImages(originalHtml, archiveId, siteId, toolId);
+		final String htmlWithLocalImages = archiveImages(originalHtml, archiveId, siteId, toolId);
+
+		// add header to html
+		final String finalHtml = Htmlifier.addSiteHeader(htmlWithLocalImages, this.archiverService.getSiteHeader(siteId, toolId));
 
 		// archive the home frame html
 		this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, finalHtml.getBytes(), "index.html");

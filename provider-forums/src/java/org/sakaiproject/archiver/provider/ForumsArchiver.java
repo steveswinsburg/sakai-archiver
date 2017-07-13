@@ -113,7 +113,9 @@ public class ForumsArchiver implements Archiveable {
 						}
 
 						// Archive the messages
-						this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(topLevelMessage).getBytes(),
+						final String messageHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(topLevelMessage),
+								this.archiverService.getSiteHeader(siteId, toolId));
+						this.archiverService.archiveContent(archiveId, siteId, toolId, messageHtml.getBytes(),
 								message.getTitle() + ".html", folderStructure);
 					}
 				}
@@ -127,7 +129,8 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		this.archiverService.archiveContent(archiveId, siteId, toolId, Htmlifier.toHtml(simpleForum).getBytes(), forum.getTitle() + ".html",
+		final String forumHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleForum), this.archiverService.getSiteHeader(siteId, toolId));
+		this.archiverService.archiveContent(archiveId, siteId, toolId, forumHtml.getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
 	}
 
