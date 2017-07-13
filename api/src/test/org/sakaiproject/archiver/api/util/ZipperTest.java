@@ -28,7 +28,7 @@ public class ZipperTest {
 
 		String zipfilePath = null;
 		try {
-			zipfilePath = Zipper.zipDirectory(destDir);
+			zipfilePath = Zipper.zipDirectory(destDir, "filename");
 		} catch (final IOException | ZipWriteException e) {
 			Assert.fail("Couldn't zip directory");
 		}

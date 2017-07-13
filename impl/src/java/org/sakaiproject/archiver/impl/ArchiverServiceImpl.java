@@ -26,6 +26,7 @@ import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
+import org.sakaiproject.archiver.exception.ArchiveProcessingException;
 import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
 import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -314,10 +315,12 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
+		final String zipName = getSiteTitle(entity.getSiteId()) + "-" + entity.getId();
+
 		// zips the archive directory
 		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
-			final String zipPath = Zipper.zipDirectory(archiveDirectory);
+			final String zipPath = Zipper.zipDirectory(archiveDirectory, zipName);
 			entity.setZipPath(zipPath);
 			entity.setStatus(status);
 		} catch (final IOException e) {
@@ -413,21 +416,43 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public String getSiteHeader(final String siteId, final String toolId) {
 
-		try {
-			final Site site = this.siteService.getSite(siteId);
-			final String siteTitle = site.getTitle();
-			final ResourceProperties props = site.getProperties();
-			final String term = (String) props.get(Site.PROP_SITE_TERM);
-			if (term != null) {
-				return String.format("%s (%s): %s", siteTitle, term, toolId);
-			} else {
-				return String.format("%s: %s", siteTitle, toolId);
-			}
+		final Site site = getSite(siteId);
+		final String siteTitle = getSiteTitle(siteId);
 
-		} catch (final IdUnusedException e) {
-			// this should never occur
-			log.debug("Site could not be found. Header could not be created", e);
-			return "";
+		final ResourceProperties props = site.getProperties();
+		final String term = (String) props.get(Site.PROP_SITE_TERM);
+		if (term != null) {
+			return String.format("%s (%s): %s", siteTitle, term, toolId);
+		} else {
+			return String.format("%s: %s", siteTitle, toolId);
 		}
+
+	}
+
+	/**
+	 * Get the site
+	 *
+	 * @param siteId
+	 * @throws ArchiveProcessingException if error occurs getting the site
+	 * @return
+	 */
+	private Site getSite(final String siteId) {
+		try {
+			return this.siteService.getSite(siteId);
+		} catch (final IdUnusedException e) {
+			// this should never occur as we are dealing with a site that does exist
+			throw new ArchiveProcessingException("Site could not be found", e);
+		}
+	}
+
+	/**
+	 * Get the title of a site
+	 *
+	 * @param siteId
+	 * @return
+	 */
+	private String getSiteTitle(final String siteId) {
+		final Site site = getSite(siteId);
+		return site.getTitle();
 	}
 }
