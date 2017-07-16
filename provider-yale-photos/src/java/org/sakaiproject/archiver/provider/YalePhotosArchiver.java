@@ -1,31 +1,49 @@
 package org.sakaiproject.archiver.provider;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.entitybroker.EntityBroker;
+import org.sakaiproject.entitybroker.entityprovider.extension.ActionReturn;
+import org.sakaiproject.entitybroker.exception.EntityNotFoundException;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 
 import edu.yale.its.amt.sakai.directory.YalePhotoDirectoryService;
-import edu.yale.its.amt.sakai.directory.YalePhotoDirectoryServiceException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of {@link Archiveable} for Yales Photo Roster tool
  *
- * Whilst this is based on the Roster2 tool the customisations for the photos means that this needs to be handled separately. Since there is
- * alrady a Roster2 tool archiver, this is a custom registration.
+ * Whilst this is based on the Roster2 tool, the Yale specific customisations for the photos means that this needs to be archived
+ * separately.
+ *
+ * This performs some of the same logic as the Roster2 archiver (getting the Excel export) but then parses it to build a HTML file for the
+ * students in the class. It does not write out the Excel file into the archive (though it could, same as Roster2).
  *
  * @author Steve Swinsburg(steve.swinsburg@gmail.com)
  * @since 12.0
@@ -33,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class YalePhotosArchiver implements Archiveable {
 
-	// register this with the same ID as the
+	// register this with the same ID as the Roster
 	private static final String TOOL_ID = "sakai.site.roster2";
 	private static final String TOOL_NAME = "Roster";
 
@@ -55,6 +73,9 @@ public class YalePhotosArchiver implements Archiveable {
 	private UserDirectoryService userDirectoryService;
 
 	@Setter
+	private EntityBroker entityBroker;
+
+	@Setter
 	private ArchiverService archiverService;
 
 	@Override
@@ -65,32 +86,91 @@ public class YalePhotosArchiver implements Archiveable {
 			return;
 		}
 
-		final List<String> studentUuids = getStudentUuids(siteId);
-		final List<User> users = getUsers(studentUuids);
-		final List<String> studentEids = getStudentEids(users);
+		// get data for XLSX export
+		final byte[] rosterExport = getRosterExport(siteId);
+		final ByteArrayInputStream is = new ByteArrayInputStream(rosterExport);
 
-		final Map<String, String> studentNames = getUserDisplayNames(users);
-
-		// refresh photo cache
 		try {
-			this.photoService.loadPhotos(studentEids);
-		} catch (final YalePhotoDirectoryServiceException e) {
-			log.error("Error refreshing the photo cache, the export may be incomplete", e);
-		}
+			final Workbook wb = WorkbookFactory.create(is);
+			final Sheet sheet = wb.getSheetAt(0);
+			// final ArrayList<String> column = new ArrayList<>();
 
-		// get photo for each student
-		// RosterTool hardcoded to JPEG so we do the same here
-		studentEids.forEach(eid -> {
-			try {
-				final byte[] photo = this.photoService.loadPhotoFromCache(eid);
-				final String filename = getStudentName(eid, studentNames) + ".jpg";
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, photo, filename);
-			} catch (final YalePhotoDirectoryServiceException e) {
-				log.error("Error getting photo for {}, the export will be incomplete", e);
+			Map<Integer, String> header = null;
+
+			for (final Row row : sheet) {
+				if (row.getRowNum() == 2) {
+					header = processHeader(row);
+				}
+				if (row.getRowNum() >= 4) {
+					// process data
+				}
+
 			}
 
-		});
+		} catch (InvalidFormatException | EncryptedDocumentException | IOException e) {
+			log.error("Roster export could not be processed", e);
+			return;
+		}
 
+		/*
+		 * final List<String> studentUuids = getStudentUuids(siteId); final List<User> users = getUsers(studentUuids); final List<String>
+		 * studentEids = getStudentEids(users);
+		 *
+		 * final Map<String, String> studentNames = getUserDisplayNames(users);
+		 *
+		 * // refresh photo cache try { this.photoService.loadPhotos(studentEids); } catch (final YalePhotoDirectoryServiceException e) {
+		 * log.error("Error refreshing the photo cache, the export may be incomplete", e); }
+		 *
+		 * // get photo for each student // RosterTool hardcoded to JPEG so we do the same here studentEids.forEach(eid -> { try { final
+		 * byte[] photo = this.photoService.loadPhotoFromCache(eid); final String filename = getStudentName(eid, studentNames) + ".jpg";
+		 * this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, photo, filename); } catch (final
+		 * YalePhotoDirectoryServiceException e) { log.error("Error getting photo for {}, the export will be incomplete", e); }
+		 *
+		 * });
+		 */
+
+	}
+
+	/**
+	 * Process the header row
+	 *
+	 * @param row the raw row data
+	 * @return map of column number to data in column
+	 */
+	private Map<Integer, String> processHeader(final Row row) {
+		final Map<Integer, String> map = new LinkedHashMap<>();
+		final DataFormatter cellFormatter = new DataFormatter();
+
+		for (final Cell cell : row) {
+			final String data = cellFormatter.formatCellValue(cell);
+			map.put(cell.getColumnIndex(), data);
+		}
+		return map;
+	}
+
+	/**
+	 * Identical to Roster2. Gets the export data for the Excel (.xslx) file.
+	 *
+	 * @param siteId
+	 * @return
+	 */
+	private byte[] getRosterExport(final String siteId) {
+
+		try {
+			final ActionReturn ret = this.entityBroker.executeCustomAction("/roster-export/" + siteId, "get-export", null, null);
+
+			final OutputStream out = ret.getOutput();
+			if (out == null) {
+				return null;
+			}
+			final ByteArrayOutputStream baos = (ByteArrayOutputStream) ret.getOutput();
+
+			return baos.toByteArray();
+
+		} catch (final EntityNotFoundException e) {
+			log.error("Could not retrieve roster export", e);
+		}
+		return null;
 	}
 
 	/**
