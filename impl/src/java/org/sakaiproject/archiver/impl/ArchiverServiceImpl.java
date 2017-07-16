@@ -41,6 +41,8 @@ import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.tool.api.Tool;
+import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 
@@ -67,6 +69,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Setter
 	private SiteService siteService;
+
+	@Setter
+	private ToolManager toolManager;
 
 	public void init() {
 		log.info("ArchiverService started");
@@ -419,12 +424,15 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final Site site = getSite(siteId);
 		final String siteTitle = getSiteTitle(siteId);
 
+		final Tool t = this.toolManager.getTool(toolId);
+		final String toolName = (t != null) ? t.getTitle() : toolId;
+
 		final ResourceProperties props = site.getProperties();
 		final String term = (String) props.get(Site.PROP_SITE_TERM);
 		if (term != null) {
-			return String.format("%s (%s): %s", siteTitle, term, toolId);
+			return String.format("%s (%s): %s", siteTitle, term, toolName);
 		} else {
-			return String.format("%s: %s", siteTitle, toolId);
+			return String.format("%s: %s", siteTitle, toolName);
 		}
 
 	}

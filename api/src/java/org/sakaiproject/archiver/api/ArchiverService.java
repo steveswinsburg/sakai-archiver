@@ -86,15 +86,15 @@ public interface ArchiverService {
 	List<Archive> getArchives(final String siteId);
 
 	/**
-	 * Get a heading for the top of the html file, in the form: "Site name (session): Tool"
+	 * Get a heading for the top of the html file, in the form: "Site name (course session): Tool name"
 	 *
 	 * For example: "MATH1013 (Semester 2): Assignments"
 	 *
-	 * If there is no session it will be excluded, i.e. "Site name: Tool"
+	 * If there is no course session it will be excluded, i.e. "Site name: Tool"
 	 *
-	 * @param siteId
-	 * @param toolId
-	 * @return
+	 * @param siteId the siteId to lookup the name and course session for
+	 * @param toolId to toolId to lookup the name for
+	 * @return the formatted string
 	 */
 	String getSiteHeader(String siteId, String toolId);
 
