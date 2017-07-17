@@ -62,7 +62,7 @@ public class SyllabusArchiver implements Archiveable {
 
 		// Go through and archive each syllabus item
 		for (final SyllabusData syllabus : syllabusSet) {
-			final ArchiveItem archiveItem = createArchiveItem(syllabus);
+			final SimpleSyllabus archiveItem = new SimpleSyllabus(syllabus.getTitle(), syllabus.getAsset());
 			final String htmlArchiveItem = Htmlifier.addSiteHeader(Htmlifier.toHtml(archiveItem),
 					this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("Archive item metadata: " + htmlArchiveItem);
@@ -86,24 +86,9 @@ public class SyllabusArchiver implements Archiveable {
 	}
 
 	/**
-	 * Build the ArchiveItem for a syllabus item
-	 *
-	 * @param syllabus
-	 * @return the archive item to be saved
-	 */
-	private ArchiveItem createArchiveItem(final SyllabusData syllabus) {
-
-		final ArchiveItem archiveItem = new ArchiveItem();
-		archiveItem.setTitle(syllabus.getTitle());
-		archiveItem.setBody(syllabus.getAsset());
-
-		return archiveItem;
-	}
-
-	/**
 	 * Simplified helper class to represent metadata for an individual syllabus item in a site
 	 */
-	private static class ArchiveItem {
+	private static class SimpleSyllabus {
 
 		@Getter
 		@Setter
@@ -112,6 +97,11 @@ public class SyllabusArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String body;
+
+		public SimpleSyllabus(final String title, final String body) {
+			this.title = title;
+			this.body = body;
+		}
 	}
 
 }
