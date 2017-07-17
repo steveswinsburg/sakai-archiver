@@ -28,12 +28,15 @@ public class ZipperTest {
 
 		String zipfilePath = null;
 		try {
-			zipfilePath = Zipper.zipDirectory(destDir, "filename");
+			zipfilePath = Zipper.zipDirectory(destDir, "output");
 		} catch (final IOException | ZipWriteException e) {
 			Assert.fail("Couldn't zip directory");
 		}
 
-		Assert.assertNotNull(zipfilePath);
+		// ensure zip is created
+		final File zip = new File(zipfilePath);
+		Assert.assertTrue("Zip not created: " + zip.getAbsolutePath(), zip.isFile());
+
 	}
 
 }
