@@ -62,13 +62,9 @@ public class SyllabusArchiver implements Archiveable {
 
 		// Go through and archive each syllabus item
 		for (final SyllabusData syllabus : syllabusSet) {
-			final SimpleSyllabus archiveItem = new SimpleSyllabus(syllabus.getTitle(), syllabus.getAsset());
-			final String htmlArchiveItem = Htmlifier.addSiteHeader(Htmlifier.toHtml(archiveItem),
-					this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			log.debug("Archive item metadata: " + htmlArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, htmlArchiveItem.getBytes(), archiveItem.getTitle() + ".html");
+			final SimpleSyllabus simpleSyllabus = new SimpleSyllabus(syllabus.getTitle(), syllabus.getAsset());
 
-			// get the attachments
+			// archive the attachments
 			final Set<SyllabusAttachment> syllabusAttachments = this.syllabusManager.getSyllabusAttachmentsForSyllabusData(syllabus);
 
 			for (final SyllabusAttachment syllabusAttachment : syllabusAttachments) {
@@ -77,12 +73,51 @@ public class SyllabusArchiver implements Archiveable {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
 					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, syllabusAttachmentBytes, syllabusAttachment.getName(),
 							syllabus.getTitle() + " (attachments)");
+					addToAttachmentsHtml(syllabus.getTitle() + " (attachments)/", syllabusAttachment.getName(), simpleSyllabus);
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting syllabus attachment " + syllabusAttachment.getName() + " in syllabus " + syllabus.getTitle());
 					continue;
 				}
 			}
+
+			if (syllabusAttachments.size() > 0) {
+				finaliseAttachmentsHtml(simpleSyllabus);
+			}
+
+			// archive the syllabus as a html file
+			final String htmlArchiveItem = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleSyllabus),
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			log.debug("Archive item metadata: " + htmlArchiveItem);
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, htmlArchiveItem.getBytes(),
+					simpleSyllabus.getTitle() + ".html");
 		}
+	}
+
+	/**
+	 * Set the html string that contains a list of attachment hyperlinks
+	 *
+	 * @param attachmentLocation
+	 * @param attachmentName
+	 * @param simpleSyllabus
+	 */
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
+			final SimpleSyllabus simpleSyllabus) {
+
+		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + attachmentName + "\">" + attachmentName
+				+ "</a></li>";
+		simpleSyllabus.setAttachments(simpleSyllabus.getAttachments() + attachmentHyperlink);
+	}
+
+	/**
+	 * Finalise the attachments html string by surrounding it by unordered list tags
+	 *
+	 * @param simpleSyllabus
+	 */
+	private void finaliseAttachmentsHtml(final SimpleSyllabus simpleSyllabus) {
+
+		simpleSyllabus
+				.setAttachments("<ul style=\"list-style: none;padding-left:0;\">" + simpleSyllabus.getAttachments() + "</ul>");
+
 	}
 
 	/**
@@ -97,6 +132,10 @@ public class SyllabusArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String body;
+
+		@Getter
+		@Setter
+		private String attachments = "";
 
 		public SimpleSyllabus(final String title, final String body) {
 			this.title = title;
