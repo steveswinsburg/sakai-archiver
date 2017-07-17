@@ -1,5 +1,6 @@
 # sakai-archiver
-An archiving app for Sakai
+An archiving app for Sakai which can be used as a snapshot of a course. 
+Instructors can optionally choose to include all student generated content in the archive. 
 
 ## Configuration
 
