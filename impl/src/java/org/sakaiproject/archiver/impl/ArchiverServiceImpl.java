@@ -2,14 +2,16 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -21,17 +23,29 @@ import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
+import org.sakaiproject.archiver.exception.ArchiveProcessingException;
 import org.sakaiproject.archiver.exception.FileExtensionExcludedException;
 import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
+import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.entity.api.ResourceProperties;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.tool.api.Session;
+import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.tool.api.Tool;
+import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.user.api.User;
+import org.sakaiproject.user.api.UserDirectoryService;
 
-import javafx.util.Duration;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,13 +58,29 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Setter
 	private ServerConfigurationService serverConfigurationService;
 
+	@Setter
+	private UserDirectoryService userDirectoryService;
+
+	@Setter
+	private SessionManager sessionManager;
+
+	@Setter
+	private AuthzGroupService authzGroupService;
+
+	@Setter
+	private SiteService siteService;
+
+	@Setter
+	private ToolManager toolManager;
+
 	public void init() {
 		log.info("ArchiverService started");
 	}
 
 	@Override
 	public void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException {
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException {
 
 		// validate
 		final List<String> toolsToArchive = Arrays.asList(toolIds);
@@ -79,40 +109,72 @@ public class ArchiverServiceImpl implements ArchiverService {
 		entity.setArchivePath(archivePath);
 		this.dao.update(entity);
 
-		// TODO this must run in a separate thread and return a Future that the finalise will use when this thread is done
-		Status status = Status.COMPLETE;
+		final Map<String, List<Archiveable>> registry = ArchiverRegistry.getInstance().getRegistry();
 
-		final List<String> customRegistrations = getCustomRegistrations();
+		final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
 
-		final List<String> allRegistrations = new ArrayList<>();
-		allRegistrations.addAll(toolsToArchive);
+		final List<Future<Status>> futures = new ArrayList<>();
 
-		// this needs to ensure it is tied to a tool. so needs some work in the archiverregistry
-		allRegistrations.addAll(customRegistrations);
+		final User currentUser = this.userDirectoryService.getCurrentUser();
 
-		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
-
-		// archive all registered and custom tools
-		for (final String toolId : allRegistrations) {
-			final Archiveable archivable = registry.get(toolId);
-			if (archivable == null) {
-				log.error("No registered archiver for {}", toolId);
+		// archive the requested toolIds
+		for (final String toolId : toolsToArchive) {
+			final List<Archiveable> archiveables = registry.get(toolId);
+			if (archiveables == null || archiveables.isEmpty()) {
+				log.error("No registered archivers for {}", toolId);
 				return;
 			}
 
-			log.info("Archiving {}", toolId);
+			for (final Archiveable archiveable : archiveables) {
 
-			try {
-				archivable.archive(archiveId, siteId, toolId, includeStudentData);
-			} catch (final RuntimeException e) {
-				// TODO rethrow as a checked exception which the UI can deal with
-				log.error("A runtime exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
-						siteId, toolId, e);
-				status = Status.INCOMPLETE;
+				final Callable<Status> task = () -> {
+
+					log.info("Archiving {} with provider {}", toolId, archiveable.getClass().getCanonicalName());
+
+					injectUser(currentUser);
+
+					try {
+						archiveable.archive(archiveId, siteId, includeStudentData);
+						return Status.COMPLETE;
+					} catch (final Exception e) {
+						log.error(
+								"An exception occurred whilst archiving content for site {} and tool {}. The archive may be incomplete.",
+								siteId, toolId, e);
+						return Status.INCOMPLETE;
+					}
+				};
+
+				// non blocking invocation
+				futures.add(taskExecutor.submit(task));
+
 			}
 		}
 
-		finalise(entity, status);
+		taskExecutor.shutdown();
+
+		// spin up another executor for the finalise to use
+		final ExecutorService finaliseExecutor = Executors.newSingleThreadExecutor();
+		final Callable<Void> finaliseTask = () -> {
+
+			log.debug("Waiting for all archiving threads to finish...");
+
+			// TODO this should be a list of statuses as the last one could be ok but one of them failed and it will remain at STARTED.
+			// Also means we can do better reporting
+			Status status = Status.COMPLETE;
+			for (final Future<Status> future : futures) {
+				// wait for each to finish and check the status
+				status = future.get();
+			}
+
+			log.debug("All archiving threads are complete, finalising the archive.");
+
+			finalise(entity, status);
+
+			return null;
+		};
+
+		finaliseExecutor.submit(finaliseTask);
+		finaliseExecutor.shutdown();
 	}
 
 	@Override
@@ -179,9 +241,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
 		return ArchiveMapper.toDtos(entities);
 	}
-	
+
 	@Override
-	public Archive getLatest(String siteId){
+	public Archive getLatest(final String siteId) {
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
 		if (entity == null) {
 			log.debug("No archive exists for siteId {}", siteId);
@@ -251,17 +313,19 @@ public class ArchiverServiceImpl implements ArchiverService {
 	/**
 	 * Finalise an archiving record with the specified status.
 	 *
-	 * Note that the status could be overridden if an error occurs in finalising the archive.
+	 * Note that the passed in status could be overridden if an error occurs in finalising the archive.
 	 *
 	 * @param entity the {@link ArchiveEntity} tracking this archive
 	 * @param status the {@link Status} to set
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
+		final String zipName = getSiteTitle(entity.getSiteId()) + "-" + entity.getId();
+
 		// zips the archive directory
 		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
-			final String zipPath = Zipper.zipDirectory(archiveDirectory);
+			final String zipPath = Zipper.zipDirectory(archiveDirectory, zipName);
 			entity.setZipPath(zipPath);
 			entity.setStatus(status);
 		} catch (final IOException e) {
@@ -308,16 +372,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Get a list of custom registrations, ie those that start with {@link Archiveable#CUSTOM_PREFIX}
-	 *
-	 * @return
-	 */
-	private List<String> getCustomRegistrations() {
-		final Map<String, Archiveable> registry = ArchiverRegistry.getInstance().getRegistry();
-		return registry.keySet().stream().filter(k -> StringUtils.startsWith(k, Archiveable.CUSTOM_PREFIX)).collect(Collectors.toList());
-	}
-	
-	/**
 	 * Checks if an archive is in progress for the given site.
 	 *
 	 * @return true/false
@@ -325,15 +379,88 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private boolean isArchiveInProgress(final String siteId) {
 
 		final ArchiveEntity entity = this.dao.getLatest(siteId);
-		if(entity == null) {
+		if (entity == null) {
 			return false;
 		}
-		if(entity.getStatus() == Status.STARTED){
+		if (entity.getStatus() == Status.STARTED) {
 			return true;
 		}
 		return false;
 	}
 
-	
+	/**
+	 * Inject user into the session so that Sakai permission checks will be happy
+	 *
+	 * @param user hte user to inject into the session
+	 *
+	 * @throws ArchiveInitialisationException if the archive could not
+	 */
+	private void injectUser(final User user) throws ArchiveInitialisationException {
 
+		if (user == null) {
+			throw new ArchiveInitialisationException("Archive session could not be updated. Archiver cannot be run.");
+		}
+
+		Session session = this.sessionManager.getCurrentSession();
+		if (session == null) {
+			session = this.sessionManager.startSession();
+		}
+
+		log.debug("Injecting session {} with user {}", session.getId(), user.getEid());
+
+		session.setUserId(user.getId());
+		session.setActive();
+		this.sessionManager.setCurrentSession(session);
+
+		// TODO is this line strictly necessary?
+		this.authzGroupService.refreshUser(user.getId());
+
+		log.debug("Session ready");
+	}
+
+	@Override
+	public String getSiteHeader(final String siteId, final String toolId) {
+
+		final Site site = getSite(siteId);
+		final String siteTitle = getSiteTitle(siteId);
+
+		final Tool t = this.toolManager.getTool(toolId);
+		final String toolName = (t != null) ? t.getTitle() : toolId;
+
+		final ResourceProperties props = site.getProperties();
+		final String term = (String) props.get(Site.PROP_SITE_TERM);
+		if (term != null) {
+			return String.format("%s (%s): %s", siteTitle, term, toolName);
+		} else {
+			return String.format("%s: %s", siteTitle, toolName);
+		}
+
+	}
+
+	/**
+	 * Get the site
+	 *
+	 * @param siteId
+	 * @throws ArchiveProcessingException if error occurs getting the site
+	 * @return
+	 */
+	private Site getSite(final String siteId) {
+		try {
+			return this.siteService.getSite(siteId);
+		} catch (final IdUnusedException e) {
+			// this should never occur as we are dealing with a site that does exist
+			throw new ArchiveProcessingException("Site could not be found", e);
+		}
+	}
+
+	/**
+	 * Get the title of a site
+	 *
+	 * @param siteId
+	 * @return
+	 */
+	private String getSiteTitle(final String siteId) {
+		final Site site = getSite(siteId);
+		return site.getTitle();
+	}
 }

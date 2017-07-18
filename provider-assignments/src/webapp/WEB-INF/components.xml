@@ -4,8 +4,8 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	
-	<bean id="org.sakaiproject.archiver.provider.AssignmentArchiver"
-		class="org.sakaiproject.archiver.provider.AssignmentArchiver" init-method="init" destroy-method="destroy">
+	<bean id="org.sakaiproject.archiver.provider.AssignmentsArchiver"
+		class="org.sakaiproject.archiver.provider.AssignmentsArchiver" init-method="init" destroy-method="destroy">
 
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
 		<property name="assignmentService" ref="org.sakaiproject.assignment.api.AssignmentService" />

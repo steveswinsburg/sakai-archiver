@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
@@ -28,33 +29,35 @@ public interface ArchiverService {
 	 * @throws {@link ToolsNotSpecifiedException} if no tools are specified
 	 * @throws {@link ArchiveAlreadyInProgressException} if an archive is already in progress for the given site
 	 * @throws {@link ArchiveInitialisationException} if the archive could not be initialised
+	 * @throws {@link ArchiveCompletionException} if the archive could not be completed properly
 	 */
 	void startArchive(final String siteId, final String userUuid, final boolean includeStudentData, final String... toolIds)
-			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException;
+			throws ToolsNotSpecifiedException, ArchiveAlreadyInProgressException, ArchiveInitialisationException,
+			ArchiveCompletionException;
 
 	/**
 	 * Tools can call this to add content of a file into the archive
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param siteId that this archive is for
-	 * @param toolId the tool that the archive is for
+	 * @param dirName the name of the directory where the content should be archived to
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 */
-	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String filename);
+	void archiveContent(final String archiveId, final String siteId, final String dirName, byte[] content, String filename);
 
 	/**
-	 * Tools can call this to add content of a file into the archive, with an optional subdirectory
+	 * Tools can call this to add content of a file into the archive, with an optional set of subdirectory
 	 *
 	 * @param archiveId the id of the archive that the content is for
 	 * @param siteId that this archive is for
-	 * @param toolId the tool that the archive is for
+	 * @param dirName the name of the directory where the content should be archived to
 	 * @param content the content to be archived
 	 * @param filename the name of the file that the content will be archived into. This should include the relevant extension.
 	 * @param subdirectories the subdirectories within the archive where the file will be written. Do not include any path separator, these
 	 *            will be added automatically.
 	 */
-	void archiveContent(final String archiveId, final String siteId, final String toolId, byte[] content, String filename,
+	void archiveContent(final String archiveId, final String siteId, final String dirName, byte[] content, String filename,
 			final String... subdirectories);
 
 	/**
@@ -65,7 +68,7 @@ public interface ArchiverService {
 	 * @throws {@ArchiveNotFoundException} if no archive can be found by that archiveId
 	 */
 	Archive getArchive(final String archiveId) throws ArchiveNotFoundException;
-	
+
 	/**
 	 * Get the latest archive for the given siteId
 	 *
@@ -81,5 +84,18 @@ public interface ArchiverService {
 	 * @return List of {@link Archive}
 	 */
 	List<Archive> getArchives(final String siteId);
+
+	/**
+	 * Get a heading for the top of the html file, in the form: "Site name (course session): Tool name"
+	 *
+	 * For example: "MATH1013 (Semester 2): Assignments"
+	 *
+	 * If there is no course session it will be excluded, i.e. "Site name: Tool"
+	 *
+	 * @param siteId the siteId to lookup the name and course session for
+	 * @param toolId to toolId to lookup the name for
+	 * @return the formatted string
+	 */
+	String getSiteHeader(String siteId, String toolId);
 
 }

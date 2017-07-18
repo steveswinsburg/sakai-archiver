@@ -1,12 +1,9 @@
 package org.sakaiproject.archiver.impl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.UUID;
@@ -43,16 +40,16 @@ public class ArchiverServiceImplTest {
 		final ArchiveEntity entity = TestHelper.mockArchiveEntity(archiveId, siteId, userUuid, startDate, endDate, status, zipPath);
 
 		when(this.dao.getLatest(anyString())).thenReturn(entity);
-		Archive archive = this.impl.getLatest(anyString());
-		
+		final Archive archive = this.impl.getLatest(anyString());
+
 		assertNotNull("Archive should be in progress", archive);
 	}
 
 	@Test
 	public final void should_returnNull_when_ArchiveNotStartedForSite() {
 
-		when(this.dao.getLatest(anyString())).thenReturn(null);		
-		Archive archive = this.impl.getLatest(anyString());
+		when(this.dao.getLatest(anyString())).thenReturn(null);
+		final Archive archive = this.impl.getLatest(anyString());
 		assertNull("Archive should be in progress", archive);
 	}
 

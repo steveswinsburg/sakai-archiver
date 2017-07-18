@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class NewsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.simple.rss";
+	private static final String TOOL_NAME = "News";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -46,13 +47,14 @@ public class NewsArchiver implements Archiveable {
 	private ArchiverService archiverService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String filename = t.getTitle();
-			final String fileContents = createNewsFileContents(t);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_ID, fileContents.getBytes(), filename + ".html");
+			final String fileContents = Htmlifier.addSiteHeader(createNewsFileContents(t),
+					this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(), filename + ".html");
 		});
 
 	}

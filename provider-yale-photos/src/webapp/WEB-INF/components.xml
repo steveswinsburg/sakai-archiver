@@ -10,6 +10,7 @@
 		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
 		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
 		<property name="photoService" ref="edu.yale.its.amt.sakai.directory.YalePhotoDirectoryService"/>
+		<property name="entityBroker" ref="org.sakaiproject.entitybroker.EntityBroker"/>
 		<property name="archiverService" ref="org.sakaiproject.archiver.api.ArchiverService" />
 
 	</bean>

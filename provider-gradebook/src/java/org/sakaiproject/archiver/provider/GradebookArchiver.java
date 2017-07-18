@@ -49,6 +49,7 @@ public class GradebookArchiver implements Archiveable {
 
 	private static final String GRADEBOOK_CLASSIC_TOOL = "sakai.gradebook.tool";
 	private static final String GRADEBOOKNG_TOOL = "sakai.gradebookng";
+	private static final String TOOL_NAME = "Gradebook";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(GRADEBOOK_CLASSIC_TOOL, this);
@@ -58,7 +59,6 @@ public class GradebookArchiver implements Archiveable {
 	public void destroy() {
 		ArchiverRegistry.getInstance().unregister(GRADEBOOK_CLASSIC_TOOL);
 		ArchiverRegistry.getInstance().unregister(GRADEBOOKNG_TOOL);
-
 	}
 
 	@Setter
@@ -74,9 +74,7 @@ public class GradebookArchiver implements Archiveable {
 	private UserDirectoryService userDirectoryService;
 
 	@Override
-	public void archive(final String archiveId, final String siteId, final String toolId, final boolean includeStudentContent) {
-
-		log.info("Archiving {}", toolId);
+	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final Gradebook gradebook = getGradebook(siteId);
 
@@ -119,7 +117,7 @@ public class GradebookArchiver implements Archiveable {
 		// finalise the csv
 		final byte[] csv = generateCsv(csvData);
 		if (ArrayUtils.isNotEmpty(csv)) {
-			this.archiverService.archiveContent(archiveId, siteId, toolId, csv, "gradebook-export.csv");
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, csv, "gradebook-export.csv");
 		}
 
 	}
