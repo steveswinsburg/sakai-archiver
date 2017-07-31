@@ -22,7 +22,17 @@
 						<span wicket:id="screenreaderlabel" class="sr-only"></span>
 					</a>
 				</span>
-			</li>    
+			</li>
+			<wicket:enclosure child="adminLink">
+			<li>
+				<span>
+					<a wicket:id="adminLink" wicket:message="title:link.admin.tooltip">
+						<wicket:message key="link.admin" />
+						<span wicket:id="screenreaderlabel" class="sr-only"></span>
+					</a>
+				</span>
+			</li>
+			</wicket:enclosure>  
 			
 		</ul>
 		

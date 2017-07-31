@@ -38,6 +38,7 @@ public class BasePage extends WebPage {
 
 	Link<Void> createArchiveLink;
 	Link<Void> archiveHistoryLink;
+	Link<Void> adminLink;
 
 	public final RichFeedbackPanel feedbackPanel;
 
@@ -83,6 +84,24 @@ public class BasePage extends WebPage {
 		};
 		this.archiveHistoryLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
 		nav.add(this.archiveHistoryLink);
+
+		// admin
+		this.adminLink = new Link<Void>("adminLink") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick() {
+				setResponsePage(AdminPage.class);
+			}
+
+			@Override
+			public boolean isVisible() {
+				return BasePage.this.businessService.isSuperUser();
+			}
+
+		};
+		this.adminLink.add(new Label("screenreaderlabel", getString("link.screenreader.tabnotselected")));
+		nav.add(this.adminLink);
 
 		add(nav);
 
@@ -142,7 +161,7 @@ public class BasePage extends WebPage {
 	}
 
 	/**
-	 * Helper to disable a link. Add the Sakai class 'current'.
+	 * Helper to disable a link. Add the Sakai class 'current' and switch the screenreader label to 'tabselected'
 	 */
 	protected void disableLink(final Link<Void> l) {
 		l.add(new AttributeAppender("class", new Model<String>("current"), " "));
