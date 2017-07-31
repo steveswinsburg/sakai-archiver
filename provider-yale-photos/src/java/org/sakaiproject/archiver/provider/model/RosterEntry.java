@@ -10,7 +10,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Wrapper for the data in a roster. Fields are ordered as they appear in the export.
+ * Wrapper for the data in a roster. Fields are ordered as they appear in the export. A few fields are split out so they can be treated
+ * specially
  */
 public class RosterEntry {
 
@@ -21,13 +22,40 @@ public class RosterEntry {
 	@Setter
 	private String eid;
 
+	/**
+	 * Display name of the user
+	 */
 	@Getter
 	@Setter
-	private Map<String, String> fields = new LinkedHashMap<>();
+	private String displayName;
 
+	/**
+	 * Role of the user
+	 */
+	@Getter
+	@Setter
+	private String role;
+
+	/**
+	 * Email address of the user
+	 */
+	@Getter
+	@Setter
+	private String emailAddress;
+
+	/**
+	 * URL of the user's photo
+	 */
 	@Getter
 	@Setter
 	private String photoUrl = null;
+
+	/**
+	 * The rest of the fields
+	 */
+	@Getter
+	@Setter
+	private Map<String, String> fields = new LinkedHashMap<>();
 
 	public RosterEntry() {
 	}

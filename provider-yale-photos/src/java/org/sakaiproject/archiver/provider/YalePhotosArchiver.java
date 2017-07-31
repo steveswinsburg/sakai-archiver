@@ -156,16 +156,31 @@ public class YalePhotosArchiver implements Archiveable {
 
 				header.forEach((k, v) -> {
 
-					// user eid is index 1
-					if (k == 1) {
-						final String eid = data.get(k);
-						r.setEid(eid);
-						r.setPhotoUrl(IMAGES_SUBDIR + File.separatorChar + getImageFilename(eid));
-					} else {
-						final String value = data.get(k);
-						if (StringUtils.isNotBlank(value)) {
-							r.addField(v, data.get(k));
-						}
+					// pick apart each row. Numbers are the column indexes in the spreadsheet data, 0 based.
+					switch (k) {
+
+						case 0:
+							final String displayName = data.get(k);
+							r.setDisplayName(displayName);
+							break;
+						case 1:
+							final String eid = data.get(k);
+							r.setEid(eid);
+							r.setPhotoUrl(IMAGES_SUBDIR + File.separatorChar + getImageFilename(eid));
+							break;
+						case 2:
+							final String email = data.get(k);
+							r.setEmailAddress(email);
+							break;
+						case 3:
+							final String role = data.get(k);
+							r.setRole(role);
+							break;
+						default:
+							final String value = data.get(k);
+							if (StringUtils.isNotBlank(value)) {
+								r.addField(v, data.get(k));
+							}
 					}
 
 				});
@@ -177,7 +192,7 @@ public class YalePhotosArchiver implements Archiveable {
 
 			// now turn the list into some nice HTML
 			final String htmlBody = getAsHtml(entries);
-			final String html = Htmlifier.toHtml(htmlBody);
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(htmlBody), this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("html: " + html);
 
 			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "roster.html");
@@ -291,14 +306,30 @@ public class YalePhotosArchiver implements Archiveable {
 
 		final StringBuilder sb = new StringBuilder();
 
+		// get the count of each role in the list
+		final Map<String, Long> roleCount = entries.stream().collect(Collectors.groupingBy(e -> e.getRole(), Collectors.counting()));
+
+		// add a role tally
+		sb.append("<div class=\"lead\">");
+		roleCount.forEach((k, v) -> {
+			sb.append(k + "&nbsp;<strong>" + v + "</strong><br />");
+		});
+		sb.append("</div>");
+
+		// output the roster data
 		sb.append("<div class=\"row\">");
 
 		entries.forEach(entry -> {
 			sb.append("<div class=\"col-xs-3\">");
-			sb.append("<img src=\"" + entry.getPhotoUrl() + "\">");
+			sb.append("<img class=\"img-rounded\" src=\"" + entry.getPhotoUrl() + "\">");
+			sb.append("<div>" + entry.getDisplayName() + "</div>");
+			sb.append("<div>Role: " + entry.getRole() + "</div>");
+			sb.append("<div>" + entry.getEmailAddress() + "</div>");
+
 			entry.getFields().forEach((field, value) -> {
 				sb.append("<div>" + field + ": " + value + "</div>");
 			});
+			sb.append("<br />"); // spacer hack
 			sb.append("</div>");
 		});
 
