@@ -34,18 +34,48 @@ public class ShowArchives extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private final String siteId;
+	private final int max;
+	private final boolean showSite;
 
 	@SpringBean(name = "org.sakaiproject.archiver.app.business.ArchiverBusinessService")
 	private transient ArchiverBusinessService businessService;
 
+	/**
+	 * Show archives for current site
+	 *
+	 * @param id markupid
+	 */
 	public ShowArchives(final String id) {
 		super(id);
 		this.siteId = this.businessService.getCurrentSiteId();
+		this.max = 50;
+		this.showSite = false;
 	}
 
+	/**
+	 * Show archives for given site
+	 *
+	 * @param id markupid
+	 * @param model the siteId wrapped in a Model
+	 */
 	public ShowArchives(final String id, final IModel<String> model) {
 		super(id, model);
 		this.siteId = model.getObject();
+		this.max = 50;
+		this.showSite = false;
+	}
+
+	/**
+	 * Show archives for all sites up to maximum Typically used by admin views.
+	 *
+	 * @param id markupid
+	 * @param max the maximum to show
+	 */
+	public ShowArchives(final String id, final int max) {
+		super(id);
+		this.siteId = null;
+		this.max = max;
+		this.showSite = true;
 	}
 
 	@Override
@@ -55,7 +85,7 @@ public class ShowArchives extends Panel {
 		log.debug("Archives for: " + this.siteId);
 
 		// get list of archives
-		final List<Archive> archives = this.businessService.getArchives(this.siteId);
+		final List<Archive> archives = this.businessService.getArchives(this.siteId, this.max);
 		log.debug("Count: " + archives.size());
 
 		// wrap the table
@@ -67,8 +97,17 @@ public class ShowArchives extends Panel {
 				return !archives.isEmpty();
 			}
 		};
-
 		add(table);
+
+		// this header is only shown if showSite is true
+		table.add(new WebMarkupContainer("siteHeader") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return ShowArchives.this.showSite;
+			}
+		});
 
 		// archive data view
 		final PageableListView<Archive> listView = new PageableListView<Archive>("archiveHistoryView", archives, 10) {
@@ -79,6 +118,16 @@ public class ShowArchives extends Panel {
 				final Archive archive = item.getModelObject();
 
 				log.debug(archive.toString());
+
+				// this column is only shown if showSite is true
+				item.add(new Label("site", ShowArchives.this.businessService.getSiteTitle(archive.getSiteId())) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public boolean isVisible() {
+						return ShowArchives.this.showSite;
+					}
+				});
 
 				item.add(new Label("dateCompleted", Dateifier.toIso8601(archive.getEndDate())));
 				item.add(new Label("status", archive.getStatus().toString()));
@@ -157,4 +206,5 @@ public class ShowArchives extends Panel {
 		}
 		return null;
 	}
+
 }

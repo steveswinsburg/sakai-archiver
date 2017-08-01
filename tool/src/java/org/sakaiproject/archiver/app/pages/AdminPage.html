@@ -5,9 +5,22 @@
 <wicket:extend>
 	<h2><wicket:message key="heading.admin">Admin</wicket:message></h2>	
 	
-	<h4><wicket:message key="heading.admin.findbysite">Find archives</wicket:message></h4>
+	<div class="panel panel-default">
+  		<div class="panel-heading lead"><wicket:message key="heading.admin.findbysite">Find archives</wicket:message></div>
+  		<div class="panel-body">
+  			<form wicket:id="form">
+				<input type="text" wicket:id="search" />
+			</form>
+		</div>
+	</div>
 	
-	<h4><wicket:message key="heading.admin.lasttwenty">Last 20 archives</wicket:message></h4>
+	<div class="panel panel-default">
+  		<div class="panel-heading lead"><wicket:message key="heading.admin.recent">Last 100 archives</wicket:message></div>
+  		<div class="panel-body">
+  			<div wicket:id="recentArchives"></div>
+		</div>
+	</div>
+	
 	
 </wicket:extend>
 </body>

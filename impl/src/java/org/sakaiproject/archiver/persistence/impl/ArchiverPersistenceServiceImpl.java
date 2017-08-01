@@ -3,6 +3,7 @@ package org.sakaiproject.archiver.persistence.impl;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -53,7 +54,7 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 		log.debug("saved: " + entity.getId());
 		return entity;
 	}
-	
+
 	@Override
 	public ArchiveEntity getLatest(final String siteId) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
@@ -71,11 +72,14 @@ public class ArchiverPersistenceServiceImpl extends HibernateDaoSupport implemen
 	}
 
 	@Override
-	public List<ArchiveEntity> getBySiteId(final String siteId) {
+	public List<ArchiveEntity> getBySiteId(final String siteId, final int max) {
 		final Criteria criteria = getSessionFactory().getCurrentSession().createCriteria(ArchiveEntity.class);
-		criteria.add(Restrictions.eq("siteId", siteId));
+		if (StringUtils.isNotBlank(siteId)) {
+			criteria.add(Restrictions.eq("siteId", siteId));
+		}
 		criteria.addOrder(Order.desc("startDate"));
 		criteria.addOrder(Order.desc("endDate"));
+		criteria.setMaxResults(max);
 		return criteria.list();
 	}
 
