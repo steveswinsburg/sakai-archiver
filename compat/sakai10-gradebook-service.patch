@@ -15,6 +15,112 @@ Index: api/pom.xml
 +		</dependency>    
 +    </dependencies>
  </project>
+Index: api/src/java/org/sakaiproject/service/gradebook/shared/CourseGrade.java
+===================================================================
+--- api/src/java/org/sakaiproject/service/gradebook/shared/CourseGrade.java	(nonexistent)
++++ api/src/java/org/sakaiproject/service/gradebook/shared/CourseGrade.java	(working copy)
+@@ -0,0 +1,101 @@
++package org.sakaiproject.service.gradebook.shared;
++
++import java.io.Serializable;
++import java.util.Date;
++
++import org.apache.commons.lang.builder.ToStringBuilder;
++import org.apache.commons.lang.builder.ToStringStyle;
++
++/**
++ * Wrapper for the course grade that contains the the calculated grade (ie 46.67), the mapped grade (ie F) and any entered grade override
++ * (ie D-).
++ */
++public class CourseGrade implements Serializable {
++
++	private static final long serialVersionUID = 1L;
++
++	private Long id;
++	private String enteredGrade;
++	private String calculatedGrade;
++	private String mappedGrade;
++	private Double pointsEarned;
++	private Double totalPointsPossible;
++	private Date dateRecorded;
++
++	public CourseGrade() {
++	}
++
++	/**
++	 * ID of this course grade record. This will be null if the course grade is calculated, and non null if we have an override (as it then
++	 * refers to the course grade assignment id).
++	 * 
++	 * @return
++	 */
++	public Long getId() {
++		return this.id;
++	}
++
++	public void setId(final Long id) {
++		this.id = id;
++	}
++
++	public String getEnteredGrade() {
++		return this.enteredGrade;
++	}
++
++	public void setEnteredGrade(final String enteredGrade) {
++		this.enteredGrade = enteredGrade;
++	}
++
++	public String getCalculatedGrade() {
++		return this.calculatedGrade;
++	}
++
++	public void setCalculatedGrade(final String calculatedGrade) {
++		this.calculatedGrade = calculatedGrade;
++	}
++
++	public String getMappedGrade() {
++		return this.mappedGrade;
++	}
++
++	public void setMappedGrade(final String mappedGrade) {
++		this.mappedGrade = mappedGrade;
++	}
++
++	public Double getPointsEarned() {
++		return this.pointsEarned;
++	}
++
++	public void setPointsEarned(final Double pointsEarned) {
++		this.pointsEarned = pointsEarned;
++	}
++
++	/**
++	 * This value is only accurate when there are no weighted categories. If weighting is enabled, this value will not be what you expect.
++	 * For this reason, this value should not be used when weighted categories are enabled.
++	 * 
++	 * @return Double representing the total points possible, see caveat.
++	 */
++	public Double getTotalPointsPossible() {
++		return this.totalPointsPossible;
++	}
++
++	public void setTotalPointsPossible(final Double totalPointsPossible) {
++		this.totalPointsPossible = totalPointsPossible;
++	}
++
++	public Date getDateRecorded() {
++		return this.dateRecorded;
++	}
++
++	public void setDateRecorded(final Date dateRecorded) {
++		this.dateRecorded = dateRecorded;
++	}
++
++	@Override
++	public String toString() {
++		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
++	}
++
++}
 Index: api/src/java/org/sakaiproject/service/gradebook/shared/GradebookService.java
 ===================================================================
 --- api/src/java/org/sakaiproject/service/gradebook/shared/GradebookService.java	(revision 325978)
