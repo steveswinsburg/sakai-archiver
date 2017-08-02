@@ -71,13 +71,6 @@ public class ArchiverRegistry {
 	}
 
 	/**
-	 * Unregister all {@link Archiveable} services
-	 */
-	protected synchronized void unregisterAll() {
-		getRegistry().keySet().forEach(toolId -> unregister(toolId));
-	}
-
-	/**
 	 * Checks if a service is registered already for this toolId
 	 *
 	 * @param toolId the toolId to check the registry for
