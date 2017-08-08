@@ -18,10 +18,13 @@ public class ArchiveSite implements Serializable, Comparable<ArchiveSite> {
 	private static final long serialVersionUID = 1L;
 
 	@Getter
-	private final String siteId;
+	private String siteId;
 
 	@Getter
-	private final String title;
+	private String title;
+
+	public ArchiveSite() {
+	}
 
 	public ArchiveSite(final String siteId, final String title) {
 		this.siteId = siteId;
