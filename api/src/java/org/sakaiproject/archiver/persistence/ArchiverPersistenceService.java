@@ -2,8 +2,12 @@ package org.sakaiproject.archiver.persistence;
 
 import java.util.List;
 
+import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 
+/**
+ * DAO for the Archiver. This is not part of the API and you should not use it. Use {@link ArchiverService} instead.
+ */
 public interface ArchiverPersistenceService {
 
 	/**
@@ -22,7 +26,7 @@ public interface ArchiverPersistenceService {
 	 * @return the updated entity
 	 */
 	ArchiveEntity update(ArchiveEntity entity);
-	
+
 	/**
 	 * Get the latest archive for the given site. Return null if none exists
 	 *
@@ -40,11 +44,13 @@ public interface ArchiverPersistenceService {
 	ArchiveEntity getByArchiveId(String archiveId);
 
 	/**
-	 * Get a list of archives by the associated siteId ordered by date descending
+	 * Get a list of archives by the associated siteId ordered by date descending. The siteId can be left blank to get archives for all
+	 * sites.
 	 *
 	 * @param siteId the id to lookup the archives for
-	 * @return List of {@link ArchiveEntity} or empty list if none exist for the site
+	 * @param max the maximum number to return
+	 * @return List of {@link ArchiveEntity} or empty list if none exist
 	 */
-	List<ArchiveEntity> getBySiteId(String siteId);
+	List<ArchiveEntity> getBySiteId(String siteId, int max);
 
 }

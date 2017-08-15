@@ -80,10 +80,12 @@ public interface ArchiverService {
 	/**
 	 * Get a list of archives for the given site
 	 *
-	 * @param siteId the siteId to get the archives for
+	 * @param siteId the siteId to get the archives for. Can be blank to get for all sites however you must be a superuser to call it this
+	 *            way.
+	 * @param max the maximum number to return
 	 * @return List of {@link Archive}
 	 */
-	List<Archive> getArchives(final String siteId);
+	List<Archive> getArchives(final String siteId, final int max);
 
 	/**
 	 * Get a heading for the top of the html file, in the form: "Site name (course session): Tool name"

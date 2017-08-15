@@ -214,12 +214,14 @@ public class ArchiverBusinessService {
 	}
 
 	/**
-	 * Get a list of Archives for the current site.
+	 * Get a list of Archives for the given site.
 	 *
+	 * @param siteId the siteId to get the archives for
+	 * @param max the maximum number to return
 	 * @return
 	 */
-	public List<Archive> getArchives() {
-		return this.archiverService.getArchives(getCurrentSiteId());
+	public List<Archive> getArchives(final String siteId, final int max) {
+		return this.archiverService.getArchives(siteId, max);
 	}
 
 	/**
@@ -272,11 +274,26 @@ public class ArchiverBusinessService {
 	 *
 	 * @return
 	 */
-	private String getCurrentSiteId() {
+	public String getCurrentSiteId() {
 		try {
 			return this.toolManager.getCurrentPlacement().getContext();
 		} catch (final Exception e) {
 			return null;
+		}
+	}
+
+	/**
+	 * Get the title of a site
+	 *
+	 * @param siteId
+	 * @return the site title or fallback to the siteid if the site can't be found
+	 */
+	public String getSiteTitle(final String siteId) {
+		try {
+			final Site site = this.siteService.getSite(siteId);
+			return site.getTitle();
+		} catch (final IdUnusedException e) {
+			return siteId;
 		}
 	}
 

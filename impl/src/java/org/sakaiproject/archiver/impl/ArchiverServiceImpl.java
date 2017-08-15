@@ -34,6 +34,7 @@ import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.authz.api.AuthzGroupService;
+import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.exception.IdUnusedException;
@@ -72,6 +73,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 	@Setter
 	private ToolManager toolManager;
+
+	@Setter
+	private SecurityService securityService;
 
 	public void init() {
 		log.info("ArchiverService started");
@@ -234,11 +238,11 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	@Override
-	public List<Archive> getArchives(final String siteId) {
-		if (StringUtils.isBlank(siteId)) {
+	public List<Archive> getArchives(final String siteId, final int max) {
+		if (StringUtils.isBlank(siteId) && !isSuperUser()) {
 			return Collections.emptyList();
 		}
-		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId);
+		final List<ArchiveEntity> entities = this.dao.getBySiteId(siteId, max);
 		return ArchiveMapper.toDtos(entities);
 	}
 
@@ -462,5 +466,15 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private String getSiteTitle(final String siteId) {
 		final Site site = getSite(siteId);
 		return site.getTitle();
+	}
+
+	/**
+	 * Check if the user is a superuser
+	 *
+	 * @return
+	 */
+	private boolean isSuperUser() {
+		final User user = this.userDirectoryService.getCurrentUser();
+		return this.securityService.isSuperUser(user.getId());
 	}
 }

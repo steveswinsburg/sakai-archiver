@@ -45,6 +45,11 @@
 			<version>6.18.0</version>
 		</dependency>
 		<dependency>
+	    	<groupId>org.wicketstuff</groupId>
+  			<artifactId>wicketstuff-objectautocomplete</artifactId>
+  			<version>6.18.0</version>
+  		</dependency>
+		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 		</dependency>

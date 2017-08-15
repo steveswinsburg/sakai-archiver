@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<body>
+<wicket:extend>
+	<h2><wicket:message key="heading.admin">Admin</wicket:message></h2>	
+	
+	<div class="panel panel-default">
+  		<div class="panel-heading lead"><wicket:message key="heading.admin.findbysite">Find archives</wicket:message></div>
+  		<div class="panel-body">
+  			<form wicket:id="form">
+				<input type="text" wicket:id="search" />
+			</form>
+			
+			<div wicket:id="siteArchives"></div>
+		</div>
+	</div>
+	
+	<div class="panel panel-default">
+  		<div class="panel-heading lead"><wicket:message key="heading.admin.recent">Last 100 archives</wicket:message></div>
+  		<div class="panel-body">
+  			<div wicket:id="recentArchives"></div>
+		</div>
+	</div>
+	
+	
+</wicket:extend>
+</body>
+</html>

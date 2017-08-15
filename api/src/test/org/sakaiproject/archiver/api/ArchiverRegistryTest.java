@@ -17,7 +17,8 @@ public class ArchiverRegistryTest {
 
 	@Before
 	public void clearRegistry() {
-		ArchiverRegistry.getInstance().unregisterAll();
+		final ArchiverRegistry registry = ArchiverRegistry.getInstance();
+		registry.getRegistry().keySet().forEach(toolId -> registry.unregister(toolId));
 	}
 
 	@Test
