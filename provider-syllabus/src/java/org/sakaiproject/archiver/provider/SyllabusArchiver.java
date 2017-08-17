@@ -80,7 +80,7 @@ public class SyllabusArchiver implements Archiveable {
 				}
 			}
 
-			if (syllabusAttachments.size() > 0) {
+			if (!syllabusAttachments.isEmpty()) {
 				finaliseAttachmentsHtml(simpleSyllabus);
 			}
 

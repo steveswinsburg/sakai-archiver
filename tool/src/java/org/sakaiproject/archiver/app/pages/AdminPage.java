@@ -37,7 +37,7 @@ public class AdminPage extends BasePage {
 		super.onInitialize();
 
 		final ArchiveSite siteModel = new ArchiveSite();
-		final Form<ArchiveSite> form = new Form<ArchiveSite>("form", Model.of(siteModel));
+		final Form<ArchiveSite> form = new Form<>("form", Model.of(siteModel));
 
 		// AC builder
 		final ObjectAutoCompleteBuilder<ArchiveSite, String> builder = new ObjectAutoCompleteBuilder<>(
@@ -87,18 +87,6 @@ public class AdminPage extends BasePage {
 		// AC field
 		final ObjectAutoCompleteField<ArchiveSite, String> searchField = builder.build("search",
 				new PropertyModel<String>(siteModel, "siteId"));
-
-		/*
-		 * searchField.add(new AjaxFormSubmitBehavior("onchange") { private static final long serialVersionUID = 1L;
-		 *
-		 * @Override protected final void onSubmit(final AjaxRequestTarget target) { final ArchiveSite model = form.getModelObject();
-		 * System.out.println(model);
-		 *
-		 * final Panel newPanel = new ShowArchives("recentArchives", 100); newPanel.setOutputMarkupId(true);
-		 * AdminPage.this.siteArchives.replaceWith(newPanel); AdminPage.this.siteArchives = newPanel; // keep reference up to date!
-		 *
-		 * target.add(newPanel); } });
-		 */
 
 		form.add(searchField);
 		add(form);
