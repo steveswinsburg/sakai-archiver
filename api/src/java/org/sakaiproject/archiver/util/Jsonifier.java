@@ -8,6 +8,10 @@ import com.google.gson.GsonBuilder;
  */
 public class Jsonifier {
 
+	private Jsonifier() {
+		throw new IllegalArgumentException("Utility class");
+	}
+
 	/**
 	 * Serialise an object to JSON
 	 *
