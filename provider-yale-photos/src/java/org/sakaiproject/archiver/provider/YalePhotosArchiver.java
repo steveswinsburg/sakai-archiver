@@ -99,7 +99,7 @@ public class YalePhotosArchiver implements Archiveable {
 
 		// refresh photo cache
 		try {
-			this.photoService.loadPhotos(studentEids);
+			this.photoService.loadPhotos(studentEids, siteId);
 		} catch (final YalePhotoDirectoryServiceException e) {
 			log.error("Error refreshing the photo cache, the export may be incomplete", e);
 		}

@@ -68,7 +68,12 @@ public class YalePhotoDirectoryServiceImpl implements YalePhotoDirectoryService 
 	@Override
 	public void loadPhotos(final Collection<String> netIds)
 			throws YalePhotoDirectoryServiceException {
+	}
 
+	@Override
+	public void loadPhotos(final Collection<String> netIds, final String siteId)
+			throws YalePhotoDirectoryServiceException {
+				loadPhotos(netIds);
 	}
 
 	@Override
