@@ -324,7 +324,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
-		final String zipName = getSiteTitle(entity.getSiteId()) + "-" + entity.getId();
+		final String zipName = sanitiseFilename(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
 
 		// zips the archive directory
 		final File archiveDirectory = new File(entity.getArchivePath());
@@ -476,5 +476,15 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private boolean isSuperUser() {
 		final User user = this.userDirectoryService.getCurrentUser();
 		return this.securityService.isSuperUser(user.getId());
+	}
+
+	/**
+	 * Replace illegal chars in a filename with _
+	 *
+	 * @param filename
+	 * @return
+	 */
+	private String sanitiseFilename(final String filename) {
+		return filename.replaceAll("[^a-zA-Z0-9.-]", "_");
 	}
 }
