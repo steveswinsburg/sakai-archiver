@@ -246,8 +246,7 @@ public class GradebookArchiver implements Archiveable {
 	 */
 	private Gradebook getGradebook(final String siteId) {
 		try {
-			final Gradebook gradebook = (Gradebook) this.gradebookService.getGradebook(siteId);
-			return gradebook;
+			return (Gradebook) this.gradebookService.getGradebook(siteId);
 		} catch (final GradebookNotFoundException e) {
 			return null;
 		}
