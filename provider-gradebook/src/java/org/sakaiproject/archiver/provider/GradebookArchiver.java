@@ -189,7 +189,7 @@ public class GradebookArchiver implements Archiveable {
 	 * @return
 	 */
 	private List<String> buildRow(final StudentGradeInfo gradeInfo, final List<Assignment> assignments) {
-		final List<String> row = new ArrayList<String>();
+		final List<String> row = new ArrayList<>();
 		row.add(gradeInfo.getUserEid());
 		row.add(gradeInfo.getDisplayName());
 
