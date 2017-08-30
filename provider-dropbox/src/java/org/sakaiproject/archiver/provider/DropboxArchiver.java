@@ -166,8 +166,7 @@ public class DropboxArchiver implements Archiveable {
 	 */
 	private Map<String, String> getUserDisplayNames(final List<String> userUuids) {
 		final List<User> users = this.userDirectoryService.getUsers(userUuids);
-		final Map<String, String> userMap = users.stream().collect(Collectors.toMap(User::getId, User::getSortName));
-		return userMap;
+		return users.stream().collect(Collectors.toMap(User::getId, User::getSortName));
 	}
 
 	/**
