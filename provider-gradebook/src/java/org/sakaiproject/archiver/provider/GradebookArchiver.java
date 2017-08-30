@@ -168,7 +168,7 @@ public class GradebookArchiver implements Archiveable {
 	 * @return
 	 */
 	private List<String> buildHeader(final List<Assignment> assignments) {
-		final List<String> header = new ArrayList<String>();
+		final List<String> header = new ArrayList<>();
 		header.add(I18n.getString("export.header.studentId"));
 		header.add(I18n.getString("export.header.studentName"));
 		header.add(I18n.getString("export.headers.totalPoints"));
