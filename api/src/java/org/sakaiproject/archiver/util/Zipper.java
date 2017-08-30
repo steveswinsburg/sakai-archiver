@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 public class Zipper {
 
 	private Zipper() {
-		throw new IllegalArgumentException("Utility class");
 	}
 
 	private static Logger log = LoggerFactory.getLogger(Zipper.class);

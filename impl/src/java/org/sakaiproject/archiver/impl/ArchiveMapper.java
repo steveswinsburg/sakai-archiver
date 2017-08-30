@@ -17,7 +17,6 @@ import org.sakaiproject.archiver.entity.ArchiveEntity;
 public class ArchiveMapper {
 
 	private ArchiveMapper() {
-		throw new IllegalStateException("Utility class");
 	}
 
 	/**

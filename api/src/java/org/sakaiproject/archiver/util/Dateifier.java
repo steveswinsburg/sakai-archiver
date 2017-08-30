@@ -12,7 +12,6 @@ import java.util.Locale;
 public class Dateifier {
 
 	private Dateifier() {
-		throw new IllegalArgumentException("Utility class");
 	}
 
 	/**
