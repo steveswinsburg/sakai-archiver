@@ -175,9 +175,7 @@ public class GradebookArchiver implements Archiveable {
 		header.add(I18n.getString("export.headers.courseGrade"));
 		header.add(I18n.getString("export.headers.calculatedGrade"));
 		header.add(I18n.getString("export.headers.gradeOverride"));
-		assignments.forEach(a -> {
-			header.add(a.getName() + " [" + a.getPoints() + "]");
-		});
+		assignments.forEach(a -> header.add(a.getName() + " [" + a.getPoints() + "]"));
 		return header;
 	}
 

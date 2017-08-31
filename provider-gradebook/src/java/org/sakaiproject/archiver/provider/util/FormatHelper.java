@@ -14,15 +14,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FormatHelper {
 
+	private FormatHelper() {
+	}
+
 	/**
 	 * The value is a double (ie 12.34542) that needs to be formatted as a percentage with 'n' decimal places precision. And drop off any .0
 	 * if no decimal places.
 	 *
 	 * @param score as a double
 	 * @param n as an int
-	 * @return double to n decimal places
+	 * @return double to n decimal places or null if null input
 	 */
 	public static String formatDoubleToDecimal(final Double score, final int n) {
+		if (score == null) {
+			return null;
+		}
 		final NumberFormat df = NumberFormat.getInstance();
 		df.setMinimumFractionDigits(0);
 		df.setMaximumFractionDigits(n);
