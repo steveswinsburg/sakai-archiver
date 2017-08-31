@@ -168,16 +168,14 @@ public class GradebookArchiver implements Archiveable {
 	 * @return
 	 */
 	private List<String> buildHeader(final List<Assignment> assignments) {
-		final List<String> header = new ArrayList<String>();
+		final List<String> header = new ArrayList<>();
 		header.add(I18n.getString("export.header.studentId"));
 		header.add(I18n.getString("export.header.studentName"));
 		header.add(I18n.getString("export.headers.totalPoints"));
 		header.add(I18n.getString("export.headers.courseGrade"));
 		header.add(I18n.getString("export.headers.calculatedGrade"));
 		header.add(I18n.getString("export.headers.gradeOverride"));
-		assignments.forEach(a -> {
-			header.add(a.getName() + " [" + a.getPoints() + "]");
-		});
+		assignments.forEach(a -> header.add(a.getName() + " [" + a.getPoints() + "]"));
 		return header;
 	}
 
@@ -189,7 +187,7 @@ public class GradebookArchiver implements Archiveable {
 	 * @return
 	 */
 	private List<String> buildRow(final StudentGradeInfo gradeInfo, final List<Assignment> assignments) {
-		final List<String> row = new ArrayList<String>();
+		final List<String> row = new ArrayList<>();
 		row.add(gradeInfo.getUserEid());
 		row.add(gradeInfo.getDisplayName());
 
@@ -246,8 +244,7 @@ public class GradebookArchiver implements Archiveable {
 	 */
 	private Gradebook getGradebook(final String siteId) {
 		try {
-			final Gradebook gradebook = (Gradebook) this.gradebookService.getGradebook(siteId);
-			return gradebook;
+			return (Gradebook) this.gradebookService.getGradebook(siteId);
 		} catch (final GradebookNotFoundException e) {
 			return null;
 		}

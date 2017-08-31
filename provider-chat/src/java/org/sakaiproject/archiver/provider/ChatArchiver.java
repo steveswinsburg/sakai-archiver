@@ -96,7 +96,7 @@ public class ChatArchiver implements Archiveable {
 	 * @return the list of messages to be saved
 	 */
 	private List<SimpleChatMessage> createArchiveItems(final List<ChatMessage> chatMessages) {
-		final List<SimpleChatMessage> messagesToSave = new ArrayList<SimpleChatMessage>();
+		final List<SimpleChatMessage> messagesToSave = new ArrayList<>();
 		for (final ChatMessage message : chatMessages) {
 			final SimpleChatMessage simpleChatMessage = createArchiveItem(message);
 			messagesToSave.add(simpleChatMessage);

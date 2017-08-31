@@ -8,6 +8,9 @@ import com.google.gson.GsonBuilder;
  */
 public class Jsonifier {
 
+	private Jsonifier() {
+	}
+
 	/**
 	 * Serialise an object to JSON
 	 *

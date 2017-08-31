@@ -11,6 +11,9 @@ import java.util.Locale;
  */
 public class Dateifier {
 
+	private Dateifier() {
+	}
+
 	/**
 	 * Format a date to ISO 8601 using default Locale
 	 *
