@@ -158,11 +158,8 @@ public class ArchiverBusinessService {
 		final String siteId = getCurrentSiteId();
 
 		final Archive archive = this.archiverService.getLatest(siteId);
-		if (archive != null && archive.getStatus() == Status.STARTED) {
-			return true;
-		}
+		return (archive != null && archive.getStatus() == Status.STARTED);
 
-		return false;
 	}
 
 	/**

@@ -49,7 +49,7 @@ public class SimpleMessage extends SimpleArchiveItem {
 
 	@Setter
 	@Getter
-	private List<SimpleMessage> replies = new ArrayList<SimpleMessage>();
+	private List<SimpleMessage> replies = new ArrayList<>();
 
 	public SimpleMessage(final Message message) {
 

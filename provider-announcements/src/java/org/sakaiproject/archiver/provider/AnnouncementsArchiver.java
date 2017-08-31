@@ -69,7 +69,7 @@ public class AnnouncementsArchiver implements Archiveable {
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
 				archiveAttachments(attachments, simpleAnnouncement, archiveId, siteId,
 						TOOL_NAME);
-				if (attachments.size() > 0) {
+				if (!attachments.isEmpty()) {
 					finaliseAttachmentsHtml(simpleAnnouncement);
 				}
 

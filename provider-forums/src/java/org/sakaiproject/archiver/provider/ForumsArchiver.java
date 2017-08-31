@@ -76,7 +76,7 @@ public class ForumsArchiver implements Archiveable {
 		final SimpleForum simpleForum = new SimpleForum(forum);
 
 		// Initialise the array to hold each topic for this forum
-		final List<SimpleTopic> simpleTopics = new ArrayList<SimpleTopic>();
+		final List<SimpleTopic> simpleTopics = new ArrayList<>();
 
 		final List<DiscussionTopic> topics = forum.getTopics();
 		for (final DiscussionTopic topic : topics) {

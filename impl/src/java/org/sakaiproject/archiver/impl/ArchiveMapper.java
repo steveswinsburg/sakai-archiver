@@ -16,6 +16,9 @@ import org.sakaiproject.archiver.entity.ArchiveEntity;
  */
 public class ArchiveMapper {
 
+	private ArchiveMapper() {
+	}
+
 	/**
 	 * Map an {@link ArchiveEntity} to a {@link Archive} dto or null if entity is null
 	 *
@@ -42,7 +45,7 @@ public class ArchiveMapper {
 
 	/**
 	 * Map a list of {@link ArchiveEntity} to a list of {@link Archive} dto
-	 * 
+	 *
 	 * @param entities
 	 * @return
 	 */

@@ -386,10 +386,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		if (entity == null) {
 			return false;
 		}
-		if (entity.getStatus() == Status.STARTED) {
-			return true;
-		}
-		return false;
+		return (entity.getStatus() == Status.STARTED);
 	}
 
 	/**

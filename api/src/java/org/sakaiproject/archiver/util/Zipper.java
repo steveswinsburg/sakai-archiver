@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
  */
 public class Zipper {
 
+	private Zipper() {
+	}
+
 	private static Logger log = LoggerFactory.getLogger(Zipper.class);
 
 	/**

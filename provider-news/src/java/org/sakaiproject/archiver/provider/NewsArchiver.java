@@ -95,10 +95,7 @@ public class NewsArchiver implements Archiveable {
 		newsData.setTitle(title);
 		newsData.setMaxItems(maxItems);
 
-		// final String fileContents = Jsonifier.toJson(newsData);
-		final String fileContents = Htmlifier.toHtml(newsData);
-
-		return fileContents;
+		return Htmlifier.toHtml(newsData);
 	}
 
 	/**
