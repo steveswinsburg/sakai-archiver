@@ -86,7 +86,7 @@ public class Htmlifier extends RecursiveToStringStyle {
 
 	/**
 	 * Add a site header to the provided HTML
-	 * 
+	 *
 	 * @param html
 	 * @param heading
 	 * @return
@@ -94,7 +94,7 @@ public class Htmlifier extends RecursiveToStringStyle {
 	public static String addSiteHeader(final String html, final String heading) {
 		final Document doc = Jsoup.parse(html);
 		final Elements divs = doc.select("div");
-		divs.first().prepend("<h2 align=\"center\">" + heading + "</h2>");
+		divs.first().prepend("<h1>" + heading + "</h1>");
 		return doc.html();
 	}
 
