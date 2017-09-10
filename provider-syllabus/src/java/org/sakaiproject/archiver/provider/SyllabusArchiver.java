@@ -62,6 +62,7 @@ public class SyllabusArchiver implements Archiveable {
 
 		// Go through and archive each syllabus item
 		for (final SyllabusData syllabus : syllabusSet) {
+
 			final SimpleSyllabus simpleSyllabus = new SimpleSyllabus(syllabus.getTitle(), syllabus.getAsset());
 
 			// archive the attachments
@@ -85,11 +86,10 @@ public class SyllabusArchiver implements Archiveable {
 			}
 
 			// archive the syllabus as a html file
-			final String htmlArchiveItem = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleSyllabus),
-					this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			log.debug("Archive item metadata: " + htmlArchiveItem);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, htmlArchiveItem.getBytes(),
-					simpleSyllabus.getTitle() + ".html");
+			final String htmlBody = getAsHtml(syllabus.getAsset());
+			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(htmlBody), this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			log.debug("Archive item metadata: " + html);
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), simpleSyllabus.getTitle() + ".html");
 		}
 	}
 
@@ -118,6 +118,17 @@ public class SyllabusArchiver implements Archiveable {
 		simpleSyllabus
 				.setAttachments("<ul style=\"list-style: none;padding-left:0;\">" + simpleSyllabus.getAttachments() + "</ul>");
 
+	}
+
+	/**
+	 * Surround the syllabus body string with html paragraph tags
+	 *
+	 * @param syllabusBody
+	 * @return syllabusBodyHtml
+	 */
+	private String getAsHtml(final String syllabusBody) {
+
+		return "<p>" + syllabusBody + "</p>";
 	}
 
 	/**
