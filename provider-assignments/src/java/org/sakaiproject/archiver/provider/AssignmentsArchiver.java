@@ -69,6 +69,8 @@ public class AssignmentsArchiver implements Archiveable {
 	@Setter
 	private AssignmentSupplementItemService assignmentSupplementItemService;
 
+	private String attachmentsHtml;
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
@@ -76,15 +78,17 @@ public class AssignmentsArchiver implements Archiveable {
 
 		for (final Assignment assignment : assignments) {
 
-			// archive the assignment data
-			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
-					this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "details.html", assignment.getTitle());
-
 			// archive the attachments for the assignment
-			final String attachmentDir = assignment.getTitle() + "/attachments";
-			archiveAttachments(assignment.getContent().getAttachments(), attachmentDir, archiveId, siteId);
+			archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId, siteId, "/attachments");
+			if (!assignment.getContent().getAttachments().isEmpty()) {
+				finaliseAttachmentsHtml();
+			}
+
+			// archive the assignment data
+			final String detailsHtml = getDetailsAsHtml(assignment);
+			final String finalDetailsHtml = Htmlifier.toHtml(detailsHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalDetailsHtml.getBytes(), "details.html",
+					assignment.getTitle());
 
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
@@ -97,7 +101,35 @@ public class AssignmentsArchiver implements Archiveable {
 	}
 
 	/**
-	 * Get the submissions for an assignment, and any feedback from the instructor, and archive them
+	 * Construct the details html string
+	 *
+	 * @param assignment
+	 * @return
+	 */
+	private String getDetailsAsHtml(final Assignment assignment) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<h2>" + assignment.getTitle() + "</h2");
+
+		if (assignment.getContent() != null) {
+			sb.append("<p>" + assignment.getContent().getInstructions() + "</p>");
+		}
+
+		sb.append("<p>Due at: " + assignment.getDueTimeString() + "</p>");
+
+		if (assignment.getContent() != null) {
+			sb.append("<p>Maximum score: " + assignment.getContent().getMaxGradePointDisplay() + " "
+					+ assignment.getContent().getTypeOfGradeString() + "</p>");
+			sb.append("<p>Submission type: " + assignment.getContent().getTypeOfSubmissionString() + "</p>");
+		}
+
+		sb.append("<p>Attachment(s): " + this.attachmentsHtml + "</p>");
+
+		return sb.toString();
+	}
+
+	/**
+	 * Get the submissions for an assignment, and any feedback from the instructor, and archive it
 	 *
 	 * @param assignment
 	 * @param archiveId
