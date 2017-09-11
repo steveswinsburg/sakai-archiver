@@ -73,11 +73,11 @@ public class ChatArchiver implements Archiveable {
 					final int rangeStart = start + 1;
 					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
 
-					final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(messagesToSave),
-							this.archiverService.getSiteHeader(siteId, TOOL_ID));
-					log.debug("Chat HTML: " + html);
+					final String chatHtml = getAsHtml(messagesToSave);
+					final String finalChatHtml = Htmlifier.toHtml(chatHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+					log.debug("Chat HTML: " + finalChatHtml);
 
-					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(),
+					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalChatHtml.getBytes(),
 							chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html",
 							chatChannel.getTitle());
 
@@ -86,7 +86,18 @@ public class ChatArchiver implements Archiveable {
 					continue;
 				}
 			}
+
 		}
+	}
+
+	private String getAsHtml(final List<SimpleChatMessage> msgs) {
+		final StringBuilder sb = new StringBuilder();
+
+		for (final SimpleChatMessage msg : msgs) {
+			sb.append("<p>" + msg.getOwner() + "&nbsp;(" + msg.getDate() + "): " + msg.getBody() + "</p>");
+		}
+
+		return sb.toString();
 	}
 
 	/**
