@@ -149,10 +149,10 @@ public class Htmlifier extends RecursiveToStringStyle {
 		sb.append("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
 		sb.append("</head>");
 		sb.append("<body>");
+		sb.append("<div class=\"container\">");
 		if (StringUtils.isNotBlank(heading)) {
 			sb.append("<h1>" + heading + "</h1>");
 		}
-		sb.append("<div class=\"container\">");
 		return sb.toString();
 	}
 
