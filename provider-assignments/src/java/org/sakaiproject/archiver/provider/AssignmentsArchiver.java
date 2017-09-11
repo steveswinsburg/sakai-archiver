@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.provider;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.sakaiproject.archiver.api.ArchiverRegistry;
@@ -10,9 +9,6 @@ import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.assignment.api.Assignment;
 import org.sakaiproject.assignment.api.AssignmentService;
 import org.sakaiproject.assignment.api.AssignmentSubmission;
-import org.sakaiproject.assignment.api.model.AssignmentAllPurposeItem;
-import org.sakaiproject.assignment.api.model.AssignmentModelAnswerItem;
-import org.sakaiproject.assignment.api.model.AssignmentNoteItem;
 import org.sakaiproject.assignment.api.model.AssignmentSupplementItemService;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.entity.api.Entity;
@@ -78,6 +74,9 @@ public class AssignmentsArchiver implements Archiveable {
 
 		for (final Assignment assignment : assignments) {
 
+			// clear the atttachmentsHtml string in case it contains attachments from a previous assignment
+			this.attachmentsHtml = "";
+
 			// archive the attachments for the assignment
 			archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId, siteId, "/attachments");
 			if (!assignment.getContent().getAttachments().isEmpty()) {
@@ -109,7 +108,7 @@ public class AssignmentsArchiver implements Archiveable {
 	private String getDetailsAsHtml(final Assignment assignment) {
 		final StringBuilder sb = new StringBuilder();
 
-		sb.append("<h2>" + assignment.getTitle() + "</h2");
+		sb.append("<h2>" + assignment.getTitle() + "</h2>");
 
 		if (assignment.getContent() != null) {
 			sb.append("<p>" + assignment.getContent().getInstructions() + "</p>");
@@ -136,51 +135,66 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @param siteId
 	 */
 	@SuppressWarnings("unchecked")
+
 	private void archiveSubmissions(final Assignment assignment, final String archiveId, final String siteId) {
 		final List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
 
 		for (final AssignmentSubmission submission : submissions) {
 
-			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
+			// clear the atttachmentsHtml string
+			this.attachmentsHtml = "";
+
+			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId());
 
 			// archive the attachments for this submission
-			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId);
+			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId, "/submission");
+			if (!submission.getSubmittedAttachments().isEmpty()) {
+				finaliseAttachmentsHtml();
+			}
 
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
-				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
-						this.archiverService.getSiteHeader(siteId, TOOL_ID));
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "submission.html", submissionSubdirs);
+				final String submissionHtml = getSubmissionAsHtml(submission);
+				final String finalSubmissionHtml = Htmlifier.toHtml(submissionHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalSubmissionHtml.getBytes(), "submission.html",
+						submissionSubdirs);
 			}
 
-			// get the feedback, if this submission has been graded
-			if (submission.getGraded()) {
-				archiveFeedback(submission, assignment, archiveId, siteId);
+			// archive the feedback attachments, if there are any
+			if (submission.getGraded() && !submission.getFeedbackAttachments().isEmpty()) {
+				this.attachmentsHtml = "";
+				archiveAttachments(submission.getFeedbackAttachments(), submissionSubdirs, archiveId, siteId, "/feedback");
+				finaliseAttachmentsHtml();
 			}
 		}
 	}
 
 	/**
-	 * Helper method to archive feedback for a submission
+	 * Construct the submission html string
 	 *
 	 * @param submission
-	 * @param assignment
-	 * @param archiveId
-	 * @param siteId
+	 * @return submissionHtml
 	 */
-	@SuppressWarnings("unchecked")
-	private void archiveFeedback(final AssignmentSubmission submission, final Assignment assignment, final String archiveId,
-			final String siteId) {
+	private String getSubmissionAsHtml(final AssignmentSubmission submission) {
 
-		// archive the attachments provided by the instructor when grading the submission
-		final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
-		archiveAttachments(submission.getFeedbackAttachments(), feedbackSubdirs, archiveId, siteId);
+		final StringBuilder sb = new StringBuilder();
 
-		// archive other data associated with this feedback
-		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, TOOL_ID));
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "feedback.html", feedbackSubdirs);
+		sb.append("<h2>" + submission.getAssignment().getTitle() + "</h2>");
+
+		final User user = getUser(submission.getSubmitterId());
+		if (user != null) {
+			sb.append("<p>" + user.getEid() + "</p>");
+		}
+
+		sb.append("<p>" + submission.getTimeSubmittedString() + "</p>");
+		sb.append("<p>" + submission.getSubmittedText() + "</p>");
+		sb.append("<p>" + this.attachmentsHtml + "</p>");
+
+		if (submission.getGraded()) {
+			sb.append("<p>Instructor Feedback: " + submission.getFeedbackComment() + "</p>");
+		}
+
+		return sb.toString();
 	}
 
 	/**
@@ -191,10 +205,11 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @param archiveId
 	 * @param siteId
 	 */
-	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId) {
+	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId,
+			final String finalFolder) {
 		for (final Reference attachment : attachments) {
 			try {
-				archiveAttachment(attachment, archiveId, siteId, subdirs);
+				archiveAttachment(attachment, archiveId, siteId, subdirs, finalFolder);
 			} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 				log.error("Error getting attachment: " + attachment.getId());
 			}
@@ -213,11 +228,34 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @throws IdUnusedException
 	 * @throws TypeException
 	 */
-	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir)
+	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir,
+			final String finalFolder)
 			throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
-				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
+		final String attachmentName = attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes, attachmentName, subdir + finalFolder);
+		addToAttachmentsHtml(finalFolder, attachmentName);
+	}
+
+	/**
+	 * Set the html string that contains a list of attachment hyperlinks
+	 *
+	 * @param attachmentLocation
+	 * @param attachmentName
+	 */
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName) {
+
+		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + "/" + attachmentName + "\">" + attachmentName
+				+ "</a></li>";
+		this.attachmentsHtml += attachmentHyperlink;
+	}
+
+	/**
+	 * Finalise the attachments html string by surrounding it by unordered list tags
+	 */
+	private void finaliseAttachmentsHtml() {
+
+		this.attachmentsHtml = "<ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul>";
 	}
 
 	/**
@@ -253,23 +291,23 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @param folderName
 	 * @return subdirectory string
 	 */
-	private String getSubDirs(final Assignment assignment, final String submitterId, final String folderName) {
+	private String getSubDirs(final Assignment assignment, final String submitterId) {
 
 		// Get the user associated with this submitterId
 		final User user = getUser(submitterId);
 		if (user != null) {
-			return assignment.getTitle() + "/submissions/" + user.getSortName() + "/" + folderName;
+			return assignment.getTitle() + "/submissions/" + user.getSortName();
 		}
 
 		// If a user wasn't found, maybe it's a group submission
 		final Group group = getGroup(assignment.getContext(), submitterId);
 		if (group != null) {
-			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName;
+			return assignment.getTitle() + "/submissions/" + group.getTitle();
 		}
 
 		// Neither a user or group could be found, use submitterId as folder name
 		log.error("Neither a user or group name could not be found for submitterId: {}", submitterId);
-		return assignment.getTitle() + "/" + submitterId + "/submission";
+		return assignment.getTitle() + "/" + submitterId;
 	}
 
 	/**
