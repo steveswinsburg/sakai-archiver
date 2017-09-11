@@ -124,7 +124,6 @@ public class AnnouncementsArchiver implements Archiveable {
 	 *
 	 * @param attachmentLocation
 	 * @param attachmentName
-	 * @param simpleArchiveItem
 	 */
 	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
 			final SimpleAnnouncement simpleAnnouncement) {
@@ -136,8 +135,6 @@ public class AnnouncementsArchiver implements Archiveable {
 
 	/**
 	 * Finalise the attachments html string by surrounding it by unordered list tags
-	 *
-	 * @param simpleArchiveItem
 	 */
 	private void finaliseAttachmentsHtml(final SimpleAnnouncement simpleAnnouncement) {
 
