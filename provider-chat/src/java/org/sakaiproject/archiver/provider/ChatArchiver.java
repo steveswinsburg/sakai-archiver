@@ -62,7 +62,7 @@ public class ChatArchiver implements Archiveable {
 			final List<String> savedFiles = new ArrayList<>();
 
 			// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
-			for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
+			for (int start = 0; start <= numMessages - (numMessages % 100); start += 99) {
 
 				try {
 					final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99,
