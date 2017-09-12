@@ -59,9 +59,10 @@ public class ChatArchiver implements Archiveable {
 		for (final ChatChannel chatChannel : chatChannels) {
 
 			final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
+			final List<String> savedFiles = new ArrayList<>();
 
 			// Go through and get chat messages, 99 at a time (i.e. 0-99, 100-199, etc)
-			for (int start = 0; start <= numMessages - (numMessages % 100); start += 100) {
+			for (int start = 0; start <= numMessages - (numMessages % 100); start += 99) {
 
 				try {
 					final List<ChatMessage> chatMessages = this.chatManager.getChannelMessages(chatChannel, null, null, start, 99,
@@ -73,20 +74,68 @@ public class ChatArchiver implements Archiveable {
 					final int rangeStart = start + 1;
 					final int rangeEnd = numMessages - start >= 100 ? start + 100 : numMessages;
 
-					final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(messagesToSave),
-							this.archiverService.getSiteHeader(siteId, TOOL_ID));
-					log.debug("Chat HTML: " + html);
+					final String chatHtml = getAsHtml(messagesToSave);
+					final String finalChatHtml = Htmlifier.toHtml(chatHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+					log.debug("Chat HTML: " + finalChatHtml);
 
-					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(),
-							chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html",
-							chatChannel.getTitle());
+					final String fileName = chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html";
+					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalChatHtml.getBytes(),
+							fileName, chatChannel.getTitle());
+					// Add to the list of saved files to be used by the index
+					savedFiles.add(fileName);
 
 				} catch (final PermissionException e) {
 					log.error("Could not retrieve some chat messages for channel: " + chatChannel.getTitle(), e);
 					continue;
 				}
 			}
+
+			// If there is more than one saved file, we need an index.html
+			if (savedFiles.size() > 1) {
+				final String indexHtml = getIndexHtml(savedFiles);
+				final String finalIndexHtml = Htmlifier.toHtml(indexHtml,
+						"Index for " + this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalIndexHtml.getBytes(), "index.html",
+						chatChannel.getTitle());
+			}
+
 		}
+	}
+
+	/**
+	 * Construct the chat html string
+	 *
+	 * @param msgs a list of chat messages
+	 * @return chatHtml
+	 */
+	private String getAsHtml(final List<SimpleChatMessage> msgs) {
+		final StringBuilder sb = new StringBuilder();
+
+		for (final SimpleChatMessage msg : msgs) {
+			sb.append("<p>" + msg.getOwner() + "&nbsp;(" + msg.getDate() + "): " + msg.getBody() + "</p>");
+		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Construct the chat index html string
+	 *
+	 * @param savedFiles a list of saved files to be listed as links
+	 * @return indexHtml
+	 */
+	private String getIndexHtml(final List<String> savedFiles) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<p><ol>");
+
+		for (final String fileName : savedFiles) {
+			sb.append("<li><a href=\"./" + fileName + "\">" + fileName + "</a></li>");
+		}
+
+		sb.append("</ol></p>");
+
+		return sb.toString();
 	}
 
 	/**
