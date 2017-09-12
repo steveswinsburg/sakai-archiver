@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AnnouncementsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.announcements";
-	private static final String TOOL_NAME = "Announcements";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -55,6 +54,8 @@ public class AnnouncementsArchiver implements Archiveable {
 
 		try {
 
+			final String toolName = getToolName(siteId);
+
 			// Get the announcements for this site
 			final String channelRef = this.announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
 			final List<Message> announcements = new ArrayList<>();
@@ -67,7 +68,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 				// archive the attachments for this announcement
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
-				archiveAttachments(attachments, announcement, archiveId, siteId, TOOL_NAME);
+				archiveAttachments(attachments, announcement, archiveId, siteId, toolName);
 				if (!attachments.isEmpty()) {
 					finaliseAttachmentsHtml();
 				}
@@ -78,13 +79,18 @@ public class AnnouncementsArchiver implements Archiveable {
 
 				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(),
+				this.archiverService.archiveContent(archiveId, siteId, toolName, fileContents.getBytes(),
 						announcement.getAnnouncementHeader().getSubject() + ".html");
 
 			}
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements", e);
 		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	private String getAsHtml(final AnnouncementMessage announcement) {
@@ -150,4 +156,5 @@ public class AnnouncementsArchiver implements Archiveable {
 
 		this.attachmentsHtml = "<ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul>";
 	}
+
 }

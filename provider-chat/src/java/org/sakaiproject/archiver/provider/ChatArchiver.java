@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.chat";
-	private static final String TOOL_NAME = "Chat";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -56,6 +55,8 @@ public class ChatArchiver implements Archiveable {
 
 		final List<ChatChannel> chatChannels = this.chatManager.getContextChannels(siteId, true);
 
+		final String toolName = getToolName(siteId);
+
 		for (final ChatChannel chatChannel : chatChannels) {
 
 			final int numMessages = this.chatManager.getChannelMessagesCount(chatChannel, null, null);
@@ -79,7 +80,7 @@ public class ChatArchiver implements Archiveable {
 					log.debug("Chat HTML: " + finalChatHtml);
 
 					final String fileName = chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html";
-					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalChatHtml.getBytes(),
+					this.archiverService.archiveContent(archiveId, siteId, toolName, finalChatHtml.getBytes(),
 							fileName, chatChannel.getTitle());
 					// Add to the list of saved files to be used by the index
 					savedFiles.add(fileName);
@@ -95,11 +96,16 @@ public class ChatArchiver implements Archiveable {
 				final String indexHtml = getIndexHtml(savedFiles);
 				final String finalIndexHtml = Htmlifier.toHtml(indexHtml,
 						"Index for " + this.archiverService.getSiteHeader(siteId, TOOL_ID));
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalIndexHtml.getBytes(), "index.html",
+				this.archiverService.archiveContent(archiveId, siteId, toolName, finalIndexHtml.getBytes(), "index.html",
 						chatChannel.getTitle());
 			}
 
 		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**

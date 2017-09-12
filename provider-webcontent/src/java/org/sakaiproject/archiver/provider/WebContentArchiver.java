@@ -54,6 +54,11 @@ public class WebContentArchiver implements Archiveable {
 
 	}
 
+	@Override
+	public String getToolName(final String siteId) {
+		return TOOL_NAME;
+	}
+
 	/**
 	 * Get all {@link ToolConfiguration}s in the site that match the supplied toolIds
 	 *

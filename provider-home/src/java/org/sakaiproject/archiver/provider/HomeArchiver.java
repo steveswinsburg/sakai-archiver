@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class HomeArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.iframe.site";
-	private static final String TOOL_NAME = "Home";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -47,6 +46,8 @@ public class HomeArchiver implements Archiveable {
 	@Setter
 	private ArchiverService archiverService;
 
+	private String toolName;
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
@@ -58,6 +59,8 @@ public class HomeArchiver implements Archiveable {
 			return;
 		}
 
+		this.toolName = getToolName(siteId);
+
 		// get the html for the home frame
 		final String description = site.getHtmlDescription();
 		final String originalHtml = createHtmlFileContents(description);
@@ -66,10 +69,15 @@ public class HomeArchiver implements Archiveable {
 		final String htmlWithLocalImages = archiveImages(originalHtml, archiveId, siteId);
 
 		// add header to html
-		final String finalHtml = Htmlifier.addSiteHeader(htmlWithLocalImages, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+		final String finalHtml = Htmlifier.toHtml(htmlWithLocalImages, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 
 		// archive the home frame html
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalHtml.getBytes(), "index.html");
+		this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalHtml.getBytes(), "index.html");
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**
@@ -110,7 +118,7 @@ public class HomeArchiver implements Archiveable {
 				e.attr("height", "auto");
 
 				// archive the image
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, bytes, filename, "/images");
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, bytes, filename, "/images");
 
 				// change the src for this image in the html
 				e.attr("src", "images/" + filename);
@@ -121,7 +129,7 @@ public class HomeArchiver implements Archiveable {
 			}
 		}
 
-		return Htmlifier.toHtml(doc.body().toString());
+		return doc.body().toString();
 	}
 
 	/**

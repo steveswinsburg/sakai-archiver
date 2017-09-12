@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ForumsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.forums";
-	private static final String TOOL_NAME = "Forums";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -48,17 +47,25 @@ public class ForumsArchiver implements Archiveable {
 	@Setter
 	private ArchiverService archiverService;
 
+	private String toolName;
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<DiscussionForum> forums = this.forumManager.getDiscussionForumsWithTopics(siteId);
 
+		this.toolName = getToolName(siteId);
+
 		for (final DiscussionForum forum : forums) {
 			// Archive the forum, including topics (and messages if includeStudentContent is true)
 			archiveForum(forum, archiveId, siteId, includeStudentContent);
-
 		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**
@@ -114,7 +121,7 @@ public class ForumsArchiver implements Archiveable {
 						// Archive the messages
 						final String messageHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(topLevelMessage),
 								this.archiverService.getSiteHeader(siteId, TOOL_ID));
-						this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, messageHtml.getBytes(),
+						this.archiverService.archiveContent(archiveId, siteId, this.toolName, messageHtml.getBytes(),
 								message.getTitle() + ".html", folderStructure);
 					}
 				}
@@ -128,11 +135,9 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		// final String forumHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleForum),
-		// this.archiverService.getSiteHeader(siteId, TOOL_ID));
 		final String forumHtml = getAsHtml(simpleForum);
 		final String finalForumHtml = Htmlifier.toHtml(forumHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalForumHtml.getBytes(), forum.getTitle() + ".html",
+		this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalForumHtml.getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
 	}
 
@@ -221,7 +226,7 @@ public class ForumsArchiver implements Archiveable {
 		for (final Attachment attachment : attachments) {
 			try {
 				final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getAttachmentId()).getContent();
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, attachmentBytes,
 						attachment.getAttachmentName(), subdir);
 				// update the attachments HTML string, so there is a link to this attachment in the html file
 				addToAttachmentsHtml(subdir, attachment.getAttachmentName(), simpleArchiveItem);

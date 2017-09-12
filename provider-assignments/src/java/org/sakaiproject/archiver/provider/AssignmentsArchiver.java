@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignmentsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.assignment.grades";
-	private static final String TOOL_NAME = "Assignments";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -67,10 +66,14 @@ public class AssignmentsArchiver implements Archiveable {
 
 	private String attachmentsHtml;
 
+	private String toolName;
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
+
+		this.toolName = getToolName(siteId);
 
 		for (final Assignment assignment : assignments) {
 
@@ -86,7 +89,7 @@ public class AssignmentsArchiver implements Archiveable {
 			// archive the assignment data
 			final String detailsHtml = getDetailsAsHtml(assignment);
 			final String finalDetailsHtml = Htmlifier.toHtml(detailsHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalDetailsHtml.getBytes(), "details.html",
+			this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalDetailsHtml.getBytes(), "details.html",
 					assignment.getTitle());
 
 			// if we want student content, archive the submissions for the assignment
@@ -97,6 +100,11 @@ public class AssignmentsArchiver implements Archiveable {
 
 		// archive the grades spreadsheet for the site
 		archiveGradesSpreadsheet(archiveId, siteId);
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**
@@ -156,7 +164,7 @@ public class AssignmentsArchiver implements Archiveable {
 			if (submission.getTimeSubmitted() != null) {
 				final String submissionHtml = getSubmissionAsHtml(submission);
 				final String finalSubmissionHtml = Htmlifier.toHtml(submissionHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalSubmissionHtml.getBytes(), "submission.html",
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalSubmissionHtml.getBytes(), "submission.html",
 						submissionSubdirs);
 			}
 
@@ -233,7 +241,7 @@ public class AssignmentsArchiver implements Archiveable {
 			throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
 		final String attachmentName = attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes, attachmentName, subdir + finalFolder);
+		this.archiverService.archiveContent(archiveId, siteId, this.toolName, attachmentBytes, attachmentName, subdir + finalFolder);
 		addToAttachmentsHtml(finalFolder, attachmentName);
 	}
 
@@ -276,7 +284,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 			gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(spreadsheetReference);
 			if (gradesSpreadsheet != null) {
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, gradesSpreadsheet, "grades.xls");
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, gradesSpreadsheet, "grades.xls");
 			}
 		} catch (IdUnusedException | PermissionException e) {
 			log.error("Error getting grades spreadsheet for site {} ", siteId);

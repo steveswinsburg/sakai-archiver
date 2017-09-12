@@ -100,4 +100,15 @@ public interface ArchiverService {
 	 */
 	String getSiteHeader(String siteId, String toolId);
 
+	/**
+	 * Convenience method to get the name of a tool in a given site. This comes from the page name that the tool is on. If that fails, the
+	 * toolName, if that fails, the toolId.
+	 *
+	 * @param siteId the siteId to lookup the tool in
+	 * @param toolId the toolId we are looking for. Note that multiple placements of the same tool in a site will just give the name of the
+	 *            first tool found. This could be enhanced in future.
+	 * @return the name of the tool or null if every possibility failed
+	 */
+	String getToolName(String siteId, String toolId);
+
 }

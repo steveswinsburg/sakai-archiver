@@ -39,7 +39,9 @@ import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SitePage;
 import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.Tool;
@@ -392,7 +394,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	/**
 	 * Inject user into the session so that Sakai permission checks will be happy
 	 *
-	 * @param user hte user to inject into the session
+	 * @param user the user to inject into the session
 	 *
 	 * @throws ArchiveInitialisationException if the archive could not
 	 */
@@ -424,9 +426,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 
 		final Site site = getSite(siteId);
 		final String siteTitle = getSiteTitle(siteId);
-
-		final Tool t = this.toolManager.getTool(toolId);
-		final String toolName = (t != null) ? t.getTitle() : toolId;
+		final String toolName = getToolName(siteId, toolId);
 
 		final ResourceProperties props = site.getProperties();
 		final String term = (String) props.get(Site.PROP_SITE_TERM);
@@ -436,6 +436,28 @@ public class ArchiverServiceImpl implements ArchiverService {
 			return String.format("%s: %s", siteTitle, toolName);
 		}
 
+	}
+
+	@Override
+	public String getToolName(final String siteId, final String toolId) {
+		final Site site = getSite(siteId);
+
+		String name = null;
+
+		// find the page and grab the toolname from that.
+		for (final SitePage page : site.getPages()) {
+			for (final ToolConfiguration toolConfig : page.getTools()) {
+				if (StringUtils.equals(toolId, toolConfig.getToolId())) {
+					name = page.getTitle();
+				}
+			}
+		}
+		// try the tool name or fall back to toolId
+		if (StringUtils.isBlank(name)) {
+			final Tool t = this.toolManager.getTool(toolId);
+			name = (t != null) ? t.getTitle() : toolId;
+		}
+		return name;
 	}
 
 	/**

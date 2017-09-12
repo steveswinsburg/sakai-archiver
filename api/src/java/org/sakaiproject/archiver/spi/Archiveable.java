@@ -24,4 +24,12 @@ public interface Archiveable {
 	 */
 	void archive(String archiveId, String siteId, boolean includeStudentContent);
 
+	/**
+	 * Allows the tool to provide a default tool name or look it up from the archiver service for the given site
+	 *
+	 * @param siteId the id of the site that is being archived
+	 * @return the name of the tool
+	 */
+	String getToolName(String siteId);
+
 }

@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PostemArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.postem";
-	private static final String TOOL_NAME = "PostEm";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -60,16 +59,23 @@ public class PostemArchiver implements Archiveable {
 		final List<Gradebook> gradebooks = new ArrayList<>(
 				this.postemGradebookManager.getGradebooksByContext(siteId, Gradebook.SORT_BY_TITLE, true));
 
+		final String toolName = getToolName(siteId);
+
 		gradebooks.forEach(gradebook -> {
 			final byte[] fileContents = getFileContents(gradebook);
 			final String filename = getFileName(gradebook);
 
 			if (ArrayUtils.isNotEmpty(fileContents)) {
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents, filename);
+				this.archiverService.archiveContent(archiveId, siteId, toolName, fileContents, filename);
 			}
 
 		});
 
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**
