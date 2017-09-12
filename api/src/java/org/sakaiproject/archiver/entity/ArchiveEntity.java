@@ -15,6 +15,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Index;
 import org.sakaiproject.archiver.api.Status;
 
 import lombok.Getter;
@@ -45,6 +46,7 @@ public class ArchiveEntity implements Serializable {
 	@Getter
 	@Setter
 	@Column(name = "site_id", length = 50, nullable = false)
+	@Index(name = "site_id_idx")
 	private String siteId;
 
 	@Getter
