@@ -53,8 +53,12 @@ public class NewsArchiver implements Archiveable {
 		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
 		tools.forEach(t -> {
 			final String filename = t.getTitle();
-			final String fileContents = Htmlifier.toHtml(createNewsFileContents(t), this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			this.archiverService.archiveContent(archiveId, siteId, toolName, fileContents.getBytes(), filename + ".html");
+
+			final String htmlBody = getAsHtml(getNewsData(t));
+			final String html = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			log.debug("news html: " + html);
+			this.archiverService.archiveContent(archiveId, siteId, toolName, html.getBytes(), filename + ".html");
+
 		});
 
 	}
@@ -85,12 +89,12 @@ public class NewsArchiver implements Archiveable {
 	}
 
 	/**
-	 * Create the content of the file
+	 * Create the data for the file
 	 *
 	 * @param tool the {@link ToolConfiguration} to extract the data from
 	 * @return
 	 */
-	private String createNewsFileContents(final ToolConfiguration tool) {
+	private NewsData getNewsData(final ToolConfiguration tool) {
 		final String url = decode(tool.getPlacementConfig().getProperty("javax.portlet-feed_url"));
 		final String title = decode(tool.getPlacementConfig().getProperty("javax.portlet-portlet_title"));
 		final String maxItems = tool.getPlacementConfig().getProperty("javax.portlet-max_items");
@@ -100,7 +104,7 @@ public class NewsArchiver implements Archiveable {
 		newsData.setTitle(title);
 		newsData.setMaxItems(maxItems);
 
-		return Htmlifier.toHtml(newsData);
+		return newsData;
 	}
 
 	/**
@@ -121,6 +125,23 @@ public class NewsArchiver implements Archiveable {
 			log.debug("Could not decode {}. Returning original.", string);
 		}
 		return string;
+	}
+
+	/**
+	 * Get HTML representation
+	 *
+	 * @param data
+	 * @return
+	 */
+	private String getAsHtml(final NewsData data) {
+		final StringBuilder sb = new StringBuilder();
+
+		if (StringUtils.isNotBlank(data.getTitle())) {
+			sb.append("<h2>" + data.getTitle() + "</h2>");
+		}
+		sb.append("<p><a href=\"" + data.getUrl() + "\">" + data.getUrl() + "</a></p>");
+
+		return sb.toString();
 	}
 
 	/**
