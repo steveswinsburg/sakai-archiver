@@ -2,6 +2,7 @@ package org.sakaiproject.archiver.util;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -75,10 +76,28 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 *
 	 * @param htmlBody
 	 * @return
+	 *
+	 * @deprecated see toHtml(String,String) instead
 	 */
+	@Deprecated
 	public static String toHtml(final String htmlBody) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(getHtmlStart());
+		sb.append(htmlBody);
+		sb.append(getHtmlEnd());
+		return sb.toString();
+	}
+
+	/**
+	 * Create a full HTML document given the body and page title
+	 *
+	 * @param htmlBody
+	 * @param title
+	 * @return
+	 */
+	public static String toHtml(final String htmlBody, final String title) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(getHtmlStart(title));
 		sb.append(htmlBody);
 		sb.append(getHtmlEnd());
 		return sb.toString();
@@ -90,7 +109,10 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 * @param html
 	 * @param heading
 	 * @return
+	 *
+	 * @deprecated see toHtml(String,String) instead
 	 */
+	@Deprecated
 	public static String addSiteHeader(final String html, final String heading) {
 		final Document doc = Jsoup.parse(html);
 		final Elements divs = doc.select("div");
@@ -104,6 +126,15 @@ public class Htmlifier extends RecursiveToStringStyle {
 	 * @return
 	 */
 	private static String getHtmlStart() {
+		return getHtmlStart(null);
+	}
+
+	/**
+	 * Gets the HTML to startup the HTML document. Uses bootstrap for a bit of bling.
+	 *
+	 * @return
+	 */
+	private static String getHtmlStart(final String heading) {
 
 		final StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html>");
@@ -119,6 +150,9 @@ public class Htmlifier extends RecursiveToStringStyle {
 		sb.append("</head>");
 		sb.append("<body>");
 		sb.append("<div class=\"container\">");
+		if (StringUtils.isNotBlank(heading)) {
+			sb.append("<h1>" + heading + "</h1>");
+		}
 		return sb.toString();
 	}
 
