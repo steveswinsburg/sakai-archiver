@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SyllabusArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.syllabus";
-	private static final String TOOL_NAME = "Syllabus";
 
 	@Setter
 	private ContentHostingService contentHostingService;
@@ -57,6 +56,8 @@ public class SyllabusArchiver implements Archiveable {
 			return;
 		}
 
+		final String toolName = getToolName(siteId);
+
 		// Get the data
 		final Set<SyllabusData> syllabusSet = this.syllabusManager.getSyllabiForSyllabusItem(siteSyllabus);
 
@@ -72,7 +73,7 @@ public class SyllabusArchiver implements Archiveable {
 				byte[] syllabusAttachmentBytes;
 				try {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
-					this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, syllabusAttachmentBytes, syllabusAttachment.getName(),
+					this.archiverService.archiveContent(archiveId, siteId, toolName, syllabusAttachmentBytes, syllabusAttachment.getName(),
 							syllabus.getTitle() + " (attachments)");
 					addToAttachmentsHtml(syllabus.getTitle() + " (attachments)/", syllabusAttachment.getName(), simpleSyllabus);
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
@@ -87,10 +88,15 @@ public class SyllabusArchiver implements Archiveable {
 
 			// archive the syllabus as a html file
 			final String htmlBody = getAsHtml(simpleSyllabus);
-			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(htmlBody), this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			final String html = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("Archive item metadata: " + html);
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), simpleSyllabus.getTitle() + ".html");
+			this.archiverService.archiveContent(archiveId, siteId, toolName, html.getBytes(), simpleSyllabus.getTitle() + ".html");
 		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**

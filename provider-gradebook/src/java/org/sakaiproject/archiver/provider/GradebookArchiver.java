@@ -122,6 +122,12 @@ public class GradebookArchiver implements Archiveable {
 
 	}
 
+	@Override
+	public String getToolName(final String siteId) {
+		// multiple tools here, use the hardcoded version. Could be swapped for just one of the toolIds...
+		return TOOL_NAME;
+	}
+
 	/**
 	 * Add course grades to the matrix
 	 *

@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 public class TestsAndQuizzesArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.samigo.tool";
-	private static final String TOOL_NAME = "Tests and Quizzes";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -41,6 +40,11 @@ public class TestsAndQuizzesArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 }
