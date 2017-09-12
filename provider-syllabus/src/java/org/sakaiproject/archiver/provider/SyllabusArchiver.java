@@ -86,7 +86,7 @@ public class SyllabusArchiver implements Archiveable {
 			}
 
 			// archive the syllabus as a html file
-			final String htmlBody = getAsHtml(syllabus.getAsset());
+			final String htmlBody = getAsHtml(simpleSyllabus);
 			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(htmlBody), this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("Archive item metadata: " + html);
 			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), simpleSyllabus.getTitle() + ".html");
@@ -121,14 +121,22 @@ public class SyllabusArchiver implements Archiveable {
 	}
 
 	/**
-	 * Surround the syllabus body string with html paragraph tags
+	 * Construct the syllabus html string
 	 *
-	 * @param syllabusBody
+	 * @param simpleSyllabus
 	 * @return syllabusBodyHtml
 	 */
-	private String getAsHtml(final String syllabusBody) {
+	private String getAsHtml(final SimpleSyllabus simpleSyllabus) {
 
-		return "<p>" + syllabusBody + "</p>";
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<p>" + simpleSyllabus.getBody() + "</p>");
+
+		if (simpleSyllabus.getAttachments().length() > 0) {
+			sb.append("<p>" + simpleSyllabus.getAttachments() + "</p>");
+		}
+
+		return sb.toString();
 	}
 
 	/**
