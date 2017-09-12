@@ -1,8 +1,8 @@
 package org.sakaiproject.archiver.provider;
 
 import org.sakaiproject.api.app.messageforums.DiscussionTopic;
-import org.sakaiproject.archiver.util.Dateifier;
 
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -12,21 +12,20 @@ import lombok.Setter;
 public class SimpleTopic extends SimpleArchiveItem {
 
 	@Setter
-	private Long topicId;
-
-	@Setter
+	@Getter
 	private String title;
 
 	@Setter
-	private String createdDate;
+	@Getter
+	private String shortDescription;
 
 	@Setter
-	private String creator;
+	@Getter
+	private String extendedDescription;
 
 	public SimpleTopic(final DiscussionTopic topic) {
-		this.topicId = topic.getId();
 		this.title = topic.getTitle();
-		this.createdDate = Dateifier.toIso8601(topic.getCreated());
-		this.creator = topic.getCreatedBy();
+		this.shortDescription = topic.getShortDescription();
+		this.extendedDescription = topic.getExtendedDescription();
 	}
 }

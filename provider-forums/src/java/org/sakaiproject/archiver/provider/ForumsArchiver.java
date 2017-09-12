@@ -128,10 +128,31 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		final String forumHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleForum),
-				this.archiverService.getSiteHeader(siteId, TOOL_ID));
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, forumHtml.getBytes(), forum.getTitle() + ".html",
+		// final String forumHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleForum),
+		// this.archiverService.getSiteHeader(siteId, TOOL_ID));
+		final String forumHtml = getAsHtml(simpleForum);
+		final String finalForumHtml = Htmlifier.toHtml(forumHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, finalForumHtml.getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
+	}
+
+	private String getAsHtml(final SimpleForum simpleForum) {
+
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<h2>Forum: " + simpleForum.getTitle() + "</h2>");
+		sb.append("<p>Short Description: " + simpleForum.getShortDescription() + "</p>");
+		sb.append("<p>Full Description: " + simpleForum.getExtendedDescription() + "</p>");
+		sb.append("<p>" + simpleForum.getAttachments() + "</p>");
+
+		for (final SimpleTopic topic : simpleForum.getTopics()) {
+			sb.append("<h3>Topic: " + topic.getTitle() + "</h3>");
+			sb.append("<p>Short Description: " + topic.getShortDescription() + "</p>");
+			sb.append("<p>Full Description: " + topic.getExtendedDescription() + "</p>");
+			sb.append("<p>" + topic.getAttachments() + "</p>");
+		}
+
+		return sb.toString();
 	}
 
 	/**

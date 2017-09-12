@@ -3,8 +3,8 @@ package org.sakaiproject.archiver.provider;
 import java.util.List;
 
 import org.sakaiproject.api.app.messageforums.DiscussionForum;
-import org.sakaiproject.archiver.util.Dateifier;
 
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -13,28 +13,24 @@ import lombok.Setter;
 public class SimpleForum extends SimpleArchiveItem {
 
 	@Setter
+	@Getter
 	private String title;
 
 	@Setter
+	@Getter
 	private String extendedDescription;
 
 	@Setter
+	@Getter
 	private String shortDescription;
 
 	@Setter
-	private String createdDate;
-
-	@Setter
-	private String createdBy;
-
-	@Setter
+	@Getter
 	private List<SimpleTopic> topics;
 
 	public SimpleForum(final DiscussionForum forum) {
 		this.title = forum.getTitle();
 		this.extendedDescription = forum.getExtendedDescription();
 		this.shortDescription = forum.getShortDescription();
-		this.createdDate = Dateifier.toIso8601(forum.getCreated());
-		this.createdBy = forum.getCreatedBy();
 	}
 }
