@@ -21,6 +21,7 @@ import org.sakaiproject.archiver.app.model.ArchiveSite;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
@@ -287,6 +288,17 @@ public class ArchiverBusinessService {
 		} catch (final IdUnusedException e) {
 			return siteId;
 		}
+	}
+
+	/**
+	 * Cancel an archive
+	 * 
+	 * @param archiveId the id of the archive to cancel
+	 *
+	 * @throws {@link ArchiveCancellationException} if the archive could not be cancelled
+	 */
+	public void cancelArchive(final String archiveId) throws ArchiveCancellationException {
+		this.archiverService.cancelArchive(archiveId);
 	}
 
 	/**

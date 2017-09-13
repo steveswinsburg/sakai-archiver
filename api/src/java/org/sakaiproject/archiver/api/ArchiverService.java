@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
@@ -110,5 +111,13 @@ public interface ArchiverService {
 	 * @return the name of the tool or null if every possibility failed
 	 */
 	String getToolName(String siteId, String toolId);
+
+	/**
+	 * Cancel an archive.
+	 *
+	 * @param archiveId the id of the archive to cancel
+	 * @throws {@link ArchiveCancellationException} if the archive could not be cancelled
+	 */
+	void cancelArchive(final String archiveId) throws ArchiveCancellationException;
 
 }

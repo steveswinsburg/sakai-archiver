@@ -23,6 +23,7 @@ import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.entity.ArchiveEntity;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
@@ -458,6 +459,20 @@ public class ArchiverServiceImpl implements ArchiverService {
 			name = (t != null) ? t.getTitle() : toolId;
 		}
 		return name;
+	}
+
+	@Override
+	public void cancelArchive(final String archiveId) throws ArchiveCancellationException {
+		final ArchiveEntity entity = this.dao.getByArchiveId(archiveId);
+		if (entity.getStatus() != Status.STARTED) {
+			throw new ArchiveCancellationException("Archive could not be cancelled as it is not in the STARTED state.");
+		}
+		entity.setStatus(Status.CANCELLED);
+		entity.setEndDate(new Date());
+		this.dao.update(entity);
+
+		// note that this does not cleanup any files that were produced nor kill the thread if it is still running. This was out of scope
+		// but would be good to do right here.
 	}
 
 	/**
