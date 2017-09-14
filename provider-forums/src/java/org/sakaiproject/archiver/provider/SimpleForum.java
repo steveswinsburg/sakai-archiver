@@ -3,8 +3,8 @@ package org.sakaiproject.archiver.provider;
 import java.util.List;
 
 import org.sakaiproject.api.app.messageforums.DiscussionForum;
-import org.sakaiproject.archiver.util.Dateifier;
 
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -13,68 +13,24 @@ import lombok.Setter;
 public class SimpleForum extends SimpleArchiveItem {
 
 	@Setter
+	@Getter
 	private String title;
 
 	@Setter
+	@Getter
 	private String extendedDescription;
 
 	@Setter
+	@Getter
 	private String shortDescription;
 
 	@Setter
-	private Boolean isLocked;
-
-	@Setter
-	private Boolean isModerated;
-
-	@Setter
-	private Boolean isPostFirst;
-
-	@Setter
-	private String createdDate;
-
-	@Setter
-	private String createdBy;
-
-	@Setter
-	private String openDate;
-
-	@Setter
-	private String closeDate;
-
-	@Setter
-	private String assocGradebookItemName;
-
-	@Setter
-	private Boolean isDraft;
-
-	@Setter
-	private String modifiedDate;
-
-	@Setter
-	private String modifiedBy;
-
-	@Setter
+	@Getter
 	private List<SimpleTopic> topics;
 
 	public SimpleForum(final DiscussionForum forum) {
 		this.title = forum.getTitle();
 		this.extendedDescription = forum.getExtendedDescription();
 		this.shortDescription = forum.getShortDescription();
-		this.isLocked = forum.getLocked();
-		this.isModerated = forum.getModerated();
-		this.isPostFirst = forum.getPostFirst();
-		this.createdDate = Dateifier.toIso8601(forum.getCreated());
-		this.createdBy = forum.getCreatedBy();
-		this.assocGradebookItemName = forum.getDefaultAssignName();
-		this.isDraft = forum.getDraft();
-		this.modifiedDate = Dateifier.toIso8601(forum.getModified());
-		this.modifiedBy = forum.getModifiedBy();
-
-		// if availability is restricted, get open and close dates
-		if (forum.getAvailabilityRestricted()) {
-			this.openDate = Dateifier.toIso8601(forum.getOpenDate());
-			this.closeDate = Dateifier.toIso8601(forum.getCloseDate());
-		}
 	}
 }

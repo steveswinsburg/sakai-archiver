@@ -6,19 +6,24 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.DownloadLink;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.PageableListView;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.sakaiproject.archiver.api.Status;
 import org.sakaiproject.archiver.app.business.ArchiverBusinessService;
+import org.sakaiproject.archiver.app.components.RichFeedbackPanel;
 import org.sakaiproject.archiver.dto.Archive;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
 import org.sakaiproject.archiver.exception.ZipNotFoundException;
 import org.sakaiproject.archiver.util.Dateifier;
@@ -39,6 +44,8 @@ public class ShowArchives extends Panel {
 
 	@SpringBean(name = "org.sakaiproject.archiver.app.business.ArchiverBusinessService")
 	private transient ArchiverBusinessService businessService;
+
+	List<Archive> archives;
 
 	/**
 	 * Show archives for current site
@@ -85,8 +92,9 @@ public class ShowArchives extends Panel {
 		log.debug("Archives for: " + this.siteId);
 
 		// get list of archives
-		final List<Archive> archives = this.businessService.getArchives(this.siteId, this.max);
-		log.debug("Count: " + archives.size());
+		getArchives();
+
+		log.debug("Count: " + this.archives.size());
 
 		// wrap the table
 		final WebMarkupContainer table = new WebMarkupContainer("archiveHistoryTable") {
@@ -94,9 +102,10 @@ public class ShowArchives extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !archives.isEmpty();
+				return !ShowArchives.this.archives.isEmpty();
 			}
 		};
+		table.setOutputMarkupId(true);
 		add(table);
 
 		// this header is only shown if showSite is true
@@ -109,12 +118,21 @@ public class ShowArchives extends Panel {
 			}
 		});
 
-		// archive data view
-		final PageableListView<Archive> listView = new PageableListView<Archive>("archiveHistoryView", archives, 10) {
+		// archive data view, wrapped and getData overriden so it can use whatever data we have
+		final ListDataProvider<Archive> listDataProvider = new ListDataProvider<Archive>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(final ListItem<Archive> item) {
+			protected List<Archive> getData() {
+				return ShowArchives.this.archives;
+			}
+		};
+
+		final DataView<Archive> view = new DataView<Archive>("archiveHistoryView", listDataProvider) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(final Item<Archive> item) {
 				final Archive archive = item.getModelObject();
 
 				log.debug(archive.toString());
@@ -130,7 +148,35 @@ public class ShowArchives extends Panel {
 				});
 
 				item.add(new Label("dateCompleted", Dateifier.toIso8601(archive.getEndDate())));
-				item.add(new Label("status", archive.getStatus().toString()));
+
+				final WebMarkupContainer status = new WebMarkupContainer("status");
+				status.add(new Label("statusText", archive.getStatus().toString()));
+				status.add(new AjaxLink<Void>("cancelLink") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(final AjaxRequestTarget target) {
+						try {
+							ShowArchives.this.businessService.cancelArchive(archive.getArchiveId());
+							getArchives();
+						} catch (final ArchiveCancellationException e) {
+							error(getString("archive.error.cancel"));
+							target.addChildren(getPage(), RichFeedbackPanel.class);
+						}
+						target.add(table);
+
+					}
+
+					@Override
+					public boolean isVisible() {
+						return (archive.getStatus() == Status.STARTED);
+					}
+
+				});
+				status.setOutputMarkupId(true);
+				item.add(status);
+
 				item.add(new Label("creator", ShowArchives.this.businessService.getUserDisplayName(archive.getUserUuid())));
 
 				// download link
@@ -152,9 +198,9 @@ public class ShowArchives extends Panel {
 			}
 
 		};
-		listView.setReuseItems(true);
-		table.add(new PagingNavigator("navigator", listView));
-		table.add(listView);
+		view.setItemsPerPage(10);
+		table.add(new PagingNavigator("navigator", view));
+		table.add(view);
 
 		// no archives message
 		add(new WebMarkupContainer("noArchives") {
@@ -162,7 +208,7 @@ public class ShowArchives extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return archives.isEmpty();
+				return ShowArchives.this.archives.isEmpty();
 			}
 		});
 	}
@@ -205,6 +251,15 @@ public class ShowArchives extends Panel {
 			return FilenameUtils.getName(archive.getZipPath());
 		}
 		return null;
+	}
+
+	/**
+	 * Convenience method to get the list of archives
+	 *
+	 * @return
+	 */
+	private void getArchives() {
+		this.archives = this.businessService.getArchives(this.siteId, this.max);
 	}
 
 }

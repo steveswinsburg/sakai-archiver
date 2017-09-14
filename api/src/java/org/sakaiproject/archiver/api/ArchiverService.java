@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
@@ -99,5 +100,24 @@ public interface ArchiverService {
 	 * @return the formatted string
 	 */
 	String getSiteHeader(String siteId, String toolId);
+
+	/**
+	 * Convenience method to get the name of a tool in a given site. This comes from the page name that the tool is on. If that fails, the
+	 * toolName, if that fails, the toolId.
+	 *
+	 * @param siteId the siteId to lookup the tool in
+	 * @param toolId the toolId we are looking for. Note that multiple placements of the same tool in a site will just give the name of the
+	 *            first tool found. This could be enhanced in future.
+	 * @return the name of the tool or null if every possibility failed
+	 */
+	String getToolName(String siteId, String toolId);
+
+	/**
+	 * Cancel an archive.
+	 *
+	 * @param archiveId the id of the archive to cancel
+	 * @throws {@link ArchiveCancellationException} if the archive could not be cancelled
+	 */
+	void cancelArchive(final String archiveId) throws ArchiveCancellationException;
 
 }

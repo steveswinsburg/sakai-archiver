@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Roster2Archiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.site.roster2";
-	private static final String TOOL_NAME = "Roster";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -44,10 +43,16 @@ public class Roster2Archiver implements Archiveable {
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 		final byte[] rosterExport = getRosterExport(siteId);
 
-		if (ArrayUtils.isNotEmpty(rosterExport)) {
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, rosterExport, "roster-export.xlsx");
-		}
+		final String toolName = getToolName(siteId);
 
+		if (ArrayUtils.isNotEmpty(rosterExport)) {
+			this.archiverService.archiveContent(archiveId, siteId, toolName, rosterExport, "roster-export.xlsx");
+		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	private byte[] getRosterExport(final String siteId) {

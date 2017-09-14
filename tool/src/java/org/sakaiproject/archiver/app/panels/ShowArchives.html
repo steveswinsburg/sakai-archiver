@@ -19,7 +19,10 @@
 				<tbody>
 					<tr wicket:id="archiveHistoryView">
 						<td wicket:id="site"></td>
-						<td wicket:id="status"></td>
+						<td wicket:id="status">
+							<span wicket:id="statusText"></span>
+							<a href="#" wicket:id="cancelLink"><wicket:message key="link.history.cancel" /></a>
+						</td>
 						<td wicket:id="dateCompleted"></td>
 						<td wicket:id="creator"></td>
 						<td><a href="#" wicket:id="downloadLink"><wicket:message key="link.history.download" /></a></td>

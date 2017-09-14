@@ -1,8 +1,11 @@
 package org.sakaiproject.archiver.provider;
 
-import org.sakaiproject.api.app.messageforums.DiscussionTopic;
-import org.sakaiproject.archiver.util.Dateifier;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.sakaiproject.api.app.messageforums.DiscussionTopic;
+
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -12,16 +15,20 @@ import lombok.Setter;
 public class SimpleTopic extends SimpleArchiveItem {
 
 	@Setter
-	private Long topicId;
-
-	@Setter
+	@Getter
 	private String title;
 
 	@Setter
-	private String createdDate;
+	@Getter
+	private String shortDescription;
 
 	@Setter
-	private String creator;
+	@Getter
+	private String extendedDescription;
+
+	@Setter
+	@Getter
+	private List<String> conversationLinks = new ArrayList<>();
 
 	@Setter
 	private String modifiedDate;
@@ -45,20 +52,8 @@ public class SimpleTopic extends SimpleArchiveItem {
 	private String closeDate;
 
 	public SimpleTopic(final DiscussionTopic topic) {
-		this.topicId = topic.getId();
 		this.title = topic.getTitle();
-		this.createdDate = Dateifier.toIso8601(topic.getCreated());
-		this.creator = topic.getCreatedBy();
-		this.modifiedDate = Dateifier.toIso8601(topic.getModified());
-		this.modifier = topic.getModifiedBy();
-		this.isLocked = topic.getLocked();
-		this.isPostFirst = topic.getPostFirst();
-		this.assocGradebookItemName = topic.getDefaultAssignName();
-
-		// if availability is restricted, get open and close dates
-		if (topic.getAvailabilityRestricted()) {
-			this.openDate = Dateifier.toIso8601(topic.getOpenDate());
-			this.closeDate = Dateifier.toIso8601(topic.getCloseDate());
-		}
+		this.shortDescription = topic.getShortDescription();
+		this.extendedDescription = topic.getExtendedDescription();
 	}
 }

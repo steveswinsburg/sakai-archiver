@@ -1,6 +1,5 @@
 package org.sakaiproject.archiver.provider;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.sakaiproject.archiver.api.ArchiverRegistry;
@@ -10,9 +9,6 @@ import org.sakaiproject.archiver.util.Htmlifier;
 import org.sakaiproject.assignment.api.Assignment;
 import org.sakaiproject.assignment.api.AssignmentService;
 import org.sakaiproject.assignment.api.AssignmentSubmission;
-import org.sakaiproject.assignment.api.model.AssignmentAllPurposeItem;
-import org.sakaiproject.assignment.api.model.AssignmentModelAnswerItem;
-import org.sakaiproject.assignment.api.model.AssignmentNoteItem;
 import org.sakaiproject.assignment.api.model.AssignmentSupplementItemService;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.entity.api.Entity;
@@ -38,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignmentsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.assignment.grades";
-	private static final String TOOL_NAME = "Assignments";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -69,22 +64,33 @@ public class AssignmentsArchiver implements Archiveable {
 	@Setter
 	private AssignmentSupplementItemService assignmentSupplementItemService;
 
+	private String attachmentsHtml;
+
+	private String toolName;
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		final List<Assignment> assignments = this.assignmentService.getListAssignmentsForContext(siteId);
 
+		this.toolName = getToolName(siteId);
+
 		for (final Assignment assignment : assignments) {
 
-			// archive the assignment data
-			final SimpleAssignment simpleAssignment = new SimpleAssignment(assignment);
-			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAssignment),
-					this.archiverService.getSiteHeader(siteId, TOOL_ID));
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "details.html", assignment.getTitle());
+			// clear the atttachmentsHtml string in case it contains attachments from a previous assignment
+			this.attachmentsHtml = "";
 
 			// archive the attachments for the assignment
-			final String attachmentDir = assignment.getTitle() + "/attachments";
-			archiveAttachments(assignment.getContent().getAttachments(), attachmentDir, archiveId, siteId);
+			archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId, siteId, "/attachments");
+			if (!assignment.getContent().getAttachments().isEmpty()) {
+				finaliseAttachmentsHtml();
+			}
+
+			// archive the assignment data
+			final String detailsHtml = getDetailsAsHtml(assignment);
+			final String finalDetailsHtml = Htmlifier.toHtml(detailsHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalDetailsHtml.getBytes(), "details.html",
+					assignment.getTitle());
 
 			// if we want student content, archive the submissions for the assignment
 			if (includeStudentContent) {
@@ -96,59 +102,108 @@ public class AssignmentsArchiver implements Archiveable {
 		archiveGradesSpreadsheet(archiveId, siteId);
 	}
 
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
+	}
+
 	/**
-	 * Get the submissions for an assignment, and any feedback from the instructor, and archive them
+	 * Construct the details html string
+	 *
+	 * @param assignment
+	 * @return
+	 */
+	private String getDetailsAsHtml(final Assignment assignment) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<h2>" + assignment.getTitle() + "</h2>");
+
+		if (assignment.getContent() != null) {
+			sb.append("<p>" + assignment.getContent().getInstructions() + "</p>");
+		}
+
+		sb.append("<p>Due at: " + assignment.getDueTimeString() + "</p>");
+
+		if (assignment.getContent() != null) {
+			sb.append("<p>Maximum score: " + assignment.getContent().getMaxGradePointDisplay() + " "
+					+ assignment.getContent().getTypeOfGradeString(assignment.getContent().getTypeOfGrade()) + "</p>");
+			//not supported in 10.4:
+			//sb.append("<p>Submission type: " + assignment.getContent().getTypeOfSubmissionString() + "</p>");
+		}
+
+		sb.append("<p>Attachment(s): " + this.attachmentsHtml + "</p>");
+
+		return sb.toString();
+	}
+
+	/**
+	 * Get the submissions for an assignment, and any feedback from the instructor, and archive it
 	 *
 	 * @param assignment
 	 * @param archiveId
 	 * @param siteId
 	 */
 	@SuppressWarnings("unchecked")
+
 	private void archiveSubmissions(final Assignment assignment, final String archiveId, final String siteId) {
 		final List<AssignmentSubmission> submissions = this.assignmentService.getSubmissions(assignment);
 
 		for (final AssignmentSubmission submission : submissions) {
 
-			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "submission");
+			// clear the atttachmentsHtml string
+			this.attachmentsHtml = "";
+
+			final String submissionSubdirs = getSubDirs(assignment, submission.getSubmitterId());
 
 			// archive the attachments for this submission
-			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId);
+			archiveAttachments(submission.getSubmittedAttachments(), submissionSubdirs, archiveId, siteId, "/submission");
+			if (!submission.getSubmittedAttachments().isEmpty()) {
+				finaliseAttachmentsHtml();
+			}
 
 			// get other data associated with this submission
 			if (submission.getTimeSubmitted() != null) {
-				final SimpleSubmission submissionData = new SimpleSubmission(submission, assignment.isGroup());
-				final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(submissionData),
-						this.archiverService.getSiteHeader(siteId, TOOL_ID));
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "submission.html", submissionSubdirs);
+				final String submissionHtml = getSubmissionAsHtml(submission);
+				final String finalSubmissionHtml = Htmlifier.toHtml(submissionHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalSubmissionHtml.getBytes(), "submission.html",
+						submissionSubdirs);
 			}
 
-			// get the feedback, if this submission has been graded
-			if (submission.getGraded()) {
-				archiveFeedback(submission, assignment, archiveId, siteId);
+			// archive the feedback attachments, if there are any
+			if (submission.getGraded() && !submission.getFeedbackAttachments().isEmpty()) {
+				this.attachmentsHtml = "";
+				archiveAttachments(submission.getFeedbackAttachments(), submissionSubdirs, archiveId, siteId, "/feedback");
+				finaliseAttachmentsHtml();
 			}
 		}
 	}
 
 	/**
-	 * Helper method to archive feedback for a submission
+	 * Construct the submission html string
 	 *
 	 * @param submission
-	 * @param assignment
-	 * @param archiveId
-	 * @param siteId
+	 * @return submissionHtml
 	 */
-	@SuppressWarnings("unchecked")
-	private void archiveFeedback(final AssignmentSubmission submission, final Assignment assignment, final String archiveId,
-			final String siteId) {
+	private String getSubmissionAsHtml(final AssignmentSubmission submission) {
 
-		// archive the attachments provided by the instructor when grading the submission
-		final String feedbackSubdirs = getSubDirs(assignment, submission.getSubmitterId(), "feedback");
-		archiveAttachments(submission.getFeedbackAttachments(), feedbackSubdirs, archiveId, siteId);
+		final StringBuilder sb = new StringBuilder();
 
-		// archive other data associated with this feedback
-		final SimpleFeedback feedback = new SimpleFeedback(submission);
-		final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(feedback), this.archiverService.getSiteHeader(siteId, TOOL_ID));
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "feedback.html", feedbackSubdirs);
+		sb.append("<h2>" + submission.getAssignment().getTitle() + "</h2>");
+
+		final User user = getUser(submission.getSubmitterId());
+		if (user != null) {
+			sb.append("<p>" + user.getEid() + "</p>");
+		}
+
+		sb.append("<p>" + submission.getTimeSubmittedString() + "</p>");
+		sb.append("<p>" + submission.getSubmittedText() + "</p>");
+		sb.append("<p>" + this.attachmentsHtml + "</p>");
+
+		if (submission.getGraded()) {
+			sb.append("<p>Instructor Feedback: " + submission.getFeedbackComment() + "</p>");
+		}
+
+		return sb.toString();
 	}
 
 	/**
@@ -159,10 +214,11 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @param archiveId
 	 * @param siteId
 	 */
-	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId) {
+	private void archiveAttachments(final List<Reference> attachments, final String subdirs, final String archiveId, final String siteId,
+			final String finalFolder) {
 		for (final Reference attachment : attachments) {
 			try {
-				archiveAttachment(attachment, archiveId, siteId, subdirs);
+				archiveAttachment(attachment, archiveId, siteId, subdirs, finalFolder);
 			} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 				log.error("Error getting attachment: " + attachment.getId());
 			}
@@ -181,11 +237,34 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @throws IdUnusedException
 	 * @throws TypeException
 	 */
-	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir)
+	private void archiveAttachment(final Reference attachment, final String archiveId, final String siteId, final String subdir,
+			final String finalFolder)
 			throws ServerOverloadException, PermissionException, IdUnusedException, TypeException {
 		final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getId()).getContent();
-		this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, attachmentBytes,
-				attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()), subdir);
+		final String attachmentName = attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
+		this.archiverService.archiveContent(archiveId, siteId, this.toolName, attachmentBytes, attachmentName, subdir + finalFolder);
+		addToAttachmentsHtml(finalFolder, attachmentName);
+	}
+
+	/**
+	 * Set the html string that contains a list of attachment hyperlinks
+	 *
+	 * @param attachmentLocation
+	 * @param attachmentName
+	 */
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName) {
+
+		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + "/" + attachmentName + "\">" + attachmentName
+				+ "</a></li>";
+		this.attachmentsHtml += attachmentHyperlink;
+	}
+
+	/**
+	 * Finalise the attachments html string by surrounding it by unordered list tags
+	 */
+	private void finaliseAttachmentsHtml() {
+
+		this.attachmentsHtml = "<ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul>";
 	}
 
 	/**
@@ -206,7 +285,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 			gradesSpreadsheet = this.assignmentService.getGradesSpreadsheet(spreadsheetReference);
 			if (gradesSpreadsheet != null) {
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, gradesSpreadsheet, "grades.xls");
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, gradesSpreadsheet, "grades.xls");
 			}
 		} catch (IdUnusedException | PermissionException e) {
 			log.error("Error getting grades spreadsheet for site {} ", siteId);
@@ -221,23 +300,23 @@ public class AssignmentsArchiver implements Archiveable {
 	 * @param folderName
 	 * @return subdirectory string
 	 */
-	private String getSubDirs(final Assignment assignment, final String submitterId, final String folderName) {
+	private String getSubDirs(final Assignment assignment, final String submitterId) {
 
 		// Get the user associated with this submitterId
 		final User user = getUser(submitterId);
 		if (user != null) {
-			return assignment.getTitle() + "/submissions/" + user.getSortName() + "/" + folderName;
+			return assignment.getTitle() + "/submissions/" + user.getSortName();
 		}
 
 		// If a user wasn't found, maybe it's a group submission
 		final Group group = getGroup(assignment.getContext(), submitterId);
 		if (group != null) {
-			return assignment.getTitle() + "/submissions/" + group.getTitle() + "/" + folderName;
+			return assignment.getTitle() + "/submissions/" + group.getTitle();
 		}
 
 		// Neither a user or group could be found, use submitterId as folder name
 		log.error("Neither a user or group name could not be found for submitterId: {}", submitterId);
-		return assignment.getTitle() + "/" + submitterId + "/submission";
+		return assignment.getTitle() + "/" + submitterId;
 	}
 
 	/**
@@ -267,222 +346,5 @@ public class AssignmentsArchiver implements Archiveable {
 		} catch (final IdUnusedException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * Simplified helper class to represent feedback for a submission
-	 */
-	private class SimpleFeedback {
-		@Setter
-		String feedbackComment;
-
-		@Setter
-		String feedbackText;
-
-		@Setter
-		String gradedBy;
-
-		public SimpleFeedback(final AssignmentSubmission submission) {
-			this.feedbackComment = submission.getFeedbackComment();
-			this.feedbackText = submission.getFeedbackText();
-			this.gradedBy = submission.getGradedBy();
-		}
-	}
-
-	/**
-	 * Simplified helper class to represent an individual submission for an assignment
-	 */
-	private class SimpleSubmission {
-
-		@Setter
-		String status;
-
-		@Setter
-		String submittedText;
-
-		@Setter
-		String submitterId;
-
-		@Setter
-		List<String> groupSubmitterIds;
-
-		@Setter
-		String timeSubmitted;
-
-		public SimpleSubmission(final AssignmentSubmission submission, final boolean group) {
-			this.status = submission.getStatus();
-			this.submittedText = submission.getSubmittedText();
-			this.submitterId = submission.getSubmitterId();
-			this.timeSubmitted = submission.getTimeSubmittedString();
-			if (group) {
-				this.groupSubmitterIds = submission.getSubmitterIds();
-			}
-		}
-	}
-
-	/**
-	 * Simplified helper class to represent an individual assignment item in a site
-	 */
-	private class SimpleAssignment {
-
-		@Setter
-		private String id;
-
-		@Setter
-		private String timeOpen;
-
-		@Setter
-		private String timeDue;
-
-		@Setter
-		private String lateAfter;
-
-		@Setter
-		private String acceptUntil;
-
-		@Setter
-		private boolean draft;
-
-		@Setter
-		private String creator;
-
-		@Setter
-		private List authors;
-
-		@Setter
-		private String instructions;
-
-		@Setter
-		private String authorLastModified;
-
-		@Setter
-		private String title;
-
-		@Setter
-		private String status;
-
-		@Setter
-		private Collection groups;
-
-		@Setter
-		private String access;
-
-		@Setter
-		private String gradeScale;
-
-		@Setter
-		private String gradeScaleMaxPoints;
-
-		// @Setter
-		// private String submissionType;
-
-		@Setter
-		private String modelAnswerText;
-
-		@Setter
-		private String privateNoteText;
-
-		@Setter
-		private String allPurposeItemText;
-
-		@Setter
-		private SimpleGradebookItem gradebookItemDetails;
-
-		public SimpleAssignment(final Assignment a) {
-			if (a == null) {
-				return;
-			}
-
-			// These fields can simply be copied over
-			this.id = a.getId();
-			this.timeOpen = a.getOpenTimeString();
-			this.timeDue = a.getDueTimeString();
-			this.lateAfter = a.getDropDeadTimeString();
-			this.acceptUntil = a.getCloseTimeString();
-			this.draft = a.getDraft();
-			this.creator = a.getCreator();
-			this.authors = a.getAuthors();
-			this.authorLastModified = a.getAuthorLastModified();
-			this.title = a.getTitle();
-			this.status = a.getStatus();
-			this.access = a.getAccess().toString();
-
-			// See if there are groups submissions for this assignment
-			if (a.isGroup()) {
-				this.groups = a.getGroups();
-			}
-
-			// See if there is a gradebook item associated with this assignment
-			final SimpleGradebookItem gradebookItem = getGradebookFields(a);
-			if (gradebookItem != null) {
-				this.gradebookItemDetails = gradebookItem;
-			}
-
-			// Get content related fields
-			if (a.getContent() != null) {
-				this.instructions = a.getContent().getInstructions();
-				this.gradeScale = a.getContent().getTypeOfGradeString(a.getContent().getTypeOfGrade());
-				// this.submissionType = a.getContent().getTypeOfSubmissionString(a.getContent().getTypeOfSubmission());
-
-				// if grade scale is "points", get the maximum points allowed
-				this.gradeScaleMaxPoints = a.getContent().getMaxGradePointDisplay();
-			}
-
-			// Supplement Items
-			final AssignmentModelAnswerItem assignmentModelAnswerItem = AssignmentsArchiver.this.assignmentSupplementItemService
-					.getModelAnswer(a.getId());
-			if (assignmentModelAnswerItem != null) {
-				this.modelAnswerText = assignmentModelAnswerItem.getText();
-			}
-			final AssignmentNoteItem assignmentNoteItem = AssignmentsArchiver.this.assignmentSupplementItemService.getNoteItem(a.getId());
-			if (assignmentNoteItem != null) {
-				this.privateNoteText = assignmentNoteItem.getNote();
-			}
-			final AssignmentAllPurposeItem assignmentAllPurposeItem = AssignmentsArchiver.this.assignmentSupplementItemService
-					.getAllPurposeItem(a.getId());
-			if (assignmentAllPurposeItem != null) {
-				this.allPurposeItemText = assignmentAllPurposeItem.getText();
-			}
-		}
-
-		/**
-		 * Get the gradebook item associated with an assignment.
-		 *
-		 * @param a the Assignment
-		 * @param gradebookItem the SimpleGradebookItem
-		 * @return the populated SimpleGradebookItem
-		 */
-		private SimpleGradebookItem getGradebookFields(final Assignment a) {
-			if (AssignmentsArchiver.this.gradebookService.isGradebookDefined(a.getContext())) {
-				final SimpleGradebookItem gradebookItem = new SimpleGradebookItem();
-				final String gradebookAssignmentProp = a.getProperties()
-						.getProperty(AssignmentService.PROP_ASSIGNMENT_ASSOCIATE_GRADEBOOK_ASSIGNMENT);
-				if (gradebookAssignmentProp != null) {
-					final org.sakaiproject.service.gradebook.shared.Assignment gAssignment = AssignmentsArchiver.this.gradebookService
-							.getAssignment(
-									a.getContext(),
-									gradebookAssignmentProp);
-					if (gAssignment != null) {
-						// there is a linked Gradebook item
-						gradebookItem.setGradebookItemId(gAssignment.getId());
-						gradebookItem.setGradebookItemName(gAssignment.getName());
-						return gradebookItem;
-					}
-				}
-			}
-			return null;
-		}
-	}
-
-	/**
-	 * Simplified helper class for a gradebook item
-	 */
-	private class SimpleGradebookItem {
-
-		@Setter
-		private Long gradebookItemId;
-
-		@Setter
-		private String gradebookItemName;
 	}
 }

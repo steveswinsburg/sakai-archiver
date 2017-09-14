@@ -21,6 +21,7 @@ import org.sakaiproject.archiver.app.model.ArchiveSite;
 import org.sakaiproject.archiver.app.model.ArchiveableTool;
 import org.sakaiproject.archiver.dto.Archive;
 import org.sakaiproject.archiver.exception.ArchiveAlreadyInProgressException;
+import org.sakaiproject.archiver.exception.ArchiveCancellationException;
 import org.sakaiproject.archiver.exception.ArchiveCompletionException;
 import org.sakaiproject.archiver.exception.ArchiveInitialisationException;
 import org.sakaiproject.archiver.exception.ArchiveNotFoundException;
@@ -34,7 +35,6 @@ import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.site.api.SiteService.SelectionType;
 import org.sakaiproject.site.api.SiteService.SortType;
 import org.sakaiproject.site.api.ToolConfiguration;
-import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -128,20 +128,16 @@ public class ArchiverBusinessService {
 		if (!toolIds.isEmpty()) {
 
 			final String siteId = getCurrentSiteId();
-			final Set<String> toolsInSite = getToolIdsForSite(siteId);
+			final Set<ArchiveableTool> siteTools = getToolsForSite(siteId);
 
-			toolIds.forEach(toolId -> {
-				if (toolsInSite.contains(toolId)) {
-					final Tool t = this.toolManager.getTool(toolId);
-					if (t != null) {
-						final ArchiveableTool tool = new ArchiveableTool(toolId, t.getTitle());
-						tools.add(tool);
-					} else {
-						log.error("Error looking up toolId {} in site {}", toolId, siteId);
-					}
-				}
-			});
+			log.debug("siteTools: " + siteTools);
+			log.debug("toolIds: " + toolIds);
+
+			// remove tools that are not in the list of configured tools
+			siteTools.removeIf(tool -> !toolIds.contains(tool.getToolId()));
+			tools.addAll(siteTools);
 		}
+
 		Collections.sort(tools);
 
 		log.debug("Archiveable tools {}", tools);
@@ -295,33 +291,42 @@ public class ArchiverBusinessService {
 	}
 
 	/**
-	 * Get the list of toolIds in a site
+	 * Cancel an archive
+	 * 
+	 * @param archiveId the id of the archive to cancel
 	 *
-	 * TODO get the actual name of the tool in the site and return list of Tools or something similar
+	 * @throws {@link ArchiveCancellationException} if the archive could not be cancelled
+	 */
+	public void cancelArchive(final String archiveId) throws ArchiveCancellationException {
+		this.archiverService.cancelArchive(archiveId);
+	}
+
+	/**
+	 * Get the list of tools in a site and use the the page title so it is familiar to the instructor
 	 *
 	 * @param siteId the site to check
-	 * @return
+	 * @return Set of {@link ArchiveableTool} which wraps toolId and title.
 	 */
-	private Set<String> getToolIdsForSite(final String siteId) {
+	private Set<ArchiveableTool> getToolsForSite(final String siteId) {
 
-		final Set<String> toolIds = new HashSet<>();
+		final Set<ArchiveableTool> tools = new HashSet<>();
 
 		Site site;
 		try {
 			site = this.siteService.getSite(siteId);
 		} catch (final IdUnusedException e) {
 			log.error("Invalid site. Cannot lookup tools");
-			return toolIds;
+			return tools;
 		}
 
 		for (final SitePage page : site.getPages()) {
+
 			for (final ToolConfiguration toolConfig : page.getTools()) {
-				toolIds.add(toolConfig.getToolId());
+				tools.add(new ArchiveableTool(toolConfig.getToolId(), page.getTitle()));
 			}
 		}
 
-		return toolIds;
-
+		return tools;
 	}
 
 }

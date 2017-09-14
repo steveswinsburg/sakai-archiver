@@ -19,7 +19,7 @@ when your service starts up. The init() block is a good place for this registrat
 
 *Note:* If the init block does not exist in your service, find the spring bean XML and add `init-method="init"`, then create a `public void init()` method.
 
-The `toolId` indicates which tool that this service will handle the archiving for. Multiple tools could be handled with the one service.
+The `toolId` indicates which tool that this service will handle the archiving for. Multiple tools can be handled with a single service.
 
 For example:
 ````
@@ -31,12 +31,12 @@ When an archive is initiated, your service's `archive()` implementation will be 
 
 Use the methods in `org.sakaiproject.archiver.api.ArchiverService` within your service to send the data from your service to the archiver.
 
-There is a helper utility `org.sakaiproject.archiver.util.Jsonifier#toJson(Object)` which you can throw objects at to get String (JSON) representations of objects back, and then you can send them over for archiving.
+There is are helper utilities in the `api.util` package to assist with turning objects into JSON, HTML and dealing with dates.
 
 ## Custom builds
-Some archivers may require services not available to your development environment. To include mocks of these in your deployment use `-Pinclude-mock-services`.
+Some archivers may require services not available to your development environment. To include mocks of these in your deployment use `-Pinclude-mock-services`. Likewise if you need to create a mock service, ensure it is wrapped in this profile inside the pom.xml.
 
-To include the custom tools, use `-Pinclude-custom`.
+To include the custom providers, use `-Pinclude-custom`.
 
 ## 10.4 compatibility
 Use the `compat/10.4` branch, and note the following:
@@ -49,3 +49,6 @@ Use the `compat/10.4` branch, and note the following:
 ## CI support
 Since CI servers start with a clean slate for each build, the CI server has to include `-Psnapshots`.
 
+## Database indexes
+Indexes should be automatically created on versions of Sakai that can use JPA annotaitons (ie Sakai 11+), but for older versions of Sakai, run the following:
+`CREATE INDEX site_id_idx ON archiver_archives (site_id)`

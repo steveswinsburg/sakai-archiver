@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ResourcesArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.resources";
-	private static final String TOOL_NAME = "Resources";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -57,6 +56,8 @@ public class ResourcesArchiver implements Archiveable {
 		final String collectionId = getSiteCollectionId(siteId);
 		final List<ContentResource> resources = this.contentHostingService.getAllResources(collectionId);
 
+		final String toolName = getToolName(siteId);
+
 		// TODO do we care about controlling student uploaded files here?
 		// List<String> studentUuids = this.getStudentUuids(siteId);
 
@@ -74,12 +75,17 @@ public class ResourcesArchiver implements Archiveable {
 			log.debug("resource: {}", resource.getUrl());
 
 			try {
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, resource.getContent(), filename, subdirs);
+				this.archiverService.archiveContent(archiveId, siteId, toolName, resource.getContent(), filename, subdirs);
 			} catch (final ServerOverloadException e) {
 				log.error("Error retrieving data for resource {}", resource.getUrl(true));
 			}
 
 		});
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**

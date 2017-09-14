@@ -57,7 +57,6 @@ public class YalePhotosArchiver implements Archiveable {
 
 	// register this with the same ID as the Roster
 	private static final String TOOL_ID = "sakai.site.roster2";
-	private static final String TOOL_NAME = "Roster";
 
 	private static final String IMAGES_SUBDIR = "images";
 
@@ -92,6 +91,8 @@ public class YalePhotosArchiver implements Archiveable {
 			return;
 		}
 
+		final String toolName = getToolName(siteId);
+
 		// export the photos
 		final List<String> studentUuids = getStudentUuids(siteId);
 		final List<User> users = getUsers(studentUuids);
@@ -109,7 +110,7 @@ public class YalePhotosArchiver implements Archiveable {
 		studentEids.forEach(eid -> {
 			try {
 				final byte[] photoBytes = this.photoService.loadPhotoFromCache(eid);
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, photoBytes, getImageFilename(eid), IMAGES_SUBDIR);
+				this.archiverService.archiveContent(archiveId, siteId, toolName, photoBytes, getImageFilename(eid), IMAGES_SUBDIR);
 			} catch (final YalePhotoDirectoryServiceException e) {
 				log.error("Error getting photo for {}, the export will be incomplete", e);
 			}
@@ -192,16 +193,21 @@ public class YalePhotosArchiver implements Archiveable {
 
 			// now turn the list into some nice HTML
 			final String htmlBody = getAsHtml(entries);
-			final String html = Htmlifier.addSiteHeader(Htmlifier.toHtml(htmlBody), this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			final String html = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 			log.debug("html: " + html);
 
-			this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, html.getBytes(), "roster.html");
+			this.archiverService.archiveContent(archiveId, siteId, toolName, html.getBytes(), "roster.html");
 
 		} catch (InvalidFormatException | EncryptedDocumentException | IOException e) {
 			log.error("Roster export could not be processed", e);
 			return;
 		}
 
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
 	/**

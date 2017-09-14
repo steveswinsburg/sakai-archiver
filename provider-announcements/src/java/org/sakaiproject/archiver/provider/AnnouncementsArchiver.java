@@ -18,7 +18,6 @@ import org.sakaiproject.exception.TypeException;
 import org.sakaiproject.message.api.Message;
 import org.sakaiproject.site.api.SiteService;
 
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AnnouncementsArchiver implements Archiveable {
 
 	private static final String TOOL_ID = "sakai.announcements";
-	private static final String TOOL_NAME = "Announcements";
 
 	public void init() {
 		ArchiverRegistry.getInstance().register(TOOL_ID, this);
@@ -49,10 +47,14 @@ public class AnnouncementsArchiver implements Archiveable {
 	@Setter
 	private ContentHostingService contentHostingService;
 
+	private String attachmentsHtml;
+
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
 		try {
+
+			final String toolName = getToolName(siteId);
 
 			// Get the announcements for this site
 			final String channelRef = this.announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
@@ -61,31 +63,47 @@ public class AnnouncementsArchiver implements Archiveable {
 
 			// Go through each announcement and save the data we are interested in
 			for (final Message message : announcements) {
+				this.attachmentsHtml = "";
 				final AnnouncementMessage announcement = (AnnouncementMessage) message;
-
-				final SimpleAnnouncement simpleAnnouncement = new SimpleAnnouncement(announcement);
 
 				// archive the attachments for this announcement
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
-				archiveAttachments(attachments, simpleAnnouncement, archiveId, siteId,
-						TOOL_NAME);
+				archiveAttachments(attachments, announcement, archiveId, siteId, toolName);
 				if (!attachments.isEmpty()) {
-					finaliseAttachmentsHtml(simpleAnnouncement);
+					finaliseAttachmentsHtml();
 				}
 
 				// convert to html
-				final String fileContents = Htmlifier.addSiteHeader(Htmlifier.toHtml(simpleAnnouncement),
-						this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				final String htmlBody = getAsHtml(announcement);
+				final String fileContents = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 
 				// Save this announcement
 				log.debug("Announcement data: " + fileContents);
-				this.archiverService.archiveContent(archiveId, siteId, TOOL_NAME, fileContents.getBytes(),
-						simpleAnnouncement.getTitle() + ".html");
+				this.archiverService.archiveContent(archiveId, siteId, toolName, fileContents.getBytes(),
+						announcement.getAnnouncementHeader().getSubject() + ".html");
 
 			}
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements", e);
 		}
+	}
+
+	@Override
+	public String getToolName(final String siteId) {
+		return this.archiverService.getToolName(siteId, TOOL_ID);
+	}
+
+	private String getAsHtml(final AnnouncementMessage announcement) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<h2>" + announcement.getAnnouncementHeader().getSubject() + "</h2>");
+		sb.append("<p>" + announcement.getHeader().getFrom().getDisplayName()
+				+ String.format(" (%s) ", announcement.getHeader().getDate().getDisplay())
+				+ "</p");
+		sb.append("<p>" + announcement.getBody() + "</p>");
+		sb.append("<p>" + this.attachmentsHtml + "</p>");
+
+		return sb.toString();
 	}
 
 	/**
@@ -98,9 +116,8 @@ public class AnnouncementsArchiver implements Archiveable {
 	 * @param toolId
 	 * @throws PermissionException
 	 */
-	private void archiveAttachments(final List<Reference> attachments, final SimpleAnnouncement simpleAnnouncement, final String archiveId,
-			final String siteId,
-			final String toolId) throws PermissionException {
+	private void archiveAttachments(final List<Reference> attachments, final AnnouncementMessage announcement, final String archiveId,
+			final String siteId, final String toolId) throws PermissionException {
 
 		for (final Reference attachment : attachments) {
 			byte[] attachmentBytes;
@@ -109,11 +126,11 @@ public class AnnouncementsArchiver implements Archiveable {
 				final String attachmentName = attachment.getProperties()
 						.getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
-						attachmentName, simpleAnnouncement.getTitle() + " (attachments)");
-				addToAttachmentsHtml(simpleAnnouncement.getTitle() + " (attachments)/", attachmentName, simpleAnnouncement);
+						attachmentName, announcement.getAnnouncementHeader().getSubject() + " (attachments)");
+				addToAttachmentsHtml(announcement.getAnnouncementHeader().getSubject() + " (attachments)/", attachmentName);
 
 			} catch (ServerOverloadException | IdUnusedException | TypeException e) {
-				log.error("Error getting attachment for announcement: " + simpleAnnouncement.getTitle());
+				log.error("Error getting attachment for announcement: " + announcement.getAnnouncementHeader().getSubject());
 				continue;
 			}
 		}
@@ -124,60 +141,20 @@ public class AnnouncementsArchiver implements Archiveable {
 	 *
 	 * @param attachmentLocation
 	 * @param attachmentName
-	 * @param simpleArchiveItem
 	 */
-	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
-			final SimpleAnnouncement simpleAnnouncement) {
+	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName) {
 
 		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + attachmentName + "\">" + attachmentName
 				+ "</a></li>";
-		simpleAnnouncement.setAttachments(simpleAnnouncement.getAttachments() + attachmentHyperlink);
+		this.attachmentsHtml += attachmentHyperlink;
 	}
 
 	/**
 	 * Finalise the attachments html string by surrounding it by unordered list tags
-	 *
-	 * @param simpleArchiveItem
 	 */
-	private void finaliseAttachmentsHtml(final SimpleAnnouncement simpleAnnouncement) {
+	private void finaliseAttachmentsHtml() {
 
-		simpleAnnouncement
-				.setAttachments("<ul style=\"list-style: none;padding-left:0;\">" + simpleAnnouncement.getAttachments() + "</ul>");
-
-	}
-
-	/**
-	 * Simplified helper class to represent individual announcement in a site
-	 */
-	private class SimpleAnnouncement {
-
-		@Getter
-		@Setter
-		private String title;
-
-		@Getter
-		@Setter
-		private String body;
-
-		@Getter
-		@Setter
-		private String createdBy;
-
-		@Getter
-		@Setter
-		private String createdOn;
-
-		@Getter
-		@Setter
-		private String attachments = "";
-
-		public SimpleAnnouncement(final AnnouncementMessage announcement) {
-			setTitle(announcement.getAnnouncementHeader().getSubject());
-			setCreatedBy(announcement.getHeader().getFrom().getDisplayName());
-			setCreatedOn(announcement.getHeader().getDate().getDisplay());
-			setBody(announcement.getBody());
-		}
-
+		this.attachmentsHtml = "<ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul>";
 	}
 
 }
