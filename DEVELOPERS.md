@@ -50,5 +50,5 @@ Use the `compat/10.4` branch, and note the following:
 Since CI servers start with a clean slate for each build, the CI server has to include `-Psnapshots`.
 
 ## Database indexes
-Indexes should be automatically created on versions of Sakai that can use JPA annotaitons (ie Sakai 11+), but for older versions of Sakai, run the following:
+Indexes should be automatically created on versions of Sakai that can use JPA annotations (ie Sakai 11+), but for older versions of Sakai, run the following on your database:
 `CREATE INDEX site_id_idx ON archiver_archives (site_id)`
