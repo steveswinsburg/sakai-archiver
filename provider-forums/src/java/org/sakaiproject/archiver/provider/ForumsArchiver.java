@@ -1,6 +1,7 @@
 package org.sakaiproject.archiver.provider;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.sakaiproject.api.app.messageforums.Attachment;
@@ -122,9 +123,10 @@ public class ForumsArchiver implements Archiveable {
 						}
 
 						// Archive the messages
-						final String messageHtml = Htmlifier.addSiteHeader(Htmlifier.toHtml(topLevelMessage),
+						final String conversationHtml = getMessageHtml(topLevelMessage);
+						final String finalConversationHtml = Htmlifier.toHtml(conversationHtml,
 								this.archiverService.getSiteHeader(siteId, TOOL_ID));
-						this.archiverService.archiveContent(archiveId, siteId, this.toolName, messageHtml.getBytes(),
+						this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalConversationHtml.getBytes(),
 								message.getTitle() + ".html", folderStructure);
 					}
 				}
@@ -158,6 +160,48 @@ public class ForumsArchiver implements Archiveable {
 			sb.append("<p>Short Description: " + topic.getShortDescription() + "</p>");
 			sb.append("<p>Full Description: " + topic.getExtendedDescription() + "</p>");
 			sb.append("<p>" + topic.getAttachments() + "</p>");
+	/**
+	 * Get the html string for a conversation
+	 *
+	 * @param msg
+	 * @return conversationHtml
+	 */
+	private String getMessageHtml(final SimpleMessage msg) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<h4>" + msg.getTitle() + "</h4>");
+
+		sb.append(String.format("<p>%s (%s)</p>", msg.getAuthoredBy(), msg.getCreatedOn()));
+		sb.append("<p>" + msg.getBody() + "</p>");
+		sb.append("<p>" + msg.getAttachments() + "</p>");
+
+		if (!msg.getReplies().isEmpty()) {
+			sb.append(getRepliesHtml(msg));
+		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Get the html string for all the replies for a message
+	 *
+	 * @param msg
+	 * @return repliesHtml
+	 */
+	private String getRepliesHtml(final SimpleMessage msg) {
+
+		final StringBuilder sb = new StringBuilder();
+
+		for (final SimpleMessage reply : msg.getReplies()) {
+			sb.append("<blockquote>");
+			sb.append(String.format("<p>%s (%s)</p>", reply.getAuthoredBy(), reply.getCreatedOn()));
+			sb.append("<p>" + reply.getBody() + "</p>");
+			sb.append("<p>" + reply.getAttachments() + "</p>");
+
+			if (!reply.getReplies().isEmpty()) {
+				sb.append(getRepliesHtml(reply));
+			}
+			sb.append("</blockquote>");
 		}
 
 		return sb.toString();
@@ -189,7 +233,6 @@ public class ForumsArchiver implements Archiveable {
 				}
 				// Recursively set the replies for this inner message
 				setMessageReplies(thisMessage, messages, folderStructure, archiveId, siteId, topicId);
-
 			}
 		}
 	}
