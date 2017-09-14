@@ -84,59 +84,14 @@ public class ForumsArchiver implements Archiveable {
 		final SimpleForum simpleForum = new SimpleForum(forum);
 
 		// Initialise the array to hold each topic for this forum
-		final List<SimpleTopic> simpleTopics = new ArrayList<>();
+		List<SimpleTopic> simpleTopics = new ArrayList<>();
 
 		final List<DiscussionTopic> topics = forum.getTopics();
+
 		for (final DiscussionTopic topic : topics) {
-			final SimpleTopic simpleTopic = new SimpleTopic(topic);
 
-			// Add this topic to the forum's topic array
-			simpleTopics.add(simpleTopic);
+			simpleTopics = archiveTopics(forum, topic, simpleTopics, archiveId, siteId, includeStudentContent);
 
-			// Set up the folder structure for saving attachments and messages
-			final String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
-
-			// Archive the attachments for this topic
-			archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId, simpleTopic);
-			finaliseAttachmentsHtml(simpleTopic);
-
-			// Archive the messages within a topic, if we want student content
-			if (includeStudentContent) {
-
-				// Sort the messages so that the oldest are at the top
-				final List<Message> messages = topic.getMessages();
-				Collections.sort(messages, new DateComparator());
-
-				for (final Message message : messages) {
-
-					// Find the top level message
-					if (message.getInReplyTo() == null) {
-						final SimpleMessage topLevelMessage = new SimpleMessage(message);
-
-						// Set message replies and archive the attachments for each message
-						setMessageReplies(topLevelMessage, messages, folderStructure, archiveId, siteId, topic.getId());
-
-						// Archive the attachments for the top level message
-						if (message.getHasAttachments()) {
-							addAttachmentsToMessage(message, topLevelMessage, folderStructure, archiveId, siteId, topic.getId());
-							finaliseAttachmentsHtml(topLevelMessage);
-						}
-
-						// Archive the messages
-						final String conversationHtml = getMessageHtml(topLevelMessage);
-						final String finalConversationHtml = Htmlifier.toHtml(conversationHtml,
-								this.archiverService.getSiteHeader(siteId, TOOL_ID));
-						this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalConversationHtml.getBytes(),
-								message.getTitle() + ".html", folderStructure);
-
-						// Add a link of the conversation location to the SimpleTopic associated with this conversation
-						final List<String> linksToTopicConversations = simpleTopic.getConversationLinks();
-						linksToTopicConversations.add("<a href=\"./topics/" + simpleTopic.getTitle() + "/" + message.getTitle() + ".html"
-								+ "\">" + message.getTitle() + ".html" + "</a> ");
-						simpleTopic.setConversationLinks(linksToTopicConversations);
-					}
-				}
-			}
 		}
 
 		// Archive the attachments for this forum
@@ -150,6 +105,89 @@ public class ForumsArchiver implements Archiveable {
 		final String finalForumHtml = Htmlifier.toHtml(forumHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 		this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalForumHtml.getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
+	}
+
+	/**
+	 * Archive the topics for this forum, and their messages
+	 *
+	 * @param forum
+	 * @param topic
+	 * @param simpleTopics
+	 * @param archiveId
+	 * @param siteId
+	 * @param includeStudentContent
+	 * @return the list of topics
+	 */
+	private List<SimpleTopic> archiveTopics(final DiscussionForum forum, final DiscussionTopic topic, final List<SimpleTopic> simpleTopics,
+			final String archiveId, final String siteId, final boolean includeStudentContent) {
+
+		final SimpleTopic simpleTopic = new SimpleTopic(topic);
+
+		// Add this topic to the forum's topic array
+		simpleTopics.add(simpleTopic);
+
+		// Set up the folder structure for saving attachments and messages
+		final String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
+
+		// Archive the attachments for this topic
+		archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId, simpleTopic);
+		finaliseAttachmentsHtml(simpleTopic);
+
+		// Archive the messages within a topic, if we want student content
+		if (includeStudentContent) {
+
+			// Sort the messages so that the oldest are at the top
+			final List<Message> messages = topic.getMessages();
+			Collections.sort(messages, new DateComparator());
+
+			// Archive the messages for this topic
+			archiveMessages(messages, topic, simpleTopic, folderStructure, archiveId, siteId);
+		}
+		return simpleTopics;
+	}
+
+	/**
+	 * Archive all the messages associated with this topic
+	 * 
+	 * @param messages
+	 * @param topic
+	 * @param simpleTopic
+	 * @param folderStructure
+	 * @param archiveId
+	 * @param siteId
+	 */
+	private void archiveMessages(final List<Message> messages, final DiscussionTopic topic, final SimpleTopic simpleTopic,
+			final String folderStructure, final String archiveId, final String siteId) {
+
+		for (final Message message : messages) {
+
+			// Find the top level message
+			if (message.getInReplyTo() == null) {
+				final SimpleMessage topLevelMessage = new SimpleMessage(message);
+
+				// Set message replies and archive the attachments for each message
+				setMessageReplies(topLevelMessage, messages, folderStructure, archiveId, siteId, topic.getId());
+
+				// Archive the attachments for the top level message
+				if (message.getHasAttachments()) {
+					addAttachmentsToMessage(message, topLevelMessage, folderStructure, archiveId, siteId, topic.getId());
+					finaliseAttachmentsHtml(topLevelMessage);
+				}
+
+				// Archive the messages
+				final String conversationHtml = getMessageHtml(topLevelMessage);
+				final String finalConversationHtml = Htmlifier.toHtml(conversationHtml,
+						this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalConversationHtml.getBytes(),
+						message.getTitle() + ".html", folderStructure);
+
+				// Add a link of the conversation location to the SimpleTopic associated with this conversation
+				final List<String> linksToTopicConversations = simpleTopic.getConversationLinks();
+				linksToTopicConversations.add("<a href=\"./topics/" + simpleTopic.getTitle() + "/" + message.getTitle() + ".html"
+						+ "\">" + message.getTitle() + ".html" + "</a> ");
+				simpleTopic.setConversationLinks(linksToTopicConversations);
+			}
+		}
 	}
 
 	/**
