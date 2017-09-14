@@ -102,7 +102,10 @@ public class ForumsArchiver implements Archiveable {
 			// Archive the messages within a topic, if we want student content
 			if (includeStudentContent) {
 
+				// Sort the messages so that the oldest are at the top
 				final List<Message> messages = topic.getMessages();
+				Collections.sort(messages, new DateComparator());
+
 				for (final Message message : messages) {
 
 					// Find the top level message
