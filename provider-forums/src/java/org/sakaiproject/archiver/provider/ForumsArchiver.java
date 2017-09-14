@@ -128,6 +128,12 @@ public class ForumsArchiver implements Archiveable {
 								this.archiverService.getSiteHeader(siteId, TOOL_ID));
 						this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalConversationHtml.getBytes(),
 								message.getTitle() + ".html", folderStructure);
+
+						// Add a link of the conversation location to the SimpleTopic associated with this conversation
+						final List<String> linksToTopicConversations = simpleTopic.getConversationLinks();
+						linksToTopicConversations.add("<a href=\"./topics/" + simpleTopic.getTitle() + "/" + message.getTitle() + ".html"
+								+ "\">" + message.getTitle() + ".html" + "</a> ");
+						simpleTopic.setConversationLinks(linksToTopicConversations);
 					}
 				}
 			}
@@ -140,13 +146,19 @@ public class ForumsArchiver implements Archiveable {
 
 		// Now that all the topics are set, archive the forum
 		simpleForum.setTopics(simpleTopics);
-		final String forumHtml = getAsHtml(simpleForum);
+		final String forumHtml = getForumHtml(simpleForum);
 		final String finalForumHtml = Htmlifier.toHtml(forumHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 		this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalForumHtml.getBytes(), forum.getTitle() + ".html",
 				forum.getTitle());
 	}
 
-	private String getAsHtml(final SimpleForum simpleForum) {
+	/**
+	 * Get the html string for the forum
+	 *
+	 * @param simpleForum
+	 * @return forumHtml
+	 */
+	private String getForumHtml(final SimpleForum simpleForum) {
 
 		final StringBuilder sb = new StringBuilder();
 
@@ -160,6 +172,18 @@ public class ForumsArchiver implements Archiveable {
 			sb.append("<p>Short Description: " + topic.getShortDescription() + "</p>");
 			sb.append("<p>Full Description: " + topic.getExtendedDescription() + "</p>");
 			sb.append("<p>" + topic.getAttachments() + "</p>");
+			if (!topic.getConversationLinks().isEmpty()) {
+				sb.append("<p>Conversations: ");
+				for (final String loc : topic.getConversationLinks()) {
+					sb.append("<p>" + loc + "</p>");
+				}
+				sb.append("</p>");
+			}
+		}
+
+		return sb.toString();
+	}
+
 	/**
 	 * Get the html string for a conversation
 	 *
