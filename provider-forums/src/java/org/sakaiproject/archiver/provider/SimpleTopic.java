@@ -1,5 +1,8 @@
 package org.sakaiproject.archiver.provider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.sakaiproject.api.app.messageforums.DiscussionTopic;
 
 import lombok.Getter;
@@ -22,6 +25,10 @@ public class SimpleTopic extends SimpleArchiveItem {
 	@Setter
 	@Getter
 	private String extendedDescription;
+
+	@Setter
+	@Getter
+	private List<String> conversationLinks = new ArrayList<>();
 
 	public SimpleTopic(final DiscussionTopic topic) {
 		this.title = topic.getTitle();

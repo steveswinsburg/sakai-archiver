@@ -18,34 +18,23 @@ public class SimpleMessage extends SimpleArchiveItem {
 	private Long messageId;
 
 	@Setter
+	@Getter
 	private String title;
 
 	@Setter
+	@Getter
 	private String body;
 
 	@Setter
-	private String lastModified;
-
-	@Setter
+	@Getter
 	private String authoredBy;
-
-	@Setter
-	private String authorId;
 
 	@Setter
 	private Long replyTo;
 
 	@Setter
+	@Getter
 	private String createdOn;
-
-	@Setter
-	private boolean isDraft;
-
-	@Setter
-	private boolean isDeleted;
-
-	@Setter
-	private String modifiedBy;
 
 	@Setter
 	@Getter
@@ -56,13 +45,8 @@ public class SimpleMessage extends SimpleArchiveItem {
 		this.messageId = message.getId();
 		this.title = message.getTitle();
 		this.body = message.getBody();
-		this.lastModified = Dateifier.toIso8601(message.getModified());
 		this.authoredBy = message.getAuthor();
-		this.authorId = message.getAuthorId();
-		this.isDraft = message.getDraft();
-		this.isDeleted = message.getDeleted();
 		this.createdOn = Dateifier.toIso8601(message.getCreated());
-		this.modifiedBy = message.getModifiedBy();
 
 		final Message parent = message.getInReplyTo();
 		if (parent != null) {
