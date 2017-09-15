@@ -125,8 +125,12 @@ public class AssignmentsArchiver implements Archiveable {
 		sb.append("<p>Due at: " + assignment.getDueTimeString() + "</p>");
 
 		if (assignment.getContent() != null) {
-			sb.append("<p>Maximum score: " + assignment.getContent().getMaxGradePointDisplay() + " "
-					+ assignment.getContent().getTypeOfGradeString() + "</p>");
+			final String gradingScale = assignment.getContent().getTypeOfGradeString();
+			if (gradingScale.equals(new String("Points"))) {
+				sb.append("<p>Maximum score: " + assignment.getContent().getMaxGradePointDisplay() + " " + gradingScale + "</p>");
+			} else {
+				sb.append("<p>Grading scale: " + gradingScale + "</p>");
+			}
 			sb.append("<p>Submission type: " + assignment.getContent().getTypeOfSubmissionString() + "</p>");
 		}
 
