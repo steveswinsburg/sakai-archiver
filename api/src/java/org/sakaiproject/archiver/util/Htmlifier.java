@@ -6,9 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 /**
  * Utility to convert an object into a basic HTML representation.
@@ -72,23 +69,6 @@ public class Htmlifier extends RecursiveToStringStyle {
 	}
 
 	/**
-	 * Add HTML start and end to a HTML body string
-	 *
-	 * @param htmlBody
-	 * @return
-	 *
-	 * @deprecated see toHtml(String,String) instead
-	 */
-	@Deprecated
-	public static String toHtml(final String htmlBody) {
-		final StringBuilder sb = new StringBuilder();
-		sb.append(getHtmlStart());
-		sb.append(htmlBody);
-		sb.append(getHtmlEnd());
-		return sb.toString();
-	}
-
-	/**
 	 * Create a full HTML document given the body and page title
 	 *
 	 * @param htmlBody
@@ -101,23 +81,6 @@ public class Htmlifier extends RecursiveToStringStyle {
 		sb.append(htmlBody);
 		sb.append(getHtmlEnd());
 		return sb.toString();
-	}
-
-	/**
-	 * Add a site header to the provided HTML
-	 *
-	 * @param html
-	 * @param heading
-	 * @return
-	 *
-	 * @deprecated see toHtml(String,String) instead
-	 */
-	@Deprecated
-	public static String addSiteHeader(final String html, final String heading) {
-		final Document doc = Jsoup.parse(html);
-		final Elements divs = doc.select("div");
-		divs.first().prepend("<h1>" + heading + "</h1>");
-		return doc.html();
 	}
 
 	/**
