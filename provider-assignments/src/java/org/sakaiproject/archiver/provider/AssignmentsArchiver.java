@@ -75,10 +75,11 @@ public class AssignmentsArchiver implements Archiveable {
 
 		for (final Assignment assignment : assignments) {
 
-			final String assignmentAttachmentsHtml = "";
+			String assignmentAttachmentsHtml = "";
 
 			// archive the attachments for the assignment
-			archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId, siteId, "/attachments",
+			assignmentAttachmentsHtml = archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId,
+					siteId, "/attachments",
 					assignmentAttachmentsHtml);
 
 			// archive the assignment data
