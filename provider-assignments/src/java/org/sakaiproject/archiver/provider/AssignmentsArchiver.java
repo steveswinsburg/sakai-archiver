@@ -2,6 +2,7 @@ package org.sakaiproject.archiver.provider;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
@@ -105,7 +106,8 @@ public class AssignmentsArchiver implements Archiveable {
 	/**
 	 * Construct the details html string
 	 *
-	 * @param assignment, attachmentsHtml
+	 * @param assignment
+	 * @param attachmentsHtml
 	 * @return detailsHtml
 	 */
 	private String getDetailsAsHtml(final Assignment assignment, final String attachmentsHtml) {
@@ -121,7 +123,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 		if (assignment.getContent() != null) {
 			final String gradingScale = assignment.getContent().getTypeOfGradeString();
-			if (gradingScale.equals(new String("Points"))) {
+			if (StringUtils.equals(gradingScale, "Points")) {
 				sb.append("<p>Maximum score: " + assignment.getContent().getMaxGradePointDisplay() + " " + gradingScale + "</p>");
 			} else {
 				sb.append("<p>Grading scale: " + gradingScale + "</p>");
@@ -129,7 +131,7 @@ public class AssignmentsArchiver implements Archiveable {
 			sb.append("<p>Submission type: " + assignment.getContent().getTypeOfSubmissionString() + "</p>");
 		}
 
-		if (attachmentsHtml.length() > 0) {
+		if (StringUtils.isNotBlank(attachmentsHtml)) {
 			sb.append("<p>Attachment(s): <ul style=\"list-style: none;padding-left:0;\">" + attachmentsHtml + "</ul></p>");
 		}
 
@@ -266,8 +268,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 		final String attachmentHyperlink = "<li><a href=\"./" + attachmentLocation + "/" + attachmentName + "\">" + attachmentName
 				+ "</a></li>";
-		final String updatedHtml = attachmentsHtml + attachmentHyperlink;
-		return updatedHtml;
+		return attachmentsHtml + attachmentHyperlink;
 	}
 
 	/**
