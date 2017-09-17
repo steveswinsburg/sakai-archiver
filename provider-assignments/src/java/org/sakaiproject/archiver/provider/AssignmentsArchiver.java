@@ -79,8 +79,7 @@ public class AssignmentsArchiver implements Archiveable {
 
 			// archive the attachments for the assignment
 			assignmentAttachmentsHtml = archiveAttachments(assignment.getContent().getAttachments(), assignment.getTitle(), archiveId,
-					siteId, "/attachments",
-					assignmentAttachmentsHtml);
+					siteId, "/attachments", assignmentAttachmentsHtml);
 
 			// archive the assignment data
 			final String detailsHtml = getDetailsAsHtml(assignment, assignmentAttachmentsHtml);
