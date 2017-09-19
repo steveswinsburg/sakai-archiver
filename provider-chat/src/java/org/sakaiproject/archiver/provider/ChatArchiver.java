@@ -118,7 +118,7 @@ public class ChatArchiver implements Archiveable {
 		final StringBuilder sb = new StringBuilder();
 
 		for (final SimpleChatMessage msg : msgs) {
-			sb.append("<p>" + msg.getOwner() + "&nbsp;(" + msg.getDate() + "): " + msg.getBody() + "</p>");
+			sb.append("<p><b>" + msg.getOwner() + "&nbsp;(" + msg.getDate() + "):</b> " + msg.getBody() + "</p>");
 		}
 
 		return sb.toString();
