@@ -187,7 +187,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename) {
-		archiveContent(archiveId, siteId, toolId, content, filename, new String[0]);
+		archiveContent(archiveId, siteId, toolId, content, filename, "");
 	}
 
 	@Override
@@ -219,15 +219,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
 		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, sanitise(toolId), buildPath(sanitise(subdirectories)),
 				sanitise(filename));
-		log.debug("Writing to {}", filePath);
-
-		final File file = new File(filePath);
-
-		try {
-			FileUtils.writeByteArrayToFile(file, content);
-		} catch (final IOException e) {
-			log.error("Could not write file: " + file, e);
-		}
+		writeFile(content, filePath);
 
 	}
 
@@ -319,7 +311,25 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
+	 * Build the index page
+	 *
+	 * @param entity
+	 */
+	private void buildIndex(final String archivePath) {
+
+		final IndexBuilder indexBuilder = new IndexBuilder(archivePath);
+		final String indexHtml = indexBuilder.build();
+
+		log.debug("Writing index.html: {}", indexHtml);
+
+		final String indexPath = buildPath(archivePath, "index.html");
+		writeFile(indexHtml.getBytes(), indexPath);
+	}
+
+	/**
 	 * Finalise an archiving record with the specified status.
+	 *
+	 * Also builds the index page.
 	 *
 	 * Note that the passed in status could be overridden if an error occurs in finalising the archive.
 	 *
@@ -327,6 +337,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 * @param status the {@link Status} to set
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
+
+		buildIndex(entity.getArchivePath());
 
 		final String zipName = sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
 
@@ -533,6 +545,24 @@ public class ArchiverServiceImpl implements ArchiverService {
 		return Arrays.stream(strings)
 				.map(s -> sanitise(s))
 				.toArray(String[]::new);
+	}
+
+	/**
+	 * Write the given byte[] to a file. Makes no guarantee that this will work and will log if it doesn't. Don't rely on it.
+	 *
+	 * @param content byte[] to write
+	 * @param filePath full path to write to
+	 */
+	private void writeFile(final byte[] content, final String filePath) {
+		log.debug("Writing to {}", filePath);
+
+		final File file = new File(filePath);
+
+		try {
+			FileUtils.writeByteArrayToFile(file, content);
+		} catch (final IOException e) {
+			log.error("Could not write file: " + file, e);
+		}
 	}
 
 }
