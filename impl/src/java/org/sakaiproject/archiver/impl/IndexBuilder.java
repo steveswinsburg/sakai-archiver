@@ -15,6 +15,8 @@ public class IndexBuilder {
 	private final File archiveBase;
 	private final String title;
 
+	private int dirCount = 0;
+
 	/**
 	 * Initialise the {@link IndexBuilder}
 	 *
@@ -47,7 +49,12 @@ public class IndexBuilder {
 	 */
 	private void renderDirectory(final File folder) {
 
-		this.sb.append("<li>");
+		if (this.dirCount == 0) {
+			this.sb.append("<li data-jstree='{\"opened\":true, \"selected\":true, \"icon\":\"glyphicon glyphicon-folder-open\"}'>");
+		} else {
+			this.sb.append("<li data-jstree='{\"icon\":\"glyphicon glyphicon-folder-open\"}'>");
+		}
+		this.dirCount++;
 		this.sb.append(folder.getName());
 		this.sb.append("<ul>");
 		for (final File file : folder.listFiles()) {
@@ -68,7 +75,7 @@ public class IndexBuilder {
 	 * @param sb
 	 */
 	private void renderFile(final File file) {
-		this.sb.append("<li>");
+		this.sb.append("<li data-jstree='{\"icon\":\"glyphicon glyphicon-file\"}'>");
 		this.sb.append("<a href=\"" + getRelativePath(file) + "\">");
 		this.sb.append(file.getName());
 		this.sb.append("</a></li>");
@@ -92,7 +99,8 @@ public class IndexBuilder {
 		this.sb.append("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
 		this.sb.append("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js\"></script>");
 
-		this.sb.append("<script>$('#tree').jstree();</script>");
+		this.sb.append(
+				"<script>$(document).ready(function() { $('#tree').jstree({ \"plugins\" : [ \"state\" ] }).bind('changed.jstree', function (e, data) { if(data.node) { var href = data.node.a_attr.href; if(href !== '#') { window.open(href, '_self'); }}})});</script>");
 
 		this.sb.append("</head>");
 		this.sb.append("<body>");

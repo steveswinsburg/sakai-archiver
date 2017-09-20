@@ -317,10 +317,9 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void buildIndex(final ArchiveEntity entity) {
 
-		// this includes the archiveId so that it is excluded from the index directories
-		final String indexBase = buildPath(entity.getArchivePath(), entity.getId());
+		// TODO add the archiveId so that it is excluded from the index directories and doesn't appear as a top level folder
 
-		final IndexBuilder indexBuilder = new IndexBuilder(indexBase, getSiteTitle(entity.getSiteId()));
+		final IndexBuilder indexBuilder = new IndexBuilder(entity.getArchivePath(), getSiteTitle(entity.getSiteId()));
 		final String indexHtml = indexBuilder.build();
 
 		log.debug("Writing index.html: {}", indexHtml);
