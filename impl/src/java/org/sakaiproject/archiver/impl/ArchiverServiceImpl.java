@@ -33,6 +33,7 @@ import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.util.Sanitiser;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.SecurityService;
@@ -217,8 +218,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 		}
 
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
-		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, sanitise(toolId), buildPath(sanitise(subdirectories)),
-				sanitise(filename));
+		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, Sanitiser.sanitise(toolId),
+				buildPath(Sanitiser.sanitise(subdirectories)), Sanitiser.sanitise(filename));
 		log.debug("Writing to {}", filePath);
 
 		final File file = new File(filePath);
@@ -328,7 +329,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
-		final String zipName = sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
+		final String zipName = Sanitiser.sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
 
 		// zips the archive directory
 		final File archiveDirectory = new File(entity.getArchivePath());
@@ -511,28 +512,6 @@ public class ArchiverServiceImpl implements ArchiverService {
 	private boolean isSuperUser() {
 		final User user = this.userDirectoryService.getCurrentUser();
 		return this.securityService.isSuperUser(user.getId());
-	}
-
-	/**
-	 * Replace illegal chars in the supplied string with _
-	 *
-	 * @param filename
-	 * @return
-	 */
-	private String sanitise(final String string) {
-		return string.replaceAll("[^a-zA-Z0-9.-]", "_");
-	}
-
-	/**
-	 * Replace illegal chars in the supplied strings with _
-	 *
-	 * @param filename varargs
-	 * @return
-	 */
-	private String[] sanitise(final String... strings) {
-		return Arrays.stream(strings)
-				.map(s -> sanitise(s))
-				.toArray(String[]::new);
 	}
 
 }
