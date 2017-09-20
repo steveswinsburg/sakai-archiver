@@ -45,7 +45,7 @@ public class IndexBuilder {
 
 		this.sb.append("<li>");
 		this.sb.append(folder.getName());
-		this.sb.append("<ul">");
+		this.sb.append("<ul>");
 		for (final File file : folder.listFiles()) {
 			if (file.isDirectory()) {
 				renderDirectory(file);
