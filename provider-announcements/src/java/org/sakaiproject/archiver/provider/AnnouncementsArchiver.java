@@ -9,6 +9,7 @@ import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Htmlifier;
+import org.sakaiproject.archiver.util.Sanitiser;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.exception.IdUnusedException;
@@ -69,9 +70,6 @@ public class AnnouncementsArchiver implements Archiveable {
 				// archive the attachments for this announcement
 				final List<Reference> attachments = announcement.getAnnouncementHeader().getAttachments();
 				archiveAttachments(attachments, announcement, archiveId, siteId, toolName);
-				if (!attachments.isEmpty()) {
-					finaliseAttachmentsHtml();
-				}
 
 				// convert to html
 				final String htmlBody = getAsHtml(announcement);
@@ -98,10 +96,9 @@ public class AnnouncementsArchiver implements Archiveable {
 
 		sb.append("<h2>" + announcement.getAnnouncementHeader().getSubject() + "</h2>");
 		sb.append("<p>" + announcement.getHeader().getFrom().getDisplayName()
-				+ String.format(" (%s) ", announcement.getHeader().getDate().getDisplay())
-				+ "</p");
+				+ String.format(" (%s) ", announcement.getHeader().getDate().getDisplay()) + "</p");
 		sb.append("<p>" + announcement.getBody() + "</p>");
-		sb.append("<p>" + this.attachmentsHtml + "</p>");
+		sb.append("<p><ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul></p>");
 
 		return sb.toString();
 	}
@@ -126,8 +123,9 @@ public class AnnouncementsArchiver implements Archiveable {
 				final String attachmentName = attachment.getProperties()
 						.getPropertyFormatted(attachment.getProperties().getNamePropDisplayName());
 				this.archiverService.archiveContent(archiveId, siteId, toolId, attachmentBytes,
-						attachmentName, announcement.getAnnouncementHeader().getSubject() + " (attachments)");
-				addToAttachmentsHtml(announcement.getAnnouncementHeader().getSubject() + " (attachments)/", attachmentName);
+						attachmentName, announcement.getAnnouncementHeader().getSubject() + "_attachments");
+				addToAttachmentsHtml(Sanitiser.sanitise(announcement.getAnnouncementHeader().getSubject()) + "_attachments/",
+						Sanitiser.sanitise(attachmentName));
 
 			} catch (ServerOverloadException | IdUnusedException | TypeException e) {
 				log.error("Error getting attachment for announcement: " + announcement.getAnnouncementHeader().getSubject());
@@ -148,13 +146,4 @@ public class AnnouncementsArchiver implements Archiveable {
 				+ "</a></li>";
 		this.attachmentsHtml += attachmentHyperlink;
 	}
-
-	/**
-	 * Finalise the attachments html string by surrounding it by unordered list tags
-	 */
-	private void finaliseAttachmentsHtml() {
-
-		this.attachmentsHtml = "<ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul>";
-	}
-
 }

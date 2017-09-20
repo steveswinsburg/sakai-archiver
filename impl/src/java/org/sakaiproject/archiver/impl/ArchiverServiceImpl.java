@@ -33,6 +33,7 @@ import org.sakaiproject.archiver.exception.FileSizeExceededException;
 import org.sakaiproject.archiver.exception.ToolsNotSpecifiedException;
 import org.sakaiproject.archiver.persistence.ArchiverPersistenceService;
 import org.sakaiproject.archiver.spi.Archiveable;
+import org.sakaiproject.archiver.util.Sanitiser;
 import org.sakaiproject.archiver.util.Zipper;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.SecurityService;
@@ -187,7 +188,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 	@Override
 	public void archiveContent(final String archiveId, final String siteId, final String toolId, final byte[] content,
 			final String filename) {
-		archiveContent(archiveId, siteId, toolId, content, filename, new String[0]);
+		archiveContent(archiveId, siteId, toolId, content, filename, "");
 	}
 
 	@Override
@@ -217,7 +218,8 @@ public class ArchiverServiceImpl implements ArchiverService {
 		}
 
 		// archive-base/siteId/archiveId/toolId/[subdirs]/file
-		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, toolId, buildPath(subdirectories), filename);
+		final String filePath = buildPath(getArchiveBasePath(), siteId, archiveId, Sanitiser.sanitise(toolId),
+				buildPath(Sanitiser.sanitise(subdirectories)), Sanitiser.sanitise(filename));
 		log.debug("Writing to {}", filePath);
 
 		final File file = new File(filePath);
@@ -227,6 +229,7 @@ public class ArchiverServiceImpl implements ArchiverService {
 		} catch (final IOException e) {
 			log.error("Could not write file: " + file, e);
 		}
+		writeFile(content, filePath);
 
 	}
 
@@ -318,7 +321,27 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
+	 * Build the index page
+	 *
+	 * @param entity with archive details
+	 */
+	private void buildIndex(final ArchiveEntity entity) {
+
+		// TODO add the archiveId so that it is excluded from the index directories and doesn't appear as a top level folder
+
+		final IndexBuilder indexBuilder = new IndexBuilder(entity.getArchivePath(), getSiteTitle(entity.getSiteId()));
+		final String indexHtml = indexBuilder.build();
+
+		log.debug("Writing index.html: {}", indexHtml);
+
+		final String indexPath = buildPath(entity.getArchivePath(), "index.html");
+		writeFile(indexHtml.getBytes(), indexPath);
+	}
+
+	/**
 	 * Finalise an archiving record with the specified status.
+	 *
+	 * Also builds the index page.
 	 *
 	 * Note that the passed in status could be overridden if an error occurs in finalising the archive.
 	 *
@@ -327,9 +350,10 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
-		final String zipName = sanitiseFilename(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
+		buildIndex(entity);
 
 		// zips the archive directory
+		final String zipName = Sanitiser.sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
 		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
 			final String zipPath = Zipper.zipDirectory(archiveDirectory, zipName);
@@ -513,12 +537,21 @@ public class ArchiverServiceImpl implements ArchiverService {
 	}
 
 	/**
-	 * Replace illegal chars in a filename with _
+	 * Write the given byte[] to a file. Makes no guarantee that this will work and will log if it doesn't. Don't rely on it.
 	 *
-	 * @param filename
-	 * @return
+	 * @param content byte[] to write
+	 * @param filePath full path to write to
 	 */
-	private String sanitiseFilename(final String filename) {
-		return filename.replaceAll("[^a-zA-Z0-9.-]", "_");
+	private void writeFile(final byte[] content, final String filePath) {
+		log.debug("Writing to {}", filePath);
+
+		final File file = new File(filePath);
+
+		try {
+			FileUtils.writeByteArrayToFile(file, content);
+		} catch (final IOException e) {
+			log.error("Could not write file: " + file, e);
+		}
 	}
+
 }

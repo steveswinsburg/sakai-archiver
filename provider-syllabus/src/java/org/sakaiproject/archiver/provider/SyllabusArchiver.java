@@ -11,6 +11,7 @@ import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Dateifier;
 import org.sakaiproject.archiver.util.Htmlifier;
+import org.sakaiproject.archiver.util.Sanitiser;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -75,8 +76,9 @@ public class SyllabusArchiver implements Archiveable {
 				try {
 					syllabusAttachmentBytes = this.contentHostingService.getResource(syllabusAttachment.getAttachmentId()).getContent();
 					this.archiverService.archiveContent(archiveId, siteId, toolName, syllabusAttachmentBytes, syllabusAttachment.getName(),
-							syllabus.getTitle() + " (attachments)");
-					addToAttachmentsHtml(syllabus.getTitle() + " (attachments)/", syllabusAttachment.getName(), simpleSyllabus);
+							syllabus.getTitle() + "_attachments");
+					addToAttachmentsHtml(Sanitiser.sanitise(syllabus.getTitle()) + "_attachments/",
+							Sanitiser.sanitise(syllabusAttachment.getName()), simpleSyllabus);
 				} catch (ServerOverloadException | PermissionException | IdUnusedException | TypeException e) {
 					log.error("Error getting syllabus attachment " + syllabusAttachment.getName() + " in syllabus " + syllabus.getTitle());
 					continue;

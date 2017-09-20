@@ -118,7 +118,7 @@ public class HomeArchiver implements Archiveable {
 				e.attr("height", "auto");
 
 				// archive the image
-				this.archiverService.archiveContent(archiveId, siteId, this.toolName, bytes, filename, "/images");
+				this.archiverService.archiveContent(archiveId, siteId, this.toolName, bytes, filename, "images");
 
 				// change the src for this image in the html
 				e.attr("src", "images/" + filename);
