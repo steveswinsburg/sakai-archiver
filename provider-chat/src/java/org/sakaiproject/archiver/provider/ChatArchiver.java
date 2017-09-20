@@ -79,7 +79,7 @@ public class ChatArchiver implements Archiveable {
 					final String finalChatHtml = Htmlifier.toHtml(chatHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
 					log.debug("Chat HTML: " + finalChatHtml);
 
-					final String fileName = chatChannel.getTitle() + " (" + rangeStart + "-" + rangeEnd + ").html";
+					final String fileName = String.format(" %s %s-%s%s", chatChannel.getTitle(), rangeStart, rangeEnd, ".html");
 					this.archiverService.archiveContent(archiveId, siteId, toolName, finalChatHtml.getBytes(),
 							fileName, chatChannel.getTitle());
 					// Add to the list of saved files to be used by the index
