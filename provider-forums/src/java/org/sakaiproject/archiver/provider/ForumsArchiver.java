@@ -14,6 +14,7 @@ import org.sakaiproject.archiver.api.ArchiverRegistry;
 import org.sakaiproject.archiver.api.ArchiverService;
 import org.sakaiproject.archiver.spi.Archiveable;
 import org.sakaiproject.archiver.util.Htmlifier;
+import org.sakaiproject.archiver.util.Sanitiser;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -88,15 +89,16 @@ public class ForumsArchiver implements Archiveable {
 
 		final List<DiscussionTopic> topics = forum.getTopics();
 
+		// Archive the topics and messages
 		for (final DiscussionTopic topic : topics) {
-
 			simpleTopics = archiveTopics(forum, topic, simpleTopics, archiveId, siteId, includeStudentContent);
-
 		}
 
 		// Archive the attachments for this forum
-		archiveAttachments(forum.getAttachments(), forum.getTitle() + "/forum-attachments/", archiveId,
-				siteId, simpleForum);
+		final List<String> forumAttachmentsLoc = new ArrayList<>();
+		forumAttachmentsLoc.add(Sanitiser.sanitise(forum.getTitle()));
+		forumAttachmentsLoc.add("forum-attachments");
+		archiveAttachments(forum.getAttachments(), forumAttachmentsLoc, archiveId, siteId, simpleForum);
 		finaliseAttachmentsHtml(simpleForum);
 
 		// Now that all the topics are set, archive the forum
@@ -127,10 +129,18 @@ public class ForumsArchiver implements Archiveable {
 		simpleTopics.add(simpleTopic);
 
 		// Set up the folder structure for saving attachments and messages
-		final String folderStructure = forum.getTitle() + "/topics/" + topic.getTitle();
+		final List<String> folderStructure = new ArrayList<>();
+		folderStructure.add(Sanitiser.sanitise(forum.getTitle()));
+		folderStructure.add("topics");
+		folderStructure.add(Sanitiser.sanitise(topic.getTitle()));
+
+		// Set up the folder structure for saving topic attachments
+		final List<String> topicAttachmentsLoc = new ArrayList<>();
+		topicAttachmentsLoc.addAll(folderStructure);
+		topicAttachmentsLoc.add("topic-attachments");
 
 		// Archive the attachments for this topic
-		archiveAttachments(topic.getAttachments(), folderStructure + "/topic-attachments/", archiveId, siteId, simpleTopic);
+		archiveAttachments(topic.getAttachments(), topicAttachmentsLoc, archiveId, siteId, simpleTopic);
 		finaliseAttachmentsHtml(simpleTopic);
 
 		// Archive the messages within a topic, if we want student content
@@ -148,7 +158,7 @@ public class ForumsArchiver implements Archiveable {
 
 	/**
 	 * Archive all the messages associated with this topic
-	 * 
+	 *
 	 * @param messages
 	 * @param topic
 	 * @param simpleTopic
@@ -157,7 +167,7 @@ public class ForumsArchiver implements Archiveable {
 	 * @param siteId
 	 */
 	private void archiveMessages(final List<Message> messages, final DiscussionTopic topic, final SimpleTopic simpleTopic,
-			final String folderStructure, final String archiveId, final String siteId) {
+			final List<String> folderStructure, final String archiveId, final String siteId) {
 
 		for (final Message message : messages) {
 
@@ -179,11 +189,12 @@ public class ForumsArchiver implements Archiveable {
 				final String finalConversationHtml = Htmlifier.toHtml(conversationHtml,
 						this.archiverService.getSiteHeader(siteId, TOOL_ID));
 				this.archiverService.archiveContent(archiveId, siteId, this.toolName, finalConversationHtml.getBytes(),
-						message.getTitle() + ".html", folderStructure);
+						message.getTitle() + ".html", folderStructure.toArray(new String[folderStructure.size()]));
 
 				// Add a link of the conversation location to the SimpleTopic associated with this conversation
 				final List<String> linksToTopicConversations = simpleTopic.getConversationLinks();
-				linksToTopicConversations.add("<a href=\"./topics/" + simpleTopic.getTitle() + "/" + message.getTitle() + ".html"
+				linksToTopicConversations.add("<a href=\"./topics/" + Sanitiser.sanitise(simpleTopic.getTitle()) + "/"
+						+ Sanitiser.sanitise(message.getTitle()) + ".html"
 						+ "\">" + message.getTitle() + ".html" + "</a> ");
 				simpleTopic.setConversationLinks(linksToTopicConversations);
 			}
@@ -278,7 +289,7 @@ public class ForumsArchiver implements Archiveable {
 	 * @param archiveId
 	 * @param folderStructure
 	 */
-	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages, final String folderStructure,
+	private void setMessageReplies(final SimpleMessage simpleTopMessage, final List<Message> messages, final List<String> folderStructure,
 			final String archiveId, final String siteId, final Long topicId) {
 
 		for (final Message message : messages) {
@@ -310,14 +321,16 @@ public class ForumsArchiver implements Archiveable {
 	 * @param topicId
 	 */
 	@SuppressWarnings("unchecked")
-	private void addAttachmentsToMessage(final Message message, final SimpleMessage simpleMessage, final String folderStructure,
+	private void addAttachmentsToMessage(final Message message, final SimpleMessage simpleMessage, final List<String> folderStructure,
 			final String archiveId, final String siteId, final Long topicId) {
 		final Topic topicWithMessageAttachments = this.forumManager.getTopicByIdWithMessagesAndAttachments(topicId);
 		setAttachments(message, topicWithMessageAttachments.getMessages());
 
-		archiveAttachments(message.getAttachments(),
-				folderStructure + "/topic-attachments/message-attachments/message-" + message.getId() + "/", archiveId, siteId,
-				simpleMessage);
+		final List<String> messageAttachmentsLoc = new ArrayList<>();
+		messageAttachmentsLoc.addAll(folderStructure);
+		messageAttachmentsLoc.add("message-attachments");
+		messageAttachmentsLoc.add("message-" + message.getId());
+		archiveAttachments(message.getAttachments(), messageAttachmentsLoc, archiveId, siteId, simpleMessage);
 		finaliseAttachmentsHtml(simpleMessage);
 	}
 
@@ -329,15 +342,15 @@ public class ForumsArchiver implements Archiveable {
 	 * @param siteId
 	 * @param simpleArchiveItem the object that the attachmentHtml needs to be updated for (SimpleMessage, SimpleTopic or SimpleForum)
 	 */
-	private void archiveAttachments(final List<Attachment> attachments, final String subdir,
+	private void archiveAttachments(final List<Attachment> attachments, final List<String> subdirs,
 			final String archiveId, final String siteId, final SimpleArchiveItem simpleArchiveItem) {
 		for (final Attachment attachment : attachments) {
 			try {
 				final byte[] attachmentBytes = this.contentHostingService.getResource(attachment.getAttachmentId()).getContent();
 				this.archiverService.archiveContent(archiveId, siteId, this.toolName, attachmentBytes,
-						attachment.getAttachmentName(), subdir);
+						attachment.getAttachmentName(), subdirs.toArray(new String[subdirs.size()]));
 				// update the attachments HTML string, so there is a link to this attachment in the html file
-				addToAttachmentsHtml(subdir, attachment.getAttachmentName(), simpleArchiveItem);
+				addToAttachmentsHtml(subdirs, attachment.getAttachmentName(), simpleArchiveItem);
 			} catch (ServerOverloadException | IdUnusedException | TypeException | PermissionException e) {
 				log.error("Error getting attachment with ID: ", attachment.getId());
 				continue;
@@ -372,15 +385,23 @@ public class ForumsArchiver implements Archiveable {
 	 * @param attachmentName
 	 * @param simpleArchiveItem
 	 */
-	private void addToAttachmentsHtml(final String attachmentLocation, final String attachmentName,
+	private void addToAttachmentsHtml(final List<String> attachmentLocation, final String attachmentName,
 			final SimpleArchiveItem simpleArchiveItem) {
 
 		String attachmentHyperlink;
+
+		String fullDir = "";
+
+		for (final String folder : attachmentLocation) {
+			fullDir += folder + "/";
+		}
+		fullDir += Sanitiser.sanitise(attachmentName);
+
 		if (simpleArchiveItem instanceof SimpleMessage) {
-			attachmentHyperlink = "<li><a href=\"../../../" + attachmentLocation + attachmentName + "\">" + attachmentName
+			attachmentHyperlink = "<li><a href=\"../../../" + fullDir + "\">" + attachmentName
 					+ "</a></li>";
 		} else {
-			attachmentHyperlink = "<li><a href=\"../" + attachmentLocation + attachmentName + "\">" + attachmentName
+			attachmentHyperlink = "<li><a href=\"../" + fullDir + "\">" + attachmentName
 					+ "</a></li>";
 		}
 
