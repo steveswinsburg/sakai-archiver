@@ -313,16 +313,19 @@ public class ArchiverServiceImpl implements ArchiverService {
 	/**
 	 * Build the index page
 	 *
-	 * @param entity
+	 * @param entity with archive details
 	 */
-	private void buildIndex(final String archivePath) {
+	private void buildIndex(final ArchiveEntity entity) {
 
-		final IndexBuilder indexBuilder = new IndexBuilder(archivePath);
+		// this includes the archiveId so that it is excluded from the index directories
+		final String indexBase = buildPath(entity.getArchivePath(), entity.getId());
+
+		final IndexBuilder indexBuilder = new IndexBuilder(indexBase, getSiteTitle(entity.getSiteId()));
 		final String indexHtml = indexBuilder.build();
 
 		log.debug("Writing index.html: {}", indexHtml);
 
-		final String indexPath = buildPath(archivePath, "index.html");
+		final String indexPath = buildPath(entity.getArchivePath(), "index.html");
 		writeFile(indexHtml.getBytes(), indexPath);
 	}
 
@@ -338,11 +341,10 @@ public class ArchiverServiceImpl implements ArchiverService {
 	 */
 	private void finalise(final ArchiveEntity entity, final Status status) {
 
-		buildIndex(entity.getArchivePath());
-
-		final String zipName = sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
+		buildIndex(entity);
 
 		// zips the archive directory
+		final String zipName = sanitise(getSiteTitle(entity.getSiteId()) + "-" + entity.getId());
 		final File archiveDirectory = new File(entity.getArchivePath());
 		try {
 			final String zipPath = Zipper.zipDirectory(archiveDirectory, zipName);

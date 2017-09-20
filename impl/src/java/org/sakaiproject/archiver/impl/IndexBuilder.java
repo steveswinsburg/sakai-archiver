@@ -2,23 +2,27 @@ package org.sakaiproject.archiver.impl;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Manages the assembly of the top level index page for an archive path
  *
- * Note that this uses jsTree library from https://www.jstree.com/. Please see that site for applicable licenses
+ * Note that this uses jsTree library from https://www.jstree.com/. Please see that site for applicable licenses.
  */
 public class IndexBuilder {
 
-	StringBuilder sb = new StringBuilder();
-	File archiveBase;
+	private final StringBuilder sb = new StringBuilder();
+	private final File archiveBase;
+	private final String title;
 
 	/**
 	 * Initialise the {@link IndexBuilder}
 	 *
 	 * @param path root dir of the archive
 	 */
-	public IndexBuilder(final String path) {
+	public IndexBuilder(final String path, final String title) {
 		this.archiveBase = new File(path);
+		this.title = title;
 	}
 
 	/**
@@ -45,7 +49,7 @@ public class IndexBuilder {
 
 		this.sb.append("<li>");
 		this.sb.append(folder.getName());
-		this.sb.append("<ul">");
+		this.sb.append("<ul>");
 		for (final File file : folder.listFiles()) {
 			if (file.isDirectory()) {
 				renderDirectory(file);
@@ -65,8 +69,9 @@ public class IndexBuilder {
 	 */
 	private void renderFile(final File file) {
 		this.sb.append("<li>");
+		this.sb.append("<a href=\"" + getRelativePath(file) + "\">");
 		this.sb.append(file.getName());
-		this.sb.append("</li>");
+		this.sb.append("</a></li>");
 	}
 
 	private void getStart() {
@@ -74,6 +79,7 @@ public class IndexBuilder {
 		this.sb.append("<!DOCTYPE html>");
 		this.sb.append("<html lang=\"en\">");
 		this.sb.append("<head>");
+		this.sb.append("<title>" + this.title + "</title>");
 		this.sb.append("<meta charset=\"utf-8\">");
 		this.sb.append("<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">");
 		this.sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -86,16 +92,28 @@ public class IndexBuilder {
 		this.sb.append("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
 		this.sb.append("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js\"></script>");
 
-		this.sb.append("<script>$('#jstree').jstree();</script>");
+		this.sb.append("<script>$('#tree').jstree();</script>");
 
 		this.sb.append("</head>");
 		this.sb.append("<body>");
-		this.sb.append("<div class=\"container\" id=\"tree\">");
+		this.sb.append("<div class=\"container\">");
+		this.sb.append("<h1>" + this.title + "</h1>");
+		this.sb.append("<div id=\"tree\">");
 		this.sb.append("<ul>");
 	}
 
 	private void getEnd() {
-		this.sb.append("</ul></div></body></html>");
+		this.sb.append("</ul></div></div></body></html>");
+	}
+
+	/**
+	 * Determines a relative path to the file from the top level index.html file
+	 *
+	 * @param file
+	 * @return relative path
+	 */
+	private String getRelativePath(final File file) {
+		return StringUtils.removeStart(StringUtils.removeStart(file.getAbsolutePath(), this.archiveBase.getAbsolutePath()), "/");
 	}
 
 }
