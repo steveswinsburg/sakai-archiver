@@ -57,7 +57,7 @@ public class SyllabusArchiver implements Archiveable {
 			return;
 		}
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		// Get the data
 		final Set<SyllabusData> syllabusSet = this.syllabusManager.getSyllabiForSyllabusItem(siteSyllabus);
@@ -97,7 +97,7 @@ public class SyllabusArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

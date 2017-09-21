@@ -55,7 +55,7 @@ public class WebContentArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return TOOL_NAME;
 	}
 

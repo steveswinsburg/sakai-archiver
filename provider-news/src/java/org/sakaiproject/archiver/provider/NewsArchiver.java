@@ -29,14 +29,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsArchiver implements Archiveable {
 
-	private static final String TOOL_ID = "sakai.simple.rss";
+	private static final String NEWS_PORTLET_ID = "sakai.simple.rss";
+	private static final String NEWS_TOOL_ID = "sakai.news";
 
 	public void init() {
-		ArchiverRegistry.getInstance().register(TOOL_ID, this);
+		ArchiverRegistry.getInstance().register(NEWS_PORTLET_ID, this);
+		ArchiverRegistry.getInstance().register(NEWS_TOOL_ID, this);
 	}
 
 	public void destroy() {
-		ArchiverRegistry.getInstance().unregister(TOOL_ID);
+		ArchiverRegistry.getInstance().unregister(NEWS_PORTLET_ID);
+		ArchiverRegistry.getInstance().unregister(NEWS_TOOL_ID);
 	}
 
 	@Setter
@@ -48,14 +51,14 @@ public class NewsArchiver implements Archiveable {
 	@Override
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 
-		final String toolName = getToolName(siteId);
-
-		final Set<ToolConfiguration> tools = getTools(siteId, TOOL_ID);
+		final Set<ToolConfiguration> tools = getTools(siteId, NEWS_PORTLET_ID, NEWS_TOOL_ID);
 		tools.forEach(t -> {
-			final String filename = t.getTitle();
 
+			final String toolId = t.getToolId();
+			final String toolName = getToolName(siteId, toolId);
+			final String filename = t.getTitle();
 			final String htmlBody = getAsHtml(getNewsData(t));
-			final String html = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+			final String html = Htmlifier.toHtml(htmlBody, this.archiverService.getSiteHeader(siteId, toolId));
 			log.debug("news html: " + html);
 			this.archiverService.archiveContent(archiveId, siteId, toolName, html.getBytes(), filename + ".html");
 
@@ -64,8 +67,8 @@ public class NewsArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
-		return this.archiverService.getToolName(siteId, TOOL_ID);
+	public String getToolName(final String siteId, final String toolId) {
+		return this.archiverService.getToolName(siteId, toolId);
 	}
 
 	/**
@@ -95,14 +98,26 @@ public class NewsArchiver implements Archiveable {
 	 * @return
 	 */
 	private NewsData getNewsData(final ToolConfiguration tool) {
-		final String url = decode(tool.getPlacementConfig().getProperty("javax.portlet-feed_url"));
-		final String title = decode(tool.getPlacementConfig().getProperty("javax.portlet-portlet_title"));
-		final String maxItems = tool.getPlacementConfig().getProperty("javax.portlet-max_items");
+
+		String title = null;
+		String url = null;
+
+		switch (tool.getToolId()) {
+			case NEWS_PORTLET_ID:
+				url = decode(tool.getPlacementConfig().getProperty("javax.portlet-feed_url"));
+				title = decode(tool.getPlacementConfig().getProperty("javax.portlet-portlet_title"));
+				break;
+			case NEWS_TOOL_ID:
+				url = decode(tool.getPlacementConfig().getProperty("channel-url"));
+				title = tool.getTitle();
+				break;
+			default:
+				log.error("Invalid toolid {}, news archive may be incomplete", tool.getToolId());
+		}
 
 		final NewsData newsData = new NewsData();
 		newsData.setUrl(url);
 		newsData.setTitle(title);
-		newsData.setMaxItems(maxItems);
 
 		return newsData;
 	}
@@ -156,10 +171,6 @@ public class NewsArchiver implements Archiveable {
 		@Getter
 		@Setter
 		private String title;
-
-		@Getter
-		@Setter
-		private String maxItems;
 
 	}
 }
