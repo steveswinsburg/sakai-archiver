@@ -57,7 +57,7 @@ public class ForumsArchiver implements Archiveable {
 
 		final List<DiscussionForum> forums = this.forumManager.getDiscussionForumsWithTopics(siteId);
 
-		this.toolName = getToolName(siteId);
+		this.toolName = getToolName(siteId, TOOL_ID);
 
 		for (final DiscussionForum forum : forums) {
 			// Archive the forum, including topics (and messages if includeStudentContent is true)
@@ -66,7 +66,7 @@ public class ForumsArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

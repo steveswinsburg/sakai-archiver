@@ -59,7 +59,7 @@ public class HomeArchiver implements Archiveable {
 			return;
 		}
 
-		this.toolName = getToolName(siteId);
+		this.toolName = getToolName(siteId, TOOL_ID);
 
 		// get the html for the home frame
 		final String description = site.getHtmlDescription();
@@ -76,7 +76,7 @@ public class HomeArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

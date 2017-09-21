@@ -78,7 +78,7 @@ public class AssignmentsArchiver implements Archiveable {
 		// List to hold the names of the assignments for this site
 		final List<String> assignmentNames = new ArrayList<>();
 
-		this.toolName = getToolName(siteId);
+		this.toolName = getToolName(siteId, TOOL_ID);
 
 		for (final Assignment assignment : assignments) {
 
@@ -112,7 +112,7 @@ public class AssignmentsArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

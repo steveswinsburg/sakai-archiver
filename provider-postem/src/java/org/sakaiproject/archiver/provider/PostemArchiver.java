@@ -59,7 +59,7 @@ public class PostemArchiver implements Archiveable {
 		final List<Gradebook> gradebooks = new ArrayList<>(
 				this.postemGradebookManager.getGradebooksByContext(siteId, Gradebook.SORT_BY_TITLE, true));
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		gradebooks.forEach(gradebook -> {
 			final byte[] fileContents = getFileContents(gradebook);
@@ -74,7 +74,7 @@ public class PostemArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

@@ -65,7 +65,7 @@ public class DropboxArchiver implements Archiveable {
 		final List<String> studentUuids = getStudentUuids(siteId);
 		final Map<String, String> studentNames = getUserDisplayNames(studentUuids);
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		studentUuids.forEach(studentUuid -> {
 			final String collectionId = getDropBoxCollectionId(siteId, studentUuid);
@@ -91,7 +91,7 @@ public class DropboxArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
