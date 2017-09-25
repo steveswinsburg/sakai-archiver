@@ -62,6 +62,8 @@ public class AnnouncementsArchiver implements Archiveable {
 			final List<Message> announcements = new ArrayList<>();
 			announcements.addAll(this.announcementService.getMessages(channelRef, null, 0, true, false, false));
 
+			final List<String> savedFiles = new ArrayList<>();
+
 			// Go through each announcement and save the data we are interested in
 			for (final Message message : announcements) {
 				this.attachmentsHtml = "";
@@ -80,14 +82,24 @@ public class AnnouncementsArchiver implements Archiveable {
 				this.archiverService.archiveContent(archiveId, siteId, toolName, fileContents.getBytes(),
 						announcement.getAnnouncementHeader().getSubject() + ".html");
 
+				// Keep track of the announcements being saved, for the index
+				savedFiles.add(Sanitiser.sanitise(announcement.getAnnouncementHeader().getSubject() + ".html"));
 			}
+
+			// If there is more than one saved file, we need an index
+			if (savedFiles.size() > 1) {
+				final String indexHtml = getIndexHtml(savedFiles);
+				final String finalIndexHtml = Htmlifier.toHtml(indexHtml, this.archiverService.getSiteHeader(siteId, TOOL_ID));
+				this.archiverService.archiveContent(archiveId, siteId, toolName, finalIndexHtml.getBytes(), "Announcements_List.html");
+			}
+
 		} catch (final PermissionException e) {
 			log.error("Failed to get announcements", e);
 		}
 	}
 
 	@Override
-	public String getToolName(final String siteId, String toolId) {
+	public String getToolName(final String siteId, final String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
@@ -99,6 +111,26 @@ public class AnnouncementsArchiver implements Archiveable {
 				+ String.format(" (%s) ", announcement.getHeader().getDate().getDisplay()) + "</p");
 		sb.append("<p>" + announcement.getBody() + "</p>");
 		sb.append("<p><ul style=\"list-style: none;padding-left:0;\">" + this.attachmentsHtml + "</ul></p>");
+
+		return sb.toString();
+	}
+
+	/**
+	 * Construct the announcements index html string
+	 *
+	 * @param savedFiles a list of saved files to be listed as links
+	 * @return indexHtml
+	 */
+	private String getIndexHtml(final List<String> savedFiles) {
+		final StringBuilder sb = new StringBuilder();
+
+		sb.append("<p><ol>");
+
+		for (final String fileName : savedFiles) {
+			sb.append("<li><a href=\"./" + fileName + "\">" + fileName + "</a></li>");
+		}
+
+		sb.append("</ol></p>");
 
 		return sb.toString();
 	}
