@@ -28,8 +28,9 @@ public interface Archiveable {
 	 * Allows the tool to provide a default tool name or look it up from the archiver service for the given site
 	 *
 	 * @param siteId the id of the site that is being archived
+	 * @param toolId the id of the tool so that archivers with multiple placements can look up the various tool names
 	 * @return the name of the tool
 	 */
-	String getToolName(String siteId);
+	String getToolName(String siteId, String toolId);
 
 }

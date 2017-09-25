@@ -78,7 +78,7 @@ public class ArchiverRegistryTest {
 		}
 
 		@Override
-		public String getToolName(final String siteId) {
+		public String getToolName(final String siteId, String toolId) {
 			return "";
 		}
 

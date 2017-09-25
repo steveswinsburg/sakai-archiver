@@ -55,7 +55,7 @@ public class AnnouncementsArchiver implements Archiveable {
 
 		try {
 
-			final String toolName = getToolName(siteId);
+			final String toolName = getToolName(siteId, TOOL_ID);
 
 			// Get the announcements for this site
 			final String channelRef = this.announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
@@ -87,7 +87,7 @@ public class AnnouncementsArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

@@ -43,7 +43,7 @@ public class Roster2Archiver implements Archiveable {
 	public void archive(final String archiveId, final String siteId, final boolean includeStudentContent) {
 		final byte[] rosterExport = getRosterExport(siteId);
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		if (ArrayUtils.isNotEmpty(rosterExport)) {
 			this.archiverService.archiveContent(archiveId, siteId, toolName, rosterExport, "roster-export.xlsx");
@@ -51,7 +51,7 @@ public class Roster2Archiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

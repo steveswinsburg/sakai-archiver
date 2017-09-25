@@ -123,7 +123,7 @@ public class GradebookArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, final String toolId) {
 		// multiple tools here, use the hardcoded version. Could be swapped for just one of the toolIds...
 		return TOOL_NAME;
 	}

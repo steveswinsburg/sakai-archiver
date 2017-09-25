@@ -91,7 +91,7 @@ public class YalePhotosArchiver implements Archiveable {
 			return;
 		}
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		// export the photos
 		final List<String> studentUuids = getStudentUuids(siteId);
@@ -206,7 +206,7 @@ public class YalePhotosArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

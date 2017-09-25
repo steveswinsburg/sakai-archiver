@@ -1,14 +1,14 @@
 # sakai-archiver
-An archiving app for Sakai which can be used as a snapshot of a course. 
-Instructors can optionally choose to include all student generated content in the archive. 
+An archiving app for Sakai which can be used as a snapshot of a course.
+Instructors can optionally choose to include all student generated content in the archive.
 
 ## Configuration
 
-In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created. 
+In `sakai.properties`, set the list of `archiver.tools` and the `archiver.path` which is where archives will be created.
 
 For example:
 ```
-archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool,sakai.simple.rss,sakai.site.roster2
+archiver.tools=sakai.syllabus,sakai.gradebook.tool,sakai.gradebookng,sakai.resources,sakai.assignment.grades,sakai.forums,sakai.dropbox,sakai.announcements,sakai.iframe.site,sakai.postem,sakai.iframe.annotatedurl,sakai.chat,sakai.samigo.tool,sakai.simple.rss,sakai.news,sakai.site.roster2
 archiver.path = /Users/steve/sakai/archives/
 ```
 

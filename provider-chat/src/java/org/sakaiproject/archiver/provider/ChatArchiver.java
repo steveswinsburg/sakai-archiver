@@ -55,7 +55,7 @@ public class ChatArchiver implements Archiveable {
 
 		final List<ChatChannel> chatChannels = this.chatManager.getContextChannels(siteId, true);
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		for (final ChatChannel chatChannel : chatChannels) {
 
@@ -104,7 +104,7 @@ public class ChatArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 

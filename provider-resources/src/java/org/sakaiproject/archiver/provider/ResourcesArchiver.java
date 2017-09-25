@@ -56,7 +56,7 @@ public class ResourcesArchiver implements Archiveable {
 		final String collectionId = getSiteCollectionId(siteId);
 		final List<ContentResource> resources = this.contentHostingService.getAllResources(collectionId);
 
-		final String toolName = getToolName(siteId);
+		final String toolName = getToolName(siteId, TOOL_ID);
 
 		// TODO do we care about controlling student uploaded files here?
 		// List<String> studentUuids = this.getStudentUuids(siteId);
@@ -84,7 +84,7 @@ public class ResourcesArchiver implements Archiveable {
 	}
 
 	@Override
-	public String getToolName(final String siteId) {
+	public String getToolName(final String siteId, String toolId) {
 		return this.archiverService.getToolName(siteId, TOOL_ID);
 	}
 
